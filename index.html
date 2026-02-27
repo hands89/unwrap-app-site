@@ -3,227 +3,684 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content="Unwrap helps you understand what’s in your food — simple, non-judgemental ingredient insights." />
-  <title>Unwrap</title>
+  <meta name="description" content="Unwrap helps you understand what's in your food. Scan a barcode, see the ingredients, find simpler swaps. No guilt, no lectures." />
+  <title>Unwrap — Understand what's in your food</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet">
 
   <style>
-    :root{
-      --bg:#0b0d10;
-      --card:#10141a;
-      --text:#e8eef6;
-      --muted:#a7b4c6;
-      --line:rgba(255,255,255,.10);
-      --btn:#ffffff;
-      --btnText:#0b0d10;
-      --soft:rgba(255,255,255,.06);
-      --radius:18px;
-      --shadow: 0 16px 50px rgba(0,0,0,.45);
-      --max: 980px;
+    :root {
+      --cream: #F5F0E8;
+      --cream-deep: #EDE7DB;
+      --white: #FFFFFF;
+      --green-dark: #2D5F3E;
+      --green-mid: #3A7D44;
+      --green-light: #7CB342;
+      --green-leaf: #8BC34A;
+      --green-pale: #EBF2E7;
+      --orange-score: #E5A230;
+      --red-flag: #D4654B;
+      --text: #2C2C2C;
+      --text-muted: #6B6558;
+      --text-light: #9B9384;
+      --border: rgba(44, 95, 62, 0.10);
+      --shadow-sm: 0 2px 8px rgba(44, 44, 44, 0.05);
+      --shadow-md: 0 8px 30px rgba(44, 44, 44, 0.07);
+      --shadow-lg: 0 20px 60px rgba(44, 44, 44, 0.09);
+      --radius: 20px;
+      --radius-sm: 14px;
+      --max: 940px;
     }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-      background:
-        radial-gradient(900px 500px at 20% -10%, rgba(255,255,255,.08), transparent 60%),
-        radial-gradient(900px 500px at 90% 0%, rgba(255,255,255,.06), transparent 60%),
-        var(--bg);
-      color:var(--text);
-      line-height:1.5;
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
     }
-    a{color:inherit; text-decoration:none}
-    .wrap{max-width:var(--max); margin:0 auto; padding:28px 18px 60px}
-    header{
-      display:flex; align-items:center; justify-content:space-between;
-      gap:14px; padding:10px 4px 22px;
+
+    a { color: inherit; text-decoration: none; }
+
+    .wrap {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 20px;
     }
-    .brand{
-      display:flex; align-items:center; gap:10px;
-      font-weight:700; letter-spacing:.2px;
+
+    /* ── Header ── */
+    header {
+      padding: 18px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
-    .logo{
-      width:34px; height:34px; border-radius:10px;
-      background: linear-gradient(135deg, rgba(255,255,255,.22), rgba(255,255,255,.06));
-      border:1px solid var(--line);
-      display:grid; place-items:center;
-      box-shadow: 0 8px 24px rgba(0,0,0,.25);
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-    .logo span{font-size:14px; opacity:.9}
-    .nav{
-      display:flex; gap:14px; color:var(--muted); font-size:14px;
+
+    .brand-logo { width: 34px; height: 34px; object-fit: contain; }
+
+    .brand-name {
+      font-weight: 700;
+      font-size: 19px;
+      color: var(--text);
+      letter-spacing: -0.3px;
     }
-    .nav a{padding:8px 10px; border-radius:12px}
-    .nav a:hover{background:var(--soft); color:var(--text)}
-    .hero{
-      margin-top:12px;
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      padding:34px 22px;
-      box-shadow: var(--shadow);
-      overflow:hidden;
-      position:relative;
+
+    .nav { display: flex; gap: 2px; }
+
+    .nav a {
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
     }
-    .hero:before{
-      content:"";
-      position:absolute; inset:-2px;
-      background: radial-gradient(600px 280px at 20% 0%, rgba(255,255,255,.10), transparent 60%);
-      pointer-events:none;
+
+    .nav a:hover {
+      background: rgba(44, 95, 62, 0.06);
+      color: var(--green-dark);
     }
-    .grid{
-      display:grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap:22px;
-      position:relative;
+
+    /* ── Hero ── */
+    .hero {
+      padding: 56px 0 36px;
+      text-align: center;
     }
-    h1{
-      margin:0 0 10px;
-      font-size:44px;
-      line-height:1.05;
-      letter-spacing:-.6px;
+
+    .hero-logo {
+      width: 82px;
+      height: 82px;
+      margin: 0 auto 26px;
+      background: var(--white);
+      border-radius: 22px;
+      box-shadow: var(--shadow-md);
+      display: grid;
+      place-items: center;
     }
-    .sub{
-      margin:0 0 18px;
-      color:var(--muted);
-      font-size:16px;
-      max-width:52ch;
+
+    .hero-logo img { width: 54px; height: 54px; object-fit: contain; }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: clamp(30px, 5.2vw, 48px);
+      line-height: 1.12;
+      letter-spacing: -0.4px;
+      color: var(--text);
+      margin-bottom: 16px;
     }
-    .ctaRow{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
-    .btn{
-      display:inline-flex; align-items:center; justify-content:center;
-      padding:12px 16px;
-      border-radius:14px;
-      border:1px solid var(--line);
-      background:var(--soft);
-      color:var(--text);
-      font-weight:600;
-      transition: transform .08s ease, background .2s ease;
+
+    h1 .green { color: var(--green-dark); }
+
+    .hero-sub {
+      font-size: 17px;
+      color: var(--text-muted);
+      max-width: 490px;
+      margin: 0 auto 30px;
+      line-height: 1.65;
     }
-    .btn:hover{background:rgba(255,255,255,.10)}
-    .btn.primary{
-      background:var(--btn);
-      color:var(--btnText);
-      border-color:transparent;
+
+    .cta-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
     }
-    .btn.primary:hover{transform: translateY(-1px)}
-    .fine{
-      margin-top:10px;
-      color:var(--muted);
-      font-size:13px;
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 22px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 15px;
+      border: 2px solid transparent;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      font-family: inherit;
     }
-    .panel{
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:16px 16px 14px;
-      background: rgba(0,0,0,.20);
+
+    .btn-primary {
+      background: var(--green-dark);
+      color: var(--white);
     }
-    .panel h3{margin:0 0 8px; font-size:14px; color:var(--muted); font-weight:600}
-    .bullets{margin:0; padding-left:16px; color:var(--text)}
-    .bullets li{margin:7px 0}
-    .bullets span{color:var(--muted)}
-    .sections{
-      display:grid;
+
+    .btn-primary:hover {
+      background: #245133;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--green-dark);
+      border-color: var(--green-dark);
+    }
+
+    .btn-outline:hover {
+      background: rgba(44, 95, 62, 0.06);
+    }
+
+    .btn-outline[aria-disabled="true"] {
+      opacity: 0.4;
+      cursor: default;
+      border-color: var(--text-light);
+      color: var(--text-light);
+    }
+
+    .btn-outline[aria-disabled="true"]:hover {
+      background: transparent;
+    }
+
+    .fine {
+      font-size: 13px;
+      color: var(--text-light);
+    }
+
+    /* ── Tagline ── */
+    .tagline-strip {
+      text-align: center;
+      padding: 28px 0 36px;
+    }
+
+    .tagline-text {
+      display: inline-block;
+      font-size: 15px;
+      color: var(--text-muted);
+      padding: 10px 22px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      box-shadow: var(--shadow-sm);
+      letter-spacing: 0.2px;
+    }
+
+    /* ── Features ── */
+    .features {
+      display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap:14px;
-      margin-top:16px;
+      gap: 14px;
+      padding-bottom: 48px;
     }
-    .card{
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.03);
-      border-radius:16px;
-      padding:14px;
-      min-height:110px;
+
+    .feature {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 20px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    .card h4{margin:0 0 6px; font-size:14px}
-    .card p{margin:0; color:var(--muted); font-size:14px}
-    footer{
-      margin-top:26px;
-      display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap;
-      color:var(--muted);
-      font-size:13px;
-      padding:0 4px;
+
+    .feature:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
     }
-    .social{display:flex; gap:10px; flex-wrap:wrap}
-    .chip{
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.03);
-      padding:8px 10px;
-      border-radius:999px;
+
+    .feature-icon {
+      width: 38px;
+      height: 38px;
+      background: var(--green-pale);
+      border-radius: 11px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 14px;
     }
-    .chip:hover{background:rgba(255,255,255,.08); color:var(--text)}
-    @media (max-width: 860px){
-      .grid{grid-template-columns: 1fr}
-      h1{font-size:38px}
+
+    .feature-icon svg {
+      width: 19px;
+      height: 19px;
+      color: var(--green-dark);
     }
+
+    .feature h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .feature p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    /* ── How section ── */
+    .section {
+      padding: 48px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .section-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.4px;
+      color: var(--green-mid);
+      margin-bottom: 6px;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: clamp(22px, 3.5vw, 32px);
+      margin-bottom: 28px;
+      letter-spacing: -0.2px;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .step {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .step-num {
+      width: 30px;
+      height: 30px;
+      background: var(--green-dark);
+      color: var(--white);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 14px;
+    }
+
+    .step h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .step p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    /* ── Ethos ── */
+    .ethos-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px 28px;
+      box-shadow: var(--shadow-sm);
+      max-width: 640px;
+    }
+
+    .ethos-card p {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin-bottom: 14px;
+    }
+
+    .ethos-card p:last-child { margin-bottom: 0; }
+
+    .ethos-card strong { color: var(--text); }
+
+    /* ── Score demo ── */
+    .demo-section {
+      padding: 48px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .demo-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .demo-product {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 22px;
+      box-shadow: var(--shadow-sm);
+      text-align: center;
+    }
+
+    .score-circle {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      display: inline-grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 22px;
+      color: var(--white);
+      margin-bottom: 10px;
+    }
+
+    .score-high { background: var(--orange-score); }
+    .score-low { background: var(--green-mid); }
+
+    .demo-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 4px;
+    }
+
+    .demo-label.moderate { color: var(--orange-score); }
+    .demo-label.low { color: var(--green-mid); }
+
+    .demo-product h4 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .demo-brand {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-bottom: 10px;
+    }
+
+    .demo-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      justify-content: center;
+    }
+
+    .pill {
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-weight: 500;
+    }
+
+    .pill-flag {
+      background: #FCE8E4;
+      color: var(--red-flag);
+      border: 1px solid rgba(212, 101, 75, 0.15);
+    }
+
+    .pill-ok {
+      background: #F6F3EE;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .demo-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--green-dark);
+      font-size: 13px;
+      font-weight: 600;
+      gap: 6px;
+      padding: 14px 0;
+    }
+
+    .demo-arrow svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 22px 0 36px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .footer-left {
+      font-size: 13px;
+      color: var(--text-light);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 6px;
+    }
+
+    .chip {
+      display: inline-flex;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      background: var(--white);
+      transition: all 0.15s ease;
+    }
+
+    .chip:hover {
+      background: var(--green-pale);
+      color: var(--green-dark);
+      border-color: rgba(44, 95, 62, 0.18);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 720px) {
+      .features, .steps { grid-template-columns: 1fr; }
+      .demo-grid { grid-template-columns: 1fr; }
+      .hero { padding: 36px 0 20px; }
+      .ethos-card { padding: 22px 18px; }
+      .demo-arrow { transform: rotate(90deg); }
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero { animation: fadeUp 0.5s ease both; }
+    .tagline-strip { animation: fadeUp 0.5s ease 0.05s both; }
+    .features { animation: fadeUp 0.5s ease 0.1s both; }
+    .section:nth-of-type(1) { animation: fadeUp 0.5s ease 0.15s both; }
+    .section:nth-of-type(2) { animation: fadeUp 0.5s ease 0.2s both; }
+    .section:nth-of-type(3) { animation: fadeUp 0.5s ease 0.25s both; }
   </style>
 </head>
 
 <body>
   <div class="wrap">
     <header>
-      <div class="brand">
-        <div class="logo" aria-hidden="true"><span>U</span></div>
-        <div>Unwrap</div>
-      </div>
+      <a href="/" class="brand">
+        <img src="/logo.png" alt="Unwrap" class="brand-logo">
+        <span class="brand-name">Unwrap</span>
+      </a>
+
       <nav class="nav">
         <a href="/privacy.html">Privacy</a>
         <a href="/support.html">Support</a>
       </nav>
     </header>
 
-    <main class="hero">
-      <div class="grid">
-        <section>
-          <h1>Understand what’s in your food.</h1>
-          <p class="sub">
-            Unwrap gives simple, non-judgemental ingredient insights to help you make informed choices —
-            without guilt, hype, or scare tactics.
-          </p>
+    <main>
+      <!-- Hero -->
+      <section class="hero">
+        <div class="hero-logo" aria-hidden="true">
+          <img src="/logo.png" alt="" style="width:54px;height:54px;object-fit:contain;">
+        </div>
 
-          <div class="ctaRow">
-            <a class="btn primary" href="APP_STORE_URL_HERE" target="_blank" rel="noopener">Download on iPhone</a>
-            <a class="btn" href="#" onclick="return false;" aria-disabled="true">Android coming soon</a>
-          </div>
+        <h1>Understand what's<br><span class="green">really</span> in your food.</h1>
 
-          <div class="fine">
-            UK launch. Android version will follow once testing is ready.
-          </div>
-        </section>
+        <p class="hero-sub">
+          Scan a barcode. See every ingredient in plain English.
+          Find simpler swaps — without guilt, hype, or scare tactics.
+        </p>
 
-        <aside class="panel">
-          <h3>What Unwrap does</h3>
-          <ul class="bullets">
-            <li>Scan products <span>to see ingredient-based insights</span></li>
-            <li>Unwrap receipts <span>to review what you actually bought</span></li>
-            <li>Suggest swaps <span>when there’s a clear win</span></li>
-            <li>Keep it human <span>non-judgemental, education-led</span></li>
-          </ul>
-        </aside>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="https://apps.apple.com/app/unwrap-food/id6740217785" target="_blank" rel="noopener">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+            Download on iPhone
+          </a>
+          <span class="btn btn-outline" aria-disabled="true">Android coming soon</span>
+        </div>
+
+        <p class="fine">Free to scan. UK launch. Available on the App Store.</p>
+      </section>
+
+      <!-- Tagline -->
+      <div class="tagline-strip">
+        <span class="tagline-text">No guilt. No lectures. Just ingredients in plain English.</span>
       </div>
 
-      <section class="sections" aria-label="Key points">
-        <div class="card">
-          <h4>Non-judgemental</h4>
-          <p>More clarity, more agency. No moralising.</p>
+      <!-- Features -->
+      <section class="features" aria-label="What Unwrap does">
+        <div class="feature">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+              <path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
+              <line x1="7" y1="12" x2="17" y2="12"/>
+            </svg>
+          </div>
+          <h3>Scan any product</h3>
+          <p>Point at a barcode. See every ingredient, with clear explanations of the ones worth knowing about.</p>
         </div>
-        <div class="card">
-          <h4>Practical</h4>
-          <p>Designed for time-poor households, not perfection.</p>
+
+        <div class="feature">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <polyline points="17 1 21 5 17 9"/>
+              <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+              <polyline points="7 23 3 19 7 15"/>
+              <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+            </svg>
+          </div>
+          <h3>Find simpler swaps</h3>
+          <p>Browse products with fewer processed ingredients in the same category, ranked by score and value.</p>
         </div>
-        <div class="card">
-          <h4>Transparent</h4>
-          <p>Clear language. No hidden curation or fear-mongering.</p>
+
+        <div class="feature">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="9" y1="15" x2="15" y2="15"/>
+            </svg>
+          </div>
+          <h3>Unwrap receipts</h3>
+          <p>Snap a supermarket receipt to get a quick overview of your whole shop — no barcode needed.</p>
+        </div>
+      </section>
+
+      <!-- Score demo -->
+      <section class="section demo-section">
+        <div class="section-label">How scoring works</div>
+        <h2 class="section-title">A simple count, not a verdict.</h2>
+
+        <div class="demo-grid">
+          <div class="demo-product">
+            <div class="score-circle score-high">6</div>
+            <div class="demo-label moderate">Moderate UPF</div>
+            <h4>Real Mayo</h4>
+            <div class="demo-brand">Bramwells</div>
+            <div class="demo-pills">
+              <span class="pill pill-flag">Rapeseed Oil</span>
+              <span class="pill pill-flag">Stabiliser</span>
+              <span class="pill pill-flag">Xanthan Gum</span>
+              <span class="pill pill-ok">Water</span>
+              <span class="pill pill-ok">Egg Yolk</span>
+              <span class="pill pill-ok">Salt</span>
+            </div>
+          </div>
+
+          <div class="demo-product">
+            <div class="score-circle score-low">1</div>
+            <div class="demo-label low">Low UPF</div>
+            <h4>All Natural Avocado Oil Mayo</h4>
+            <div class="demo-brand">Dr Wills</div>
+            <div class="demo-pills">
+              <span class="pill pill-ok">Avocado Oil</span>
+              <span class="pill pill-ok">Egg Yolk</span>
+              <span class="pill pill-ok">Lemon Juice</span>
+              <span class="pill pill-ok">Mustard</span>
+              <span class="pill pill-ok">Salt</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="demo-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/></svg>
+          Unwrap finds the swap
+        </div>
+      </section>
+
+      <!-- How it works -->
+      <section class="section">
+        <div class="section-label">How it works</div>
+        <h2 class="section-title">Three taps, total clarity.</h2>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <h3>Scan</h3>
+            <p>Open the app and point your camera at any food barcode. Unwrap looks up the product instantly.</p>
+          </div>
+
+          <div class="step">
+            <div class="step-num">2</div>
+            <h3>Understand</h3>
+            <p>See every ingredient laid out clearly. Flagged items are highlighted with plain-English explanations.</p>
+          </div>
+
+          <div class="step">
+            <div class="step-num">3</div>
+            <h3>Decide</h3>
+            <p>Browse swaps, alternatives, and whole-food ideas. Or do nothing — it's your choice, always.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Ethos -->
+      <section class="section">
+        <div class="section-label">Our approach</div>
+        <h2 class="section-title">Built different, on purpose.</h2>
+
+        <div class="ethos-card">
+          <p>
+            Unwrap is <strong>ad-free and independent</strong>. We don't take money from food companies, we don't sell your data, and we don't use scare tactics to keep you hooked.
+          </p>
+          <p>
+            We use a <strong>sliding-scale subscription</strong> — every tier unlocks the same features. You pick what works for you. That's it.
+          </p>
+          <p>
+            The goal is simple: <strong>better information, not better marketing</strong>. We show what's in your food and let you decide what to do with that.
+          </p>
         </div>
       </section>
     </main>
 
     <footer>
-      <div>© <span id="year"></span> Unwrap</div>
+      <div class="footer-left">© <span id="year"></span> Unwrap</div>
 
-      <div class="social">
-        <a class="chip" href="https://instagram.com/YOURHANDLE" target="_blank" rel="noopener">Instagram</a>
-        <a class="chip" href="https://tiktok.com/@YOURHANDLE" target="_blank" rel="noopener">TikTok</a>
-        <a class="chip" href="https://youtube.com/@YOURHANDLE" target="_blank" rel="noopener">YouTube</a>
+      <div class="footer-links">
+        <a class="chip" href="https://instagram.com/unwrap.food" target="_blank" rel="noopener">Instagram</a>
+        <a class="chip" href="https://tiktok.com/@unwrap.food" target="_blank" rel="noopener">TikTok</a>
+        <a class="chip" href="https://youtube.com/@unwrap.food" target="_blank" rel="noopener">YouTube</a>
       </div>
     </footer>
   </div>

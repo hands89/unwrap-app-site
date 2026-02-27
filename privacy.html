@@ -4,49 +4,203 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Unwrap — Privacy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
   <style>
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:#0b0d10;color:#e8eef6;line-height:1.6}
-    .wrap{max-width:860px;margin:0 auto;padding:28px 18px 70px}
-    a{color:#e8eef6}
-    .card{border:1px solid rgba(255,255,255,.10);border-radius:16px;background:rgba(255,255,255,.03);padding:18px}
-    h1{margin:0 0 8px;font-size:28px}
-    p{color:rgba(232,238,246,.85)}
-    .muted{color:rgba(232,238,246,.65)}
+    :root {
+      --cream: #F5F0E8;
+      --white: #FFFFFF;
+      --green-dark: #2D5F3E;
+      --green-mid: #3A7D44;
+      --green-pale: #EBF2E7;
+      --text: #2C2C2C;
+      --text-muted: #6B6558;
+      --text-light: #9B9384;
+      --border: rgba(44, 95, 62, 0.10);
+      --shadow-sm: 0 2px 8px rgba(44, 44, 44, 0.05);
+      --radius: 20px;
+      --radius-sm: 14px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    .wrap { max-width: 680px; margin: 0 auto; padding: 0 20px; }
+
+    header {
+      padding: 18px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-logo { width: 34px; height: 34px; }
+    .brand-name { font-weight: 700; font-size: 19px; letter-spacing: -0.3px; }
+
+    .back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--green-dark);
+      padding: 20px 0 8px;
+      transition: opacity 0.15s;
+    }
+    .back:hover { opacity: 0.7; }
+    .back svg { width: 16px; height: 16px; }
+
+    .page-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+      font-weight: 700;
+      margin: 16px 0 4px;
+      letter-spacing: -0.3px;
+    }
+
+    .updated {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-bottom: 24px;
+    }
+
+    .intro {
+      font-size: 15px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      line-height: 1.65;
+    }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 22px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 14px;
+    }
+
+    .card h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .card p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.65;
+      margin-bottom: 10px;
+    }
+
+    .card p:last-child { margin-bottom: 0; }
+
+    .card strong { color: var(--text); }
+
+    .highlight-box {
+      background: var(--green-pale);
+      border: 1px solid rgba(44, 95, 62, 0.12);
+      border-radius: var(--radius-sm);
+      padding: 16px 18px;
+      margin-top: 6px;
+    }
+
+    .highlight-box p {
+      font-size: 14px;
+      color: var(--green-dark);
+      font-weight: 500;
+      margin: 0;
+    }
+
+    .email-link {
+      color: var(--green-dark);
+      font-weight: 600;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 22px 0 36px;
+      margin-top: 32px;
+      font-size: 13px;
+      color: var(--text-light);
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <p><a href="/">← Back</a></p>
+    <header>
+      <a href="/" class="brand">
+        <img src="/logo.png" alt="Unwrap" class="brand-logo">
+        <span class="brand-name">Unwrap</span>
+      </a>
+    </header>
+
+    <a href="/" class="back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Back
+    </a>
+
+    <h1 class="page-title">Privacy</h1>
+    <p class="updated">Last updated: <span id="d"></span></p>
+
+    <p class="intro">
+      Unwrap is built to be practical and privacy-respecting.
+      This page is a short, plain-English overview of how we handle your data.
+    </p>
 
     <div class="card">
-      <h1>Privacy</h1>
-      <p class="muted">Last updated: <span id="d"></span></p>
-
-      <p>
-        Unwrap is built to be practical and privacy-respecting. This page is a short, plain-English overview.
-        (You can expand it later as your launch matures.)
-      </p>
-
       <h3>What we collect</h3>
       <p>
-        We collect the minimum needed to run the app. This may include account details (if you create an account),
-        and usage data required to operate features like history and subscriptions.
+        We collect the minimum needed to run the app. This includes account details if you create an account, and usage data required to operate features like scan history and subscriptions.
       </p>
-
-      <h3>What we don’t do</h3>
       <p>
-        We don’t sell your personal data. We don’t run creepy third-party tracking for advertising.
-      </p>
-
-      <h3>Contact</h3>
-      <p>
-        Privacy questions: <strong>YOUR_SUPPORT_EMAIL_HERE</strong>
+        Scan data is stored locally on your device by default. If you create an account, history is synced to our servers so you can access it across sessions.
       </p>
     </div>
+
+    <div class="card">
+      <h3>What we don't do</h3>
+      <div class="highlight-box">
+        <p>We don't sell your personal data. We don't run third-party tracking for advertising. We don't serve ads.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Subscriptions</h3>
+      <p>
+        Subscriptions are managed through Apple's App Store and RevenueCat. We don't store your payment details directly — that's handled entirely by Apple.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>Account deletion</h3>
+      <p>
+        You can permanently delete your account and all associated data from within the app (Profile → delete account). This removes everything from our servers.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>Contact</h3>
+      <p>
+        Privacy questions: <a href="mailto:support@unwrap-app.co.uk" class="email-link">support@unwrap-app.co.uk</a>
+      </p>
+    </div>
+
+    <footer>© <span id="year"></span> Unwrap</footer>
   </div>
 
   <script>
-    document.getElementById("d").textContent = new Date().toISOString().slice(0,10);
+    document.getElementById("d").textContent = "February 2026";
+    document.getElementById("year").textContent = new Date().getFullYear();
   </script>
 </body>
 </html>
