@@ -2,146 +2,41 @@
 <html lang="en-GB">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Unwrap privacy policy — a plain-English overview of how we handle your data." />
   <title>Unwrap — Privacy</title>
+
+  <link rel="icon" type="image/png" href="/assets/images/logo.png" />
+  <link rel="apple-touch-icon" href="/assets/images/logo.png" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --cream: #F5F0E8;
-      --white: #FFFFFF;
-      --green-dark: #2D5F3E;
-      --green-mid: #3A7D44;
-      --green-pale: #EBF2E7;
-      --text: #2C2C2C;
-      --text-muted: #6B6558;
-      --text-light: #9B9384;
-      --border: rgba(44, 95, 62, 0.10);
-      --shadow-sm: 0 2px 8px rgba(44, 44, 44, 0.05);
-      --radius: 20px;
-      --radius-sm: 14px;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'DM Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
-      background: var(--cream);
-      color: var(--text);
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-    }
-    a { color: inherit; text-decoration: none; }
-    .wrap { max-width: 680px; margin: 0 auto; padding: 0 20px; }
 
-    header {
-      padding: 18px 0;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .brand { display: flex; align-items: center; gap: 10px; }
-    .brand-logo { width: 34px; height: 34px; }
-    .brand-name { font-weight: 700; font-size: 19px; letter-spacing: -0.3px; }
-
-    .back {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--green-dark);
-      padding: 20px 0 8px;
-      transition: opacity 0.15s;
-    }
-    .back:hover { opacity: 0.7; }
-    .back svg { width: 16px; height: 16px; }
-
-    .page-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 32px;
-      font-weight: 700;
-      margin: 16px 0 4px;
-      letter-spacing: -0.3px;
-    }
-
-    .updated {
-      font-size: 13px;
-      color: var(--text-light);
-      margin-bottom: 24px;
-    }
-
-    .intro {
-      font-size: 15px;
-      color: var(--text-muted);
-      margin-bottom: 24px;
-      line-height: 1.65;
-    }
-
-    .card {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 24px 22px;
-      box-shadow: var(--shadow-sm);
-      margin-bottom: 14px;
-    }
-
-    .card h3 {
-      font-size: 15px;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: var(--text);
-    }
-
-    .card p {
-      font-size: 14px;
-      color: var(--text-muted);
-      line-height: 1.65;
-      margin-bottom: 10px;
-    }
-
-    .card p:last-child { margin-bottom: 0; }
-
-    .card strong { color: var(--text); }
-
-    .highlight-box {
-      background: var(--green-pale);
-      border: 1px solid rgba(44, 95, 62, 0.12);
-      border-radius: var(--radius-sm);
-      padding: 16px 18px;
-      margin-top: 6px;
-    }
-
-    .highlight-box p {
-      font-size: 14px;
-      color: var(--green-dark);
-      font-weight: 500;
-      margin: 0;
-    }
-
-    .email-link {
-      color: var(--green-dark);
-      font-weight: 600;
-      text-decoration: underline;
-      text-underline-offset: 2px;
-    }
-
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 22px 0 36px;
-      margin-top: 32px;
-      font-size: 13px;
-      color: var(--text-light);
-    }
-  </style>
+  <link rel="stylesheet" href="/css/theme.css" />
 </head>
 <body>
-  <div class="wrap">
-    <header>
+  <div class="wrap wrap--narrow">
+    <header class="site-header">
       <a href="/" class="brand">
-        <img src="/logo.png" alt="Unwrap" class="brand-logo">
+        <img src="/assets/images/logo.png" alt="Unwrap" class="brand-logo" width="34" height="34">
         <span class="brand-name">Unwrap</span>
       </a>
+
+      <button class="menu-toggle" aria-label="Toggle menu" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+
+      <nav class="nav" id="nav">
+        <a href="/">Home</a>
+        <a href="/evidence.html">Evidence</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/support.html">Support</a>
+      </nav>
     </header>
 
     <a href="/" class="back">
@@ -150,7 +45,7 @@
     </a>
 
     <h1 class="page-title">Privacy</h1>
-    <p class="updated">Last updated: <span id="d"></span></p>
+    <p class="updated">Last updated: February 2026</p>
 
     <p class="intro">
       Unwrap is built to be practical and privacy-respecting.
@@ -160,7 +55,7 @@
     <div class="card">
       <h3>What we collect</h3>
       <p>
-        We collect the minimum needed to run the app. This includes account details if you create an account, and usage data required to operate features like scan history and subscriptions.
+        We collect the minimum needed to run the app. This includes account details if you create one, and usage data required to operate features like scan history and subscriptions.
       </p>
       <p>
         Scan data is stored locally on your device by default. If you create an account, history is synced to our servers so you can access it across sessions.
@@ -175,9 +70,19 @@
     </div>
 
     <div class="card">
+      <h3>Third-party services</h3>
+      <p>
+        We use <strong>Supabase</strong> for secure data storage and authentication, and <strong>RevenueCat</strong> to manage subscriptions. Both are privacy-focused infrastructure providers — they process data on our behalf and don't use it for their own purposes.
+      </p>
+      <p>
+        Product data comes from <strong>Open Food Facts</strong>, a free, open database of food products.
+      </p>
+    </div>
+
+    <div class="card">
       <h3>Subscriptions</h3>
       <p>
-        Subscriptions are managed through Apple's App Store and RevenueCat. We don't store your payment details directly — that's handled entirely by Apple.
+        Subscriptions are managed through Apple's App Store and RevenueCat. We don't store your payment details — that's handled entirely by Apple.
       </p>
     </div>
 
@@ -195,12 +100,31 @@
       </p>
     </div>
 
-    <footer>© <span id="year"></span> Unwrap</footer>
+    <footer class="site-footer site-footer--simple">© <span id="year"></span> Unwrap</footer>
   </div>
 
   <script>
-    document.getElementById("d").textContent = "February 2026";
     document.getElementById("year").textContent = new Date().getFullYear();
+
+    // Mobile menu toggle
+    const toggle = document.querySelector(".menu-toggle");
+    const nav = document.getElementById("nav");
+    if (toggle && nav) {
+      toggle.addEventListener("click", () => {
+        const open = nav.classList.toggle("is-open");
+        toggle.setAttribute("aria-expanded", open);
+        toggle.innerHTML = open
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
+      });
+      nav.querySelectorAll("a").forEach(a => {
+        a.addEventListener("click", () => {
+          nav.classList.remove("is-open");
+          toggle.setAttribute("aria-expanded", "false");
+          toggle.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
+        });
+      });
+    }
   </script>
 </body>
 </html>

@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="How Unwrap works — our evidence base, scoring methodology, and approach to food transparency." />
+  <title>Unwrap — Evidence &amp; Approach</title>
+
+  <link rel="icon" type="image/png" href="/assets/images/logo.png" />
+  <link rel="apple-touch-icon" href="/assets/images/logo.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/theme.css" />
+
+  <style>
+    .accordion { margin-bottom: 14px; }
+
+    .accordion-trigger {
+      width: 100%;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      text-align: left;
+      transition: box-shadow 0.2s ease;
+    }
+
+    .accordion-trigger:hover { box-shadow: var(--shadow-md); }
+
+    .accordion-icon {
+      width: 36px; height: 36px; min-width: 36px;
+      background: var(--green-pale);
+      border-radius: 10px;
+      display: grid; place-items: center;
+    }
+
+    .accordion-icon svg { width: 18px; height: 18px; color: var(--green-dark); }
+
+    .accordion-chevron {
+      margin-left: auto;
+      width: 20px; height: 20px; min-width: 20px;
+      color: var(--text-light);
+      transition: transform 0.25s ease;
+    }
+
+    .accordion.is-open .accordion-chevron { transform: rotate(180deg); }
+
+    .accordion-body {
+      display: none;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 var(--radius) var(--radius);
+      padding: 20px 22px;
+      margin-top: -14px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .accordion.is-open .accordion-trigger { border-radius: var(--radius) var(--radius) 0 0; }
+    .accordion.is-open .accordion-body { display: block; }
+
+    .accordion-body p {
+      font-size: 14px; color: var(--text-muted); line-height: 1.7; margin-bottom: 12px;
+    }
+    .accordion-body p:last-child { margin-bottom: 0; }
+    .accordion-body strong { color: var(--text); }
+
+    /* Reference links */
+    .ref-link {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      text-decoration: none; transition: opacity 0.15s;
+    }
+    .ref-link:last-of-type { border-bottom: none; }
+    .ref-link:hover { opacity: 0.75; }
+
+    .ref-icon {
+      width: 36px; height: 36px; min-width: 36px;
+      background: var(--green-pale); border-radius: 8px;
+      display: grid; place-items: center;
+    }
+    .ref-icon svg { width: 18px; height: 18px; color: var(--green-dark); }
+
+    .ref-text { flex: 1; }
+    .ref-name { display: block; font-size: 14px; font-weight: 600; color: var(--green-dark); margin-bottom: 2px; }
+    .ref-desc { display: block; font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+
+    .ref-external { width: 16px; height: 16px; min-width: 16px; color: var(--text-light); margin-top: 2px; }
+
+    /* App links */
+    .app-link {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      text-decoration: none; transition: opacity 0.15s;
+    }
+    .app-link:last-of-type { border-bottom: none; }
+    .app-link:hover { opacity: 0.75; }
+
+    .app-icon {
+      width: 36px; height: 36px; min-width: 36px;
+      border-radius: 8px; display: grid; place-items: center;
+    }
+    .app-icon svg { width: 18px; height: 18px; }
+    .app-name { display: block; font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+    .app-desc { display: block; font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+
+    /* Ingredient Index CTA */
+    .index-cta {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--green-pale);
+      border: 1px solid rgba(44, 95, 62, 0.2);
+      border-radius: var(--radius-sm);
+      padding: 16px 18px; margin-top: 16px;
+      cursor: pointer; transition: box-shadow 0.15s;
+    }
+    .index-cta:hover { box-shadow: var(--shadow-md); }
+    .index-cta-icon { width: 36px; height: 36px; min-width: 36px; display: grid; place-items: center; }
+    .index-cta-icon svg { width: 22px; height: 22px; color: var(--green-mid); }
+    .index-cta-text { flex: 1; }
+    .index-cta-title { display: block; font-size: 14px; font-weight: 600; color: var(--green-dark); margin-bottom: 2px; }
+    .index-cta-desc { display: block; font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+
+    /* Responsibility */
+    .responsibility {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px 22px;
+      box-shadow: var(--shadow-sm); margin-top: 28px;
+    }
+    .responsibility-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+    .responsibility h3 { font-size: 16px; font-weight: 600; color: var(--green-dark); }
+    .responsibility p { font-size: 14px; color: var(--text-muted); line-height: 1.7; margin-bottom: 12px; }
+    .responsibility p:last-child { margin-bottom: 0; }
+
+    /* Tip jar */
+    .tip-jar {
+      background: #FFF9E6;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 22px;
+      margin-top: 28px;
+      text-align: center;
+    }
+    .tip-jar-emoji { font-size: 28px; margin-bottom: 8px; }
+    .tip-jar h3 { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .tip-jar p { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 18px; }
+    .tip-options { display: flex; gap: 12px; justify-content: center; }
+    .tip-option {
+      flex: 1; max-width: 120px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px 8px;
+      text-align: center;
+      text-decoration: none;
+      transition: box-shadow 0.15s, transform 0.15s;
+    }
+    .tip-option:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+    .tip-option-emoji { font-size: 32px; display: block; margin-bottom: 8px; }
+    .tip-option-price { font-size: 14px; font-weight: 600; color: var(--text); }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 1000;
+      place-items: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.is-open { display: grid; }
+
+    .modal {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 32px 28px;
+      max-width: 340px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      animation: modalIn 0.25s ease;
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.92); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-logo {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      margin: 0 auto 16px;
+    }
+
+    .modal p {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .modal-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--green-dark);
+      color: var(--white);
+      font-weight: 600;
+      font-size: 15px;
+      padding: 12px 28px;
+      border-radius: 50px;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+
+    .modal-download:hover { opacity: 0.85; }
+
+    .modal-download svg { width: 18px; height: 18px; }
+
+    .modal-close {
+      display: block;
+      margin: 14px auto 0;
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text-light);
+      cursor: pointer;
+      padding: 4px 12px;
+    }
+
+    .modal-close:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="wrap wrap--narrow">
+    <header class="site-header">
+      <a href="/" class="brand">
+        <img src="/assets/images/logo.png" alt="Unwrap" class="brand-logo" width="34" height="34">
+        <span class="brand-name">Unwrap</span>
+      </a>
+      <button class="menu-toggle" aria-label="Toggle menu" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <nav class="nav" id="nav">
+        <a href="/">Home</a>
+        <a href="/evidence.html">Evidence</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/support.html">Support</a>
+      </nav>
+    </header>
+
+    <a href="/" class="back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Back
+    </a>
+
+    <h1 class="page-title">Evidence &amp; Approach</h1>
+    <p class="intro">Unwrap is an educational tool designed to help people understand food labels and explore alternative options.</p>
+
+    <!-- How Unwrap Looks at Food -->
+    <div class="accordion">
+      <button class="accordion-trigger" aria-expanded="false">
+        <span class="accordion-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        How Unwrap Looks at Food
+        <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="accordion-body">
+        <p>Food can be viewed through many different lenses, including nutrition, ingredients, processing, cost, culture, convenience, and personal preference.</p>
+        <p>Unwrap focuses on <strong>food processing</strong> as one of those lenses.</p>
+        <p>This means looking at how a product is made, what role its ingredients play, and whether those ingredients are typically associated with home cooking or industrial food production.</p>
+        <p>The aim is to add context, not judgement.</p>
+      </div>
+    </div>
+
+    <!-- Evidence & Frameworks -->
+    <div class="accordion">
+      <button class="accordion-trigger" aria-expanded="false">
+        <span class="accordion-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 3v18m0-18L5 5a2 2 0 00-2 2v4m6-8h10a2 2 0 012 2v4M3 11h18M3 11v8a2 2 0 002 2h4m12-10v8a2 2 0 01-2 2h-4"/></svg></span>
+        Evidence &amp; Frameworks
+        <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="accordion-body">
+        <p>Unwrap draws on publicly available data and widely referenced frameworks:</p>
+
+        <a class="ref-link" href="https://world.openfoodfacts.org/nova" target="_blank" rel="noopener">
+          <span class="ref-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>
+          <span class="ref-text"><span class="ref-name">NOVA food classification</span><span class="ref-desc">A widely used framework for categorising foods by level of processing.</span></span>
+          <svg class="ref-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+
+        <a class="ref-link" href="https://www.gov.uk/government/collections/national-diet-and-nutrition-survey" target="_blank" rel="noopener">
+          <span class="ref-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+          <span class="ref-text"><span class="ref-name">National Diet and Nutrition Survey (UK)</span><span class="ref-desc">Population-level dietary data used by UK health bodies.</span></span>
+          <svg class="ref-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+
+        <a class="ref-link" href="https://www.food.gov.uk" target="_blank" rel="noopener">
+          <span class="ref-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg></span>
+          <span class="ref-text"><span class="ref-name">Food Standards Agency</span><span class="ref-desc">Guidance on ingredient labelling, additives, and consumer transparency.</span></span>
+          <svg class="ref-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+
+        <a class="ref-link" href="https://www.efsa.europa.eu" target="_blank" rel="noopener">
+          <span class="ref-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+          <span class="ref-text"><span class="ref-name">European Food Safety Authority</span><span class="ref-desc">Scientific opinions on food additives and food safety.</span></span>
+          <svg class="ref-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+
+        <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/?term=ultra-processed+food" target="_blank" rel="noopener">
+          <span class="ref-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg></span>
+          <span class="ref-text"><span class="ref-name">Peer-reviewed research</span><span class="ref-desc">Published in established medical and nutrition journals.</span></span>
+          <svg class="ref-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+
+        <p style="margin-top:12px">Nutrition science is complex and evolving, and different tools may interpret food through different lenses.</p>
+      </div>
+    </div>
+
+    <!-- How Unwrap Talks About Ingredients -->
+    <div class="accordion">
+      <button class="accordion-trigger" aria-expanded="false">
+        <span class="accordion-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span>
+        How Unwrap Talks About Ingredients
+        <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="accordion-body">
+        <p>When Unwrap highlights ingredients, this does not mean they are unsafe or harmful.</p>
+        <p>The focus is on why an ingredient is used, whether it is common in home cooking, and whether it is typically associated with industrial processing.</p>
+        <p>Many ingredients used in modern food production are approved for use and considered safe within regulatory limits. Unwrap does not assess health outcomes, only processing context.</p>
+      </div>
+    </div>
+
+    <!-- Ingredient Processing Index -->
+    <div class="accordion">
+      <button class="accordion-trigger" aria-expanded="false">
+        <span class="accordion-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>
+        Ingredient Processing Index
+        <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="accordion-body">
+        <p>For transparency, Unwrap maintains a full Ingredient Processing Index.</p>
+        <p>This reference explains what ingredients are commonly used for, how they function in food production, and why they may be considered processing markers.</p>
+        <p>Inclusion in this index does not imply harm or that the ingredient should be avoided.</p>
+        <div class="index-cta">
+          <span class="index-cta-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>
+          <span class="index-cta-text"><span class="index-cta-title">View full Ingredient Index</span><span class="index-cta-desc">See every ingredient Unwrap checks for, what it does, and why it is flagged. Available in the app.</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- How We Score -->
+    <div class="accordion">
+      <button class="accordion-trigger" aria-expanded="false">
+        <span class="accordion-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg></span>
+        How We Score
+        <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="accordion-body">
+        <p>When you scan a product, Unwrap reads its ingredient list and checks each ingredient against a set of processing rules.</p>
+        <p>Each rule looks for a specific ingredient or class of ingredients that are typically associated with industrial food production rather than home cooking — things like artificial sweeteners, emulsifiers, flavour enhancers, and hydrogenated fats.</p>
+        <p>Every matched ingredient counts as one "flag". The score you see is simply the total number of flagged ingredients found in that product.</p>
+        <p>A score of 0 means no processing markers were found. A higher score means more were detected. The score is not a health rating — it is a transparency tool to help you understand what is in the product.</p>
+        <div class="index-cta">
+          <span class="index-cta-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>
+          <span class="index-cta-text"><span class="index-cta-title">View full Ingredient Index</span><span class="index-cta-desc">See every ingredient Unwrap checks for, what it does, and why it is flagged. Available in the app.</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Other Food & Nutrition Apps -->
+    <div class="accordion">
+      <button class="accordion-trigger" aria-expanded="false">
+        <span class="accordion-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+        Other Food &amp; Nutrition Apps
+        <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="accordion-body">
+        <p>There are lots of great tools that help people understand food in different ways. Unwrap is designed to complement them, not compete with them. Here are some we think are worth knowing about:</p>
+
+        <a class="app-link" href="https://yuka.io" target="_blank" rel="noopener">
+          <span class="app-icon" style="background:rgba(76,175,80,0.12)"><svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/></svg></span>
+          <span class="ref-text"><span class="app-name">Yuka</span><span class="app-desc">Scans food and cosmetics. Rates products on nutrition, additives, and organic status.</span></span>
+          <svg class="ref-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+
+        <a class="app-link" href="https://world.openfoodfacts.org" target="_blank" rel="noopener">
+          <span class="app-icon" style="background:rgba(33,150,243,0.12)"><svg viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></span>
+          <span class="ref-text"><span class="app-name">Open Food Facts</span><span class="app-desc">Free, open-source food database built by volunteers worldwide. The backbone of many food apps.</span></span>
+          <svg class="ref-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+
+        <a class="app-link" href="https://www.myfitnesspal.com" target="_blank" rel="noopener">
+          <span class="app-icon" style="background:rgba(25,118,210,0.12)"><svg viewBox="0 0 24 24" fill="none" stroke="#1976D2" stroke-width="2" stroke-linecap="round"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></span>
+          <span class="ref-text"><span class="app-name">MyFitnessPal</span><span class="app-desc">Calorie and macro tracking. Useful if detailed nutritional logging is what you need.</span></span>
+          <svg class="ref-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+
+        <a class="app-link" href="https://www.fooducate.com" target="_blank" rel="noopener">
+          <span class="app-icon" style="background:rgba(255,152,0,0.12)"><svg viewBox="0 0 24 24" fill="none" stroke="#FF9800" stroke-width="2" stroke-linecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 3 3 6 3s6-1 6-3v-5"/></svg></span>
+          <span class="ref-text"><span class="app-name">Fooducate</span><span class="app-desc">Nutrition grading with a focus on ingredient quality and personalised recommendations.</span></span>
+          <svg class="ref-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+
+        <a class="app-link" href="https://www.noom.com" target="_blank" rel="noopener">
+          <span class="app-icon" style="background:rgba(0,188,212,0.12)"><svg viewBox="0 0 24 24" fill="none" stroke="#00BCD4" stroke-width="2" stroke-linecap="round"><path d="M12 2a9 9 0 019 9c0 3.9-2.5 7.2-6 8.5M12 2a9 9 0 00-9 9c0 3.9 2.5 7.2 6 8.5M12 2v20"/></svg></span>
+          <span class="ref-text"><span class="app-name">Noom</span><span class="app-desc">Behaviour-change approach to healthy eating. Coaching-led rather than scanning-led.</span></span>
+          <svg class="ref-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+
+        <p style="margin-top:12px">Each app takes a different approach. We think the more tools people have, the better.</p>
+      </div>
+    </div>
+
+    <!-- Responsibility Statement -->
+    <div class="responsibility">
+      <div class="responsibility-header">
+        <span class="accordion-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+        <h3>Responsibility Statement</h3>
+      </div>
+      <p>Unwrap exists to support informed choice.</p>
+      <p>Better information should empower people, not pressure or scare them.</p>
+      <p>How this information is used is always up to the individual.</p>
+      <p>Unwrap does not provide medical, nutritional, or dietary advice, and it does not tell people what they should or should not eat.</p>
+    </div>
+
+    <!-- Say Thanks -->
+    <div class="tip-jar">
+      <div class="tip-jar-emoji">&#9749;</div>
+      <h3>Buy the team a coffee</h3>
+      <p>One-time thank you — no pressure, just if you fancy it.</p>
+      <div class="tip-options">
+        <a class="tip-option" href="https://apps.apple.com/app/unwrap-food/id6740217785" target="_blank" rel="noopener">
+          <span class="tip-option-emoji">&#9749;&#65039;</span>
+          <span class="tip-option-price">£1.99</span>
+        </a>
+        <a class="tip-option" href="https://apps.apple.com/app/unwrap-food/id6740217785" target="_blank" rel="noopener">
+          <span class="tip-option-emoji">&#127829;</span>
+          <span class="tip-option-price">£4.99</span>
+        </a>
+        <a class="tip-option" href="https://apps.apple.com/app/unwrap-food/id6740217785" target="_blank" rel="noopener">
+          <span class="tip-option-emoji">&#127881;</span>
+          <span class="tip-option-price">£9.99</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Download modal -->
+    <div class="modal-overlay" id="modal">
+      <div class="modal">
+        <img src="/assets/images/logo.png" alt="Unwrap" class="modal-logo" width="56" height="56">
+        <p>To view the full Ingredient Index, download the app — it's free to browse.</p>
+        <a class="modal-download" href="https://apps.apple.com/app/unwrap-food/id6740217785" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download Unwrap
+        </a>
+        <button class="modal-close" id="modalClose">Maybe later</button>
+      </div>
+    </div>
+
+    <footer class="site-footer site-footer--simple">&copy; <span id="year"></span> Unwrap</footer>
+  </div>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    // Modal
+    var modal = document.getElementById("modal");
+    var modalClose = document.getElementById("modalClose");
+    document.querySelectorAll(".index-cta").forEach(function(cta) {
+      cta.addEventListener("click", function() { modal.classList.add("is-open"); });
+    });
+    modalClose.addEventListener("click", function() { modal.classList.remove("is-open"); });
+    modal.addEventListener("click", function(e) {
+      if (e.target === modal) modal.classList.remove("is-open");
+    });
+
+    // Accordions
+    document.querySelectorAll(".accordion-trigger").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const acc = btn.closest(".accordion");
+        const isOpen = acc.classList.toggle("is-open");
+        btn.setAttribute("aria-expanded", isOpen);
+      });
+    });
+
+    const toggle = document.querySelector(".menu-toggle");
+    const nav = document.getElementById("nav");
+    if (toggle && nav) {
+      toggle.addEventListener("click", () => {
+        const open = nav.classList.toggle("is-open");
+        toggle.setAttribute("aria-expanded", open);
+        toggle.innerHTML = open
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
+      });
+      nav.querySelectorAll("a").forEach(a => {
+        a.addEventListener("click", () => {
+          nav.classList.remove("is-open");
+          toggle.setAttribute("aria-expanded", "false");
+          toggle.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
+        });
+      });
+    }
+  </script>
+</body>
+</html>
