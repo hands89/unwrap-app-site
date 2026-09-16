@@ -303,6 +303,94 @@
 
     .demo-arrow svg { width: 18px; height: 18px; }
 
+
+    /* ── Beyond the score: swaps / alternatives / MYO ── */
+    .section-intro {
+      font-size: 15px;
+      color: var(--text-muted);
+      max-width: 620px;
+      margin: -14px 0 26px;
+      line-height: 1.65;
+    }
+
+    .trio {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .trio-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 20px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .trio-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+    .trio-q { font-size: 13px; font-weight: 600; color: var(--green-dark); margin-bottom: 10px; }
+    .trio-card p { font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 12px; }
+
+    .trio-list {
+      list-style: none;
+      margin: 0 0 14px;
+      padding: 0;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .trio-list li { padding: 5px 0 5px 18px; position: relative; line-height: 1.5; }
+    .trio-list li::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 12px;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--green-mid);
+    }
+    .trio-list strong { color: var(--text); font-weight: 600; }
+
+    .tier-tag {
+      margin-top: auto;
+      align-self: flex-start;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 10px;
+      background: var(--green-pale);
+      color: var(--green-dark);
+    }
+
+    /* ── Tiers ── */
+    .tier-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      font-size: 14px;
+    }
+
+    .tier-table th, .tier-table td {
+      padding: 12px 14px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tier-table tr:last-child td { border-bottom: none; }
+    .tier-table th { font-size: 13px; font-weight: 700; background: var(--cream-deep); }
+    .tier-table th span { display: block; font-size: 12px; font-weight: 500; color: var(--text-muted); }
+    .tier-table td:first-child, .tier-table th:first-child { text-align: left; color: var(--text); }
+    .tier-table td { color: var(--text-muted); }
+    .yes { color: var(--green-dark); font-weight: 700; }
+    .no  { color: var(--text-light); }
+    .tier-note { margin-top: 12px; }
+
     /* ── Animations ── */
     .hero           { animation: fadeUp 0.5s ease both; }
     .tagline-strip  { animation: fadeUp 0.5s ease 0.05s both; }
@@ -322,6 +410,8 @@
 
       .features { grid-template-columns: 1fr; }
       .steps    { grid-template-columns: 1fr; }
+      .trio     { grid-template-columns: 1fr; }
+      .tier-table th, .tier-table td { padding: 10px 8px; font-size: 13px; }
 
       .demo-grid {
         grid-template-columns: 1fr;
@@ -334,6 +424,10 @@
       .section { padding: 36px 0; }
 
       .tagline-text { font-size: 14px; padding: 9px 18px; }
+    }
+
+    @media (min-width: 641px) and (max-width: 860px) {
+      .trio     { grid-template-columns: 1fr; }
     }
 
     @media (min-width: 641px) and (max-width: 768px) {
@@ -362,8 +456,8 @@
       <nav class="nav" id="nav">
         <a href="/">Home</a>
         <a href="/evidence.html">Evidence</a>
-        <a href="/privacy.html">Privacy</a>
-        <a href="/support.html">Support</a>
+        <a href="https://hands89.github.io/unwrap-support/unwrap_privacy_policy.html">Privacy</a>
+        <a href="https://hands89.github.io/unwrap-support/unwrap_support.html">Support</a>
       </nav>
     </header>
 
@@ -487,6 +581,55 @@
         </div>
       </section>
 
+      <!-- Beyond the score -->
+      <section class="section" id="swaps">
+        <div class="section-label">Beyond the score</div>
+        <h2 class="section-title">Swaps, alternatives and Make Your Own.</h2>
+        <p class="section-intro">
+          Under every scan, Unwrap offers three different next steps. Use one, all of them, or none.
+          They're there when you want options, not to tell you what to buy.
+        </p>
+
+        <div class="trio">
+          <div class="trio-card">
+            <h3>Swaps</h3>
+            <div class="trio-q">Same thing, fewer flags</div>
+            <p>Other products from the same category, like another mayo for your mayo, starting with the closest match.</p>
+            <ul class="trio-list">
+              <li><strong>Best score:</strong> the fewest flagged ingredients</li>
+              <li><strong>Best value:</strong> the lowest price point</li>
+              <li><strong>Simplest:</strong> the shortest ingredient list</li>
+              <li>Already holding the best one? Unwrap tells you</li>
+            </ul>
+            <span class="tier-tag">Free account · full list: Supporters</span>
+          </div>
+
+          <div class="trio-card">
+            <h3>Alternatives</h3>
+            <div class="trio-q">Something different that does the same job</div>
+            <p>Options from a different category that could fill the same gap, ranked by fewest flagged ingredients.</p>
+            <ul class="trio-list">
+              <li><strong>Simplest:</strong> the shortest ingredient list</li>
+              <li><strong>Fewest flags:</strong> a second pick with as few flagged ingredients as possible</li>
+              <li><strong>Whole food idea:</strong> a grab-and-go suggestion, no cooking needed</li>
+            </ul>
+            <span class="tier-tag">Free account · full list: Supporters</span>
+          </div>
+
+          <div class="trio-card">
+            <h3>Make Your Own</h3>
+            <div class="trio-q">The simple version, made at home</div>
+            <p>For products that are easy to make yourself, a short card with the few ingredients you need and the steps.</p>
+            <ul class="trio-list">
+              <li><strong>Short and cheap:</strong> time, cost and difficulty shown up front</li>
+              <li>No fancy kit, no hard-to-find ingredients</li>
+              <li>Plus full recipes in the Recipes tab</li>
+            </ul>
+            <span class="tier-tag">Supporters</span>
+          </div>
+        </div>
+      </section>
+
       <!-- How it works -->
       <section class="section">
         <div class="section-label">How it works</div>
@@ -529,6 +672,27 @@
             The goal is simple: <strong>better information, not better marketing</strong>. We show what's in your food and let you decide what to do with that.
           </p>
         </div>
+
+        <h3 class="section-label" style="margin-top:40px">What you get</h3>
+        <table class="tier-table">
+          <thead>
+            <tr>
+              <th scope="col">Feature</th>
+              <th scope="col">Guest<span>no account</span></th>
+              <th scope="col">Free<span>account</span></th>
+              <th scope="col">Supporter<span>£0.99–£4.99/mo</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Scan barcodes &amp; receipts</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+            <tr><td>Ingredient breakdown &amp; flags</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+            <tr><td>Scan history</td><td>On this phone</td><td>7 days, synced</td><td>Unlimited, synced</td></tr>
+            <tr><td>Swaps &amp; alternatives</td><td>Preview</td><td class="yes">✓</td><td>✓ + full lists</td></tr>
+            <tr><td>Make Your Own &amp; Recipes</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+            <tr><td>Browse by category</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+          </tbody>
+        </table>
+        <p class="fine tier-note">Every Supporter price unlocks exactly the same features. Pick what works for you.</p>
       </section>
     </main>
 

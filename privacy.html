@@ -2,129 +2,13 @@
 <html lang="en-GB">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Unwrap privacy policy — a plain-English overview of how we handle your data." />
   <title>Unwrap — Privacy</title>
-
-  <link rel="icon" type="image/png" href="/assets/images/logo.png" />
-  <link rel="apple-touch-icon" href="/assets/images/logo.png" />
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="/css/theme.css" />
+  <meta name="robots" content="noindex" />
+  <link rel="canonical" href="https://hands89.github.io/unwrap-support/unwrap_privacy_policy.html" />
+  <meta http-equiv="refresh" content="0; url=https://hands89.github.io/unwrap-support/unwrap_privacy_policy.html" />
+  <script>location.replace("https://hands89.github.io/unwrap-support/unwrap_privacy_policy.html");</script>
 </head>
 <body>
-  <div class="wrap wrap--narrow">
-    <header class="site-header">
-      <a href="/" class="brand">
-        <img src="/assets/images/logo.png" alt="Unwrap" class="brand-logo" width="34" height="34">
-        <span class="brand-name">Unwrap</span>
-      </a>
-
-      <button class="menu-toggle" aria-label="Toggle menu" aria-expanded="false">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <line x1="3" y1="6" x2="21" y2="6"/>
-          <line x1="3" y1="12" x2="21" y2="12"/>
-          <line x1="3" y1="18" x2="21" y2="18"/>
-        </svg>
-      </button>
-
-      <nav class="nav" id="nav">
-        <a href="/">Home</a>
-        <a href="/evidence.html">Evidence</a>
-        <a href="/privacy.html">Privacy</a>
-        <a href="/support.html">Support</a>
-      </nav>
-    </header>
-
-    <a href="/" class="back">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-      Back
-    </a>
-
-    <h1 class="page-title">Privacy</h1>
-    <p class="updated">Last updated: February 2026</p>
-
-    <p class="intro">
-      Unwrap is built to be practical and privacy-respecting.
-      This page is a short, plain-English overview of how we handle your data.
-    </p>
-
-    <div class="card">
-      <h3>What we collect</h3>
-      <p>
-        We collect the minimum needed to run the app. This includes account details if you create one, and usage data required to operate features like scan history and subscriptions.
-      </p>
-      <p>
-        Scan data is stored locally on your device by default. If you create an account, history is synced to our servers so you can access it across sessions.
-      </p>
-    </div>
-
-    <div class="card">
-      <h3>What we don't do</h3>
-      <div class="highlight-box">
-        <p>We don't sell your personal data. We don't run third-party tracking for advertising. We don't serve ads.</p>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Third-party services</h3>
-      <p>
-        We use <strong>Supabase</strong> for secure data storage and authentication, and <strong>RevenueCat</strong> to manage subscriptions. Both are privacy-focused infrastructure providers — they process data on our behalf and don't use it for their own purposes.
-      </p>
-      <p>
-        Product data comes from <strong>Open Food Facts</strong>, a free, open database of food products.
-      </p>
-    </div>
-
-    <div class="card">
-      <h3>Subscriptions</h3>
-      <p>
-        Subscriptions are managed through Apple's App Store and RevenueCat. We don't store your payment details — that's handled entirely by Apple.
-      </p>
-    </div>
-
-    <div class="card">
-      <h3>Account deletion</h3>
-      <p>
-        You can permanently delete your account and all associated data from within the app (Profile → delete account). This removes everything from our servers.
-      </p>
-    </div>
-
-    <div class="card">
-      <h3>Contact</h3>
-      <p>
-        Privacy questions: <a href="mailto:support@unwrap-app.co.uk" class="email-link">support@unwrap-app.co.uk</a>
-      </p>
-    </div>
-
-    <footer class="site-footer site-footer--simple">© <span id="year"></span> Unwrap</footer>
-  </div>
-
-  <script>
-    document.getElementById("year").textContent = new Date().getFullYear();
-
-    // Mobile menu toggle
-    const toggle = document.querySelector(".menu-toggle");
-    const nav = document.getElementById("nav");
-    if (toggle && nav) {
-      toggle.addEventListener("click", () => {
-        const open = nav.classList.toggle("is-open");
-        toggle.setAttribute("aria-expanded", open);
-        toggle.innerHTML = open
-          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
-          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
-      });
-      nav.querySelectorAll("a").forEach(a => {
-        a.addEventListener("click", () => {
-          nav.classList.remove("is-open");
-          toggle.setAttribute("aria-expanded", "false");
-          toggle.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
-        });
-      });
-    }
-  </script>
+  <p>Unwrap's privacy page has moved to <a href="https://hands89.github.io/unwrap-support/unwrap_privacy_policy.html">https://hands89.github.io/unwrap-support/unwrap_privacy_policy.html</a>.</p>
 </body>
 </html>
