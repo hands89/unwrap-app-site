@@ -19,12 +19,14 @@
 
   /* Accents */
   --orange-score: #E5A230;
+  --orange-text:  #9A6410;  /* orange for text on white — #E5A230 is only 2.2:1 */
   --red-flag:     #D4654B;
+  --red-flag-text:#9E4530;  /* flag text on pale red pill (5.3:1) */
 
   /* Text */
   --text:         #2C2C2C;
   --text-muted:   #6B6558;
-  --text-light:   #9B9384;
+  --text-light:   #736C5E;  /* darkened from #9B9384 to pass WCAG AA on cream (4.6:1) */
 
   /* Borders & Shadows */
   --border:       rgba(44, 95, 62, 0.10);

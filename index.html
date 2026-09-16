@@ -154,7 +154,7 @@
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 1.4px;
-      color: var(--green-mid);
+      color: var(--green-dark);
       margin-bottom: 6px;
     }
 
@@ -245,7 +245,7 @@
       margin-bottom: 10px;
     }
 
-    .score-high { background: var(--orange-score); }
+    .score-high { background: var(--orange-score); color: var(--text); }
     .score-low  { background: var(--green-mid); }
 
     .demo-label {
@@ -256,8 +256,8 @@
       margin-bottom: 4px;
     }
 
-    .demo-label.moderate { color: var(--orange-score); }
-    .demo-label.low      { color: var(--green-mid); }
+    .demo-label.moderate { color: var(--orange-text); }
+    .demo-label.low      { color: var(--green-dark); }
 
     .demo-product h4 { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
     .demo-brand      { font-size: 13px; color: var(--text-light); margin-bottom: 10px; }
@@ -278,7 +278,7 @@
 
     .pill-flag {
       background: #FCE8E4;
-      color: var(--red-flag);
+      color: var(--red-flag-text);
       border: 1px solid rgba(212, 101, 75, 0.15);
     }
 
@@ -287,6 +287,8 @@
       color: var(--text-muted);
       border: 1px solid var(--border);
     }
+
+    .demo-note { text-align: center; margin-top: 14px; }
 
     .demo-arrow {
       display: flex;
@@ -380,7 +382,7 @@
         </p>
 
         <div class="cta-row">
-          <a class="btn btn-primary" href="https://apps.apple.com/app/unwrap-food/id6740217785" target="_blank" rel="noopener">
+          <a class="btn btn-primary" href="https://apps.apple.com/gb/app/unwrap-app/id6757312100" target="_blank" rel="noopener">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
             Download on iPhone
           </a>
@@ -442,17 +444,21 @@
 
         <div class="demo-grid">
           <div class="demo-product">
-            <div class="score-circle score-high">6</div>
+            <div class="score-circle score-high">5</div>
             <div class="demo-label moderate">Moderate UPF</div>
             <h4>Real Mayo</h4>
             <div class="demo-brand">Bramwells</div>
             <div class="demo-pills">
               <span class="pill pill-flag">Rapeseed Oil</span>
+              <span class="pill pill-flag">Spirit Vinegar</span>
               <span class="pill pill-flag">Stabiliser</span>
+              <span class="pill pill-flag">Natural Mustard Flavouring</span>
               <span class="pill pill-flag">Xanthan Gum</span>
+              <span class="pill pill-ok">Free Range Egg Yolk</span>
               <span class="pill pill-ok">Water</span>
-              <span class="pill pill-ok">Egg Yolk</span>
+              <span class="pill pill-ok">Sugar</span>
               <span class="pill pill-ok">Salt</span>
+              <span class="pill pill-ok">+ 5 more</span>
             </div>
           </div>
 
@@ -460,16 +466,20 @@
             <div class="score-circle score-low">1</div>
             <div class="demo-label low">Low UPF</div>
             <h4>All Natural Avocado Oil Mayo</h4>
-            <div class="demo-brand">Dr Wills</div>
+            <div class="demo-brand">Dr Will's</div>
             <div class="demo-pills">
+              <span class="pill pill-flag">Concentrated Lemon Juice</span>
               <span class="pill pill-ok">Avocado Oil</span>
-              <span class="pill pill-ok">Egg Yolk</span>
-              <span class="pill pill-ok">Lemon Juice</span>
-              <span class="pill pill-ok">Mustard</span>
+              <span class="pill pill-ok">Free Range Egg Yolk</span>
+              <span class="pill pill-ok">Water</span>
+              <span class="pill pill-ok">Apple Vinegar</span>
               <span class="pill pill-ok">Salt</span>
+              <span class="pill pill-ok">+ 3 more</span>
             </div>
           </div>
         </div>
+
+        <p class="fine demo-note">Real products, scored exactly as the app scores them. Each highlighted ingredient is one flag.</p>
 
         <div class="demo-arrow" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/></svg>
@@ -526,9 +536,8 @@
       <div class="footer-left">© <span id="year"></span> Unwrap</div>
 
       <div class="footer-links">
-        <a class="chip" href="https://instagram.com/unwrap.food" target="_blank" rel="noopener">Instagram</a>
-        <a class="chip" href="https://tiktok.com/@unwrap.food" target="_blank" rel="noopener">TikTok</a>
-        <a class="chip" href="https://youtube.com/@unwrap.food" target="_blank" rel="noopener">YouTube</a>
+        <a class="chip" href="https://www.instagram.com/unwrap_your_food/" target="_blank" rel="noopener">Instagram</a>
+        <a class="chip" href="https://www.tiktok.com/@unwrappedapp" target="_blank" rel="noopener">TikTok</a>
       </div>
     </footer>
   </div>
