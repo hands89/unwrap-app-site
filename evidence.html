@@ -377,8 +377,9 @@
       <div class="accordion-body">
         <p>When you scan a product, Unwrap reads its ingredient list and checks each ingredient against a set of processing rules.</p>
         <p>Each rule looks for a specific ingredient or class of ingredients that are typically associated with industrial food production rather than home cooking — things like artificial sweeteners, emulsifiers, flavour enhancers, and hydrogenated fats.</p>
-        <p>Every matched ingredient counts as one "flag". The score you see is simply the total number of flagged ingredients found in that product.</p>
-        <p>A score of 0 means no processing markers were found. A higher score means more were detected. The score is not a health rating — it is a transparency tool to help you understand what is in the product.</p>
+        <p>Every matched ingredient is a "flag". Each rule also carries a weight from 1 to 5, based on how closely that ingredient is tied to industrial production. Flavourings, for example, are weighted 1; xanthan gum is weighted 3.</p>
+        <p>The score out of 10 combines how many flags a product has with how heavily they're weighted. A score of 1 means no flags were found. 1–3 is shown as Low UPF, 4–7 as Moderate and 8–10 as High. The app always shows the flagged ingredients alongside the score, so you can see exactly what it's based on.</p>
+        <p>The score is not a health rating — it is a transparency tool to help you understand what is in the product.</p>
         <div class="index-cta">
           <span class="index-cta-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>
           <span class="index-cta-text"><span class="index-cta-title">View full Ingredient Index</span><span class="index-cta-desc">See every ingredient Unwrap checks for, what it does, and why it is flagged. Available in the app.</span></span>

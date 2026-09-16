@@ -288,7 +288,8 @@
       border: 1px solid var(--border);
     }
 
-    .demo-note { text-align: center; margin-top: 14px; }
+    .demo-note { text-align: center; margin: 14px auto 0; max-width: 560px; }
+    .demo-flags { font-size: 12px; color: var(--text-muted); margin: -2px 0 8px; }
 
     .demo-arrow {
       display: flex;
@@ -534,12 +535,13 @@
       <!-- Score demo -->
       <section class="section">
         <div class="section-label">How scoring works</div>
-        <h2 class="section-title">A simple count, not a verdict.</h2>
+        <h2 class="section-title">A score with the working shown.</h2>
 
         <div class="demo-grid">
           <div class="demo-product">
-            <div class="score-circle score-high">5</div>
+            <div class="score-circle score-high">6</div>
             <div class="demo-label moderate">Moderate UPF</div>
+            <div class="demo-flags">5 flagged ingredients</div>
             <h4>Real Mayo</h4>
             <div class="demo-brand">Bramwells</div>
             <div class="demo-pills">
@@ -557,8 +559,9 @@
           </div>
 
           <div class="demo-product">
-            <div class="score-circle score-low">1</div>
-            <div class="demo-label low">Low UPF</div>
+            <div class="score-circle score-high">4</div>
+            <div class="demo-label moderate">Moderate UPF</div>
+            <div class="demo-flags">1 flagged ingredient</div>
             <h4>All Natural Avocado Oil Mayo</h4>
             <div class="demo-brand">Dr Will's</div>
             <div class="demo-pills">
@@ -573,7 +576,7 @@
           </div>
         </div>
 
-        <p class="fine demo-note">Real products, scored exactly as the app scores them. Each highlighted ingredient is one flag.</p>
+        <p class="fine demo-note">Real products, scored exactly as the app scores them. Each highlighted ingredient is a flag. The score out of 10 weighs how many flags there are and how strongly each ingredient is tied to industrial processing.</p>
 
         <div class="demo-arrow" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/></svg>
@@ -596,7 +599,7 @@
             <div class="trio-q">Same thing, fewer flags</div>
             <p>Other products from the same category, like another mayo for your mayo, starting with the closest match.</p>
             <ul class="trio-list">
-              <li><strong>Best score:</strong> the fewest flagged ingredients</li>
+              <li><strong>Best score:</strong> the lowest UPF score</li>
               <li><strong>Best value:</strong> the lowest price point</li>
               <li><strong>Simplest:</strong> the shortest ingredient list</li>
               <li>Already holding the best one? Unwrap tells you</li>
@@ -607,7 +610,7 @@
           <div class="trio-card">
             <h3>Alternatives</h3>
             <div class="trio-q">Something different that does the same job</div>
-            <p>Options from a different category that could fill the same gap, ranked by fewest flagged ingredients.</p>
+            <p>Options from a different category that could fill the same gap, with fewer flagged ingredients than what you scanned.</p>
             <ul class="trio-list">
               <li><strong>Simplest:</strong> the shortest ingredient list</li>
               <li><strong>Fewest flags:</strong> a second pick with as few flagged ingredients as possible</li>
@@ -686,10 +689,9 @@
           <tbody>
             <tr><td>Scan barcodes &amp; receipts</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
             <tr><td>Ingredient breakdown &amp; flags</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-            <tr><td>Scan history</td><td>On this phone</td><td>7 days, synced</td><td>Unlimited, synced</td></tr>
+            <tr><td>Scan history</td><td>On this phone</td><td>Synced</td><td>Synced</td></tr>
             <tr><td>Swaps &amp; alternatives</td><td>Preview</td><td class="yes">✓</td><td>✓ + full lists</td></tr>
             <tr><td>Make Your Own &amp; Recipes</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
-            <tr><td>Browse by category</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
           </tbody>
         </table>
         <p class="fine tier-note">Every Supporter price unlocks exactly the same features. Pick what works for you.</p>
