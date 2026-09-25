@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Unwrap Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg: #F7F3EA;
+    --surface: #FFFFFF;
+    --surface-2: #EEF4E8;
+    --text: #1F2A1C;
+    --muted: #5F6B5A;
+    --line: #DCE3D3;
+    --sage: #8FB468;
+    --mid: #6AA155;
+    --forest: #4A8B41;
+    --forest-ink: #FFFFFF;
+    --danger: #B4432F;
+    --danger-bg: #FBE9E5;
+    --amber: #B77A12;
+    --amber-bg: #FDF1DC;
+    --radius: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141A12;
+      --surface: #1C2419;
+      --surface-2: #233020;
+      --text: #E8EEE3;
+      --muted: #A3B09C;
+      --line: #2F3C2B;
+      --forest: #6AA155;
+      --danger: #E07A66;
+      --danger-bg: #3A1F19;
+      --amber: #E0A84A;
+      --amber-bg: #3A2C14;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.5 "Space Grotesk", system-ui, -apple-system, sans-serif;
+  }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 16px; }
+  header.bar {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 14px 16px; background: var(--surface); border-bottom: 1px solid var(--line);
+  }
+  .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 18px; }
+  .logo svg { width: 24px; height: 24px; }
+  .who { margin-left: auto; color: var(--muted); font-size: 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--surface-2); color: var(--forest); }
+  .btn {
+    border: 1px solid var(--line); background: var(--surface); padding: 7px 14px;
+    border-radius: 10px; cursor: pointer; font-weight: 500;
+  }
+  .btn:hover { border-color: var(--mid); }
+  .btn.primary { background: var(--forest); border-color: var(--forest); color: var(--forest-ink); }
+  .btn.danger { color: var(--danger); }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 16px; margin-bottom: 12px;
+  }
+  .login { max-width: 380px; margin: 10vh auto; }
+  .login h1 { font-size: 22px; margin: 0 0 4px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 4px; }
+  input[type=email], input[type=password], input[type=text], select, textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg);
+  }
+  textarea { min-height: 38px; resize: vertical; }
+  .err { color: var(--danger); font-size: 14px; margin-top: 10px; min-height: 1em; }
+  .hint { color: var(--muted); font-size: 13px; }
+  nav.tabs { display: flex; gap: 6px; overflow-x: auto; padding: 12px 0; }
+  nav.tabs button {
+    border: 1px solid var(--line); background: var(--surface); padding: 8px 12px; border-radius: 999px;
+    cursor: pointer; white-space: nowrap; font-weight: 500;
+  }
+  nav.tabs button[aria-selected=true] { background: var(--forest); border-color: var(--forest); color: var(--forest-ink); }
+  .count { display: inline-block; min-width: 20px; margin-left: 6px; padding: 0 6px; border-radius: 999px; font-size: 12px; background: var(--amber-bg); color: var(--amber); }
+  nav.tabs button[aria-selected=true] .count { background: rgba(255,255,255,.2); color: inherit; }
+  .toolbar { display: flex; gap: 10px; align-items: center; margin: 4px 0 14px; flex-wrap: wrap; }
+  .toolbar select { width: auto; }
+  .row-head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .row-head h3 { margin: 0; font-size: 16px; }
+  .meta { color: var(--muted); font-size: 13px; }
+  .reason { margin: 8px 0; }
+  .tag { display: inline-block; padding: 1px 8px; border-radius: 6px; font-size: 12px; background: var(--surface-2); margin-right: 6px; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; align-items: center; }
+  .actions textarea { flex: 1 1 240px; }
+  .photos { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+  .photos a img { max-width: 220px; max-height: 220px; border-radius: 10px; border: 1px solid var(--line); display: block; }
+  .ingredients { font-size: 14px; margin-top: 8px; }
+  .empty { text-align: center; color: var(--muted); padding: 40px 0; }
+  .toast {
+    position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+    background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px;
+    opacity: 0; transition: opacity .2s; pointer-events: none; max-width: calc(100% - 32px);
+  }
+  .toast.show { opacity: 1; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  td:first-child { word-break: break-all; }
+  td, th { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .btn.provider { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 14px; margin-top: 14px; }
+  .btn.provider svg { width: 18px; height: 18px; }
+  .divider { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; margin: 16px 0 4px; }
+  .divider::before, .divider::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
+  .linkbtn { background: none; border: 0; padding: 0; color: var(--forest); cursor: pointer; text-decoration: underline; font-size: 13px; }
+  .hidden { display: none !important; }
+  a { color: var(--forest); }
+</style>
+</head>
+<body>
+
+<div id="login" class="wrap hidden">
+  <div class="card login">
+    <div class="logo" style="margin-bottom:12px">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h6v11a2 2 0 0 0 4 0V3h6v11a8 8 0 0 1-16 0z" fill="#6AA155"/></svg>
+      Unwrap Admin
+    </div>
+    <h1>Sign in</h1>
+    <p class="hint">Use your Unwrap account. You'll only get in if Eddy has added you to the admin team.</p>
+    <button class="btn provider" type="button" id="googleBtn">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.2-.1-2.3-.4-3.5z"/></svg>
+      Continue with Google
+    </button>
+    <div class="divider">or with email</div>
+    <form id="loginForm">
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="username" required>
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" required>
+      <div style="margin-top:16px"><button class="btn primary" type="submit" id="loginBtn">Sign in</button></div>
+      <div class="err" id="loginErr"></div>
+      <p class="hint"><button type="button" class="linkbtn" id="forgotBtn">Forgot your password? Email me a link</button></p>
+      <p class="hint">Signed up with Apple in the app? Apple sign-in isn't available here yet. Set a password in the app (Profile → Change password) and sign in with email.</p>
+    </form>
+    <form id="recoveryForm" class="hidden">
+      <p class="hint">Choose a new password for your Unwrap account.</p>
+      <label for="newPw">New password</label>
+      <input id="newPw" type="password" autocomplete="new-password" minlength="8" required>
+      <label for="newPw2">Confirm password</label>
+      <input id="newPw2" type="password" autocomplete="new-password" minlength="8" required>
+      <div style="margin-top:16px"><button class="btn primary" type="submit">Save and sign in</button></div>
+    </form>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <header class="bar">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h6v11a2 2 0 0 0 4 0V3h6v11a8 8 0 0 1-16 0z" fill="#6AA155"/></svg>
+      Unwrap Admin
+    </div>
+    <div class="who"><span id="whoEmail"></span><span class="pill" id="whoRole"></span><button class="btn" id="signOut">Sign out</button></div>
+  </header>
+  <div class="wrap">
+    <nav class="tabs" id="tabs" role="tablist"></nav>
+    <div class="toolbar" id="toolbar">
+      <label for="statusFilter" style="margin:0">Show</label>
+      <select id="statusFilter"></select>
+      <button class="btn" id="refresh">Refresh</button>
+    </div>
+    <div id="list"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const SUPABASE_URL = "https://gmxcsjdyzbuucfapjfbr.supabase.co";
+// Publishable key: safe to ship in a page. Admin powers live in the admin-api function.
+const SUPABASE_KEY = "sb_publishable_OhskKXj-g5xXgx7Xf8UdtA_dBPBgkW9";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const QUEUES = {
+  product_flags:    { label: "Product flags",    statuses: ["pending", "reviewed", "resolved", "dismissed"] },
+  ingredient_flags: { label: "Ingredient flags", statuses: ["pending", "reviewed", "resolved", "dismissed"] },
+  submissions:      { label: "Submissions",      statuses: ["needs_review", "accepted", "rejected", "duplicate"] },
+  photos:           { label: "Photos",           statuses: ["pending", "approved", "rejected"] },
+  allergens:        { label: "Allergen reports", statuses: ["pending", "resolved", "dismissed"] },
+  team:             { label: "Team",             statuses: [], adminOnly: true },
+};
+const COUNT_KEY = { product_flags: "product_flags", ingredient_flags: "ingredient_flags", submissions: "submissions", photos: "photos", allergens: "allergens" };
+
+let me = null;
+let current = "product_flags";
+let counts = {};
+
+const $ = (id) => document.getElementById(id);
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const when = (iso) => iso ? new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
+const nice = (s) => String(s ?? "").replace(/_/g, " ");
+
+function toast(msg) {
+  const t = $("toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), 2800);
+}
+
+async function api(action, payload = {}) {
+  const { data, error } = await sb.functions.invoke("admin-api", { body: { action, ...payload } });
+  if (error) {
+    let body = null;
+    try { body = await error.context.json(); } catch (_) { /* not JSON */ }
+    const code = body?.error || error.message;
+    if (code === "not_signed_in") { await showLogin(); }
+    throw new Error(body?.message || code);
+  }
+  return data;
+}
+
+async function showLogin(msg = "") {
+  $("app").classList.add("hidden");
+  $("login").classList.remove("hidden");
+  $("loginErr").textContent = msg;
+}
+
+async function start() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return showLogin();
+  try {
+    me = await api("me");
+  } catch (e) {
+    const who = session.user?.email || "that account";
+    await sb.auth.signOut();
+    return showLogin(e.message === "not_authorised"
+      ? `You signed in as ${who}, which isn't on the admin team. Ask Eddy to add it, or sign in with a different account.`
+      : "Couldn't check your access: " + e.message);
+  }
+  $("login").classList.add("hidden");
+  $("app").classList.remove("hidden");
+  $("whoEmail").textContent = me.email;
+  $("whoRole").textContent = me.role;
+  await loadCounts();
+  renderTabs();
+  select(current);
+}
+
+$("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  $("loginBtn").disabled = true; $("loginErr").textContent = "";
+  const { error } = await sb.auth.signInWithPassword({ email: $("email").value.trim(), password: $("password").value });
+  $("loginBtn").disabled = false;
+  if (error) { $("loginErr").textContent = error.message; return; }
+  start();
+});
+$("signOut").addEventListener("click", async () => { await sb.auth.signOut(); me = null; showLogin(); });
+
+// Google and password-reset links must come back to this page, so they only
+// work once the page is online (not when opened as a file from Finder).
+const HERE = location.origin + location.pathname;
+const ONLINE = location.protocol === "https:" || location.hostname === "localhost";
+
+$("googleBtn").addEventListener("click", async () => {
+  if (!ONLINE) { $("loginErr").textContent = "Google sign-in works once this page is online (unwrap-app.co.uk/admin/). For now, use email and password."; return; }
+  const { error } = await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: HERE } });
+  if (error) $("loginErr").textContent = error.message;
+});
+
+$("forgotBtn").addEventListener("click", async () => {
+  const email = $("email").value.trim();
+  if (!email) { $("loginErr").textContent = "Type your email above first."; return; }
+  if (!ONLINE) { $("loginErr").textContent = "Reset links work once this page is online. For now, reset in the app: Profile → Change password."; return; }
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: HERE });
+  $("loginErr").textContent = error ? error.message : "If that email has an Unwrap account, a reset link is on its way.";
+});
+
+$("recoveryForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const a = $("newPw").value, b = $("newPw2").value;
+  if (a.length < 8) { $("loginErr").textContent = "Password must be at least 8 characters."; return; }
+  if (a !== b) { $("loginErr").textContent = "Passwords don't match."; return; }
+  const { error } = await sb.auth.updateUser({ password: a });
+  if (error) { $("loginErr").textContent = error.message; return; }
+  $("recoveryForm").classList.add("hidden"); $("loginForm").classList.remove("hidden");
+  toast("Password updated"); start();
+});
+
+sb.auth.onAuthStateChange((event) => {
+  if (event === "PASSWORD_RECOVERY") {
+    showLogin();
+    $("loginForm").classList.add("hidden"); $("googleBtn").classList.add("hidden");
+    document.querySelector(".divider").classList.add("hidden");
+    $("recoveryForm").classList.remove("hidden");
+  } else if (event === "SIGNED_IN" && !me && $("recoveryForm").classList.contains("hidden")) {
+    start();
+  }
+});
+$("refresh").addEventListener("click", () => { loadCounts().then(renderTabs); load(); });
+$("statusFilter").addEventListener("change", load);
+
+async function loadCounts() {
+  try { counts = await api("counts"); } catch (_) { counts = {}; }
+}
+
+function renderTabs() {
+  const tabs = $("tabs"); tabs.innerHTML = "";
+  for (const [key, q] of Object.entries(QUEUES)) {
+    if (q.adminOnly && me?.role !== "admin") continue;
+    const b = document.createElement("button");
+    b.setAttribute("role", "tab");
+    b.setAttribute("aria-selected", String(key === current));
+    const n = counts[COUNT_KEY[key]];
+    b.innerHTML = esc(q.label) + (n ? `<span class="count">${n}</span>` : "");
+    b.addEventListener("click", () => select(key));
+    tabs.appendChild(b);
+  }
+}
+
+function select(key) {
+  current = key;
+  renderTabs();
+  const sel = $("statusFilter"); sel.innerHTML = "";
+  for (const s of QUEUES[key].statuses) {
+    const o = document.createElement("option"); o.value = s; o.textContent = nice(s); sel.appendChild(o);
+  }
+  $("toolbar").classList.toggle("hidden", key === "team");
+  load();
+}
+
+async function load() {
+  const list = $("list");
+  list.innerHTML = `<div class="empty">Loading…</div>`;
+  try {
+    if (current === "team") return renderTeam((await api("team")).team);
+    const { rows } = await api("list", { queue: current, status: $("statusFilter").value });
+    if (!rows.length) { list.innerHTML = `<div class="empty">Nothing here. Good.</div>`; return; }
+    list.innerHTML = "";
+    for (const r of rows) list.appendChild(renderRow(current, r));
+  } catch (e) {
+    list.innerHTML = `<div class="empty">Couldn't load: ${esc(e.message)}</div>`;
+  }
+}
+
+function reporterLine(r) {
+  return r.reporter ? ` · from ${esc(r.reporter)}` : "";
+}
+
+function statusButtons(action, r, choices) {
+  const wrap = document.createElement("div"); wrap.className = "actions";
+  const notes = document.createElement("textarea");
+  notes.placeholder = "Notes (optional): what you changed or why";
+  notes.value = r.admin_notes ?? "";
+  if (action !== "set_photo") wrap.appendChild(notes);
+  for (const [status, label, cls] of choices) {
+    if (status === r.status) continue;
+    const b = document.createElement("button");
+    b.className = "btn " + (cls || ""); b.textContent = label;
+    b.addEventListener("click", async () => {
+      b.disabled = true;
+      try {
+        await api(action, { id: r.id, status, notes: notes.value.trim() || null });
+        toast(`Marked ${nice(status)}`);
+        await loadCounts(); renderTabs(); load();
+      } catch (e) { toast("Failed: " + e.message); b.disabled = false; }
+    });
+    wrap.appendChild(b);
+  }
+  return wrap;
+}
+
+function card(html) {
+  const c = document.createElement("div"); c.className = "card"; c.innerHTML = html; return c;
+}
+
+function renderRow(queue, r) {
+  if (queue === "product_flags") {
+    const c = card(`
+      <div class="row-head"><h3>${esc(r.product_name || "Unnamed product")}</h3><span class="meta">${esc(r.barcode)}</span></div>
+      <div class="meta">${when(r.created_at)}${reporterLine(r)}</div>
+      <div class="reason"><span class="tag">${esc(nice(r.reason_type))}</span>${esc(r.reason)}</div>
+      ${r.admin_notes ? `<div class="hint">Notes: ${esc(r.admin_notes)}</div>` : ""}`);
+    c.appendChild(statusButtons("set_product_flag", r, [["resolved", "Fixed", "primary"], ["dismissed", "Dismiss"], ["reviewed", "Seen, needs work"], ["pending", "Back to pending"]]));
+    return c;
+  }
+  if (queue === "ingredient_flags") {
+    const c = card(`
+      <div class="row-head"><h3>${esc(r.ingredient_name)}</h3><span class="meta">in ${esc(r.product_name || r.product_barcode || "unknown product")}</span></div>
+      <div class="meta">${when(r.created_at)}${reporterLine(r)}</div>
+      <div class="reason"><span class="tag">${esc(nice(r.reason))}</span>${esc(r.notes)}</div>
+      ${r.admin_notes ? `<div class="hint">Notes: ${esc(r.admin_notes)}</div>` : ""}`);
+    c.appendChild(statusButtons("set_ingredient_flag", r, [["resolved", "Fixed", "primary"], ["dismissed", "Dismiss"], ["reviewed", "Seen, needs work"], ["pending", "Back to pending"]]));
+    return c;
+  }
+  if (queue === "allergens") {
+    const c = card(`
+      <div class="row-head"><h3>${esc(r.product_name || r.barcode)}</h3><span class="meta">${esc(r.barcode)}</span></div>
+      <div class="meta">${when(r.created_at)}${reporterLine(r)}</div>
+      <div class="reason"><span class="tag">${esc(nice(r.allergen_key))}</span>Answer: ${esc(r.answer)}</div>
+      ${r.admin_notes ? `<div class="hint">Notes: ${esc(r.admin_notes)}</div>` : ""}`);
+    c.appendChild(statusButtons("set_allergen", r, [["resolved", "Fixed", "primary"], ["dismissed", "Dismiss"], ["pending", "Back to pending"]]));
+    return c;
+  }
+  if (queue === "photos") {
+    const c = card(`
+      <div class="row-head"><h3>Photo for ${esc(r.barcode)}</h3></div>
+      <div class="meta">${when(r.created_at)}${reporterLine(r)}</div>
+      <div class="photos">${r.photo_url ? `<a href="${esc(r.photo_url)}" target="_blank" rel="noopener"><img src="${esc(r.photo_url)}" alt="Submitted photo for ${esc(r.barcode)}"></a>` : `<span class="hint">Photo file missing</span>`}</div>`);
+    c.appendChild(statusButtons("set_photo", r, [["approved", "Approve", "primary"], ["rejected", "Reject", "danger"], ["pending", "Back to pending"]]));
+    return c;
+  }
+  if (queue === "submissions") {
+    const ings = Array.isArray(r.ingredients) ? r.ingredients : [];
+    const c = card(`
+      <div class="row-head"><h3>${esc(r.name || "Unnamed")}</h3><span class="meta">${esc(r.brand || "")} · ${esc(r.barcode)}</span></div>
+      <div class="meta">${when(r.created_at)}${reporterLine(r)} · ${esc(nice(r.kind))} · ${esc(nice(r.category_l1 || "no category"))}</div>
+      ${(r.review_reasons || []).map((x) => `<span class="tag">${esc(nice(x))}</span>`).join("")}
+      <div class="ingredients"><strong>${ings.length} ingredients:</strong> ${esc(ings.join(", "))}</div>
+      ${(r.allergens || []).length ? `<div class="hint">Allergens: ${esc(r.allergens.join(", "))}</div>` : ""}
+      ${r.reject_reason ? `<div class="hint">Rejected because: ${esc(r.reject_reason)}</div>` : ""}
+      <div class="photos">
+        ${r.ingredients_photo_url ? `<a href="${esc(r.ingredients_photo_url)}" target="_blank" rel="noopener"><img src="${esc(r.ingredients_photo_url)}" alt="Ingredients photo"></a>` : ""}
+        ${r.front_photo_url ? `<a href="${esc(r.front_photo_url)}" target="_blank" rel="noopener"><img src="${esc(r.front_photo_url)}" alt="Front of pack photo"></a>` : ""}
+      </div>`);
+    const wrap = document.createElement("div"); wrap.className = "actions";
+    const reason = document.createElement("textarea"); reason.placeholder = "Reason if rejecting (the contributor may see this)";
+    const approve = document.createElement("button"); approve.className = "btn primary"; approve.textContent = "Approve and publish";
+    const reject = document.createElement("button"); reject.className = "btn danger"; reject.textContent = "Reject";
+    approve.addEventListener("click", async () => {
+      approve.disabled = true;
+      try { const res = await api("approve_submission", { id: r.id }); toast(res?.status === "duplicate" ? "Already in Unwrap: marked duplicate" : "Approved and published"); await loadCounts(); renderTabs(); load(); }
+      catch (e) { toast("Failed: " + e.message); approve.disabled = false; }
+    });
+    reject.addEventListener("click", async () => {
+      if (!confirm(r.status === "accepted" ? "This product is live. Rejecting removes it from Unwrap. Continue?" : "Reject this submission?")) return;
+      reject.disabled = true;
+      try { await api("reject_submission", { id: r.id, reason: reason.value.trim() || null }); toast("Rejected"); await loadCounts(); renderTabs(); load(); }
+      catch (e) { toast("Failed: " + e.message); reject.disabled = false; }
+    });
+    wrap.appendChild(reason);
+    if (r.status !== "accepted") wrap.appendChild(approve);
+    if (r.status !== "rejected") wrap.appendChild(reject);
+    c.appendChild(wrap);
+    return c;
+  }
+  return card(esc(JSON.stringify(r)));
+}
+
+function renderTeam(team) {
+  const list = $("list");
+  list.innerHTML = "";
+  const c = card(`
+    <h3 style="margin-top:0">Admin team</h3>
+    <p class="hint">Moderators can work every queue but never see who sent a report. Admins can also manage this list.
+    Helpers need an Unwrap account with a password first (created in the app).</p>
+    <div class="table-wrap"><table><thead><tr><th>Email</th><th>Role</th><th>Added</th><th></th></tr></thead><tbody id="teamBody"></tbody></table></div>
+    <form id="addForm" class="actions">
+      <input type="email" id="newEmail" placeholder="their Unwrap email" required style="flex:1 1 220px">
+      <select id="newRole" style="width:auto"><option value="moderator">moderator</option><option value="admin">admin</option></select>
+      <button class="btn primary" type="submit">Add</button>
+    </form>`);
+  list.appendChild(c);
+  const body = $("teamBody");
+  for (const m of team) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${esc(m.email)}</td><td>${esc(m.role)}</td><td>${new Date(m.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</td><td></td>`;
+    if (m.email !== me.email) {
+      const b = document.createElement("button"); b.className = "btn danger"; b.textContent = "Remove";
+      b.addEventListener("click", async () => {
+        if (!confirm(`Remove ${m.email} from the admin team?`)) return;
+        try { renderTeam((await api("remove_member", { user_id: m.user_id })).team); toast("Removed"); }
+        catch (e) { toast("Failed: " + e.message); }
+      });
+      tr.lastChild.appendChild(b);
+    }
+    body.appendChild(tr);
+  }
+  $("addForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    try {
+      renderTeam((await api("add_member", { email: $("newEmail").value.trim(), role: $("newRole").value })).team);
+      toast("Added");
+    } catch (err) { toast(err.message); }
+  });
+}
+
+start();
+</script>
+</body>
+</html>
