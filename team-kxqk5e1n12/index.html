@@ -154,6 +154,34 @@
   input[type=range] { width: 140px; accent-color: var(--primary); vertical-align: middle; }
   .switch { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; margin: 0; color: var(--text); }
   .switch input[type=checkbox] { accent-color: var(--primary); width: 18px; height: 18px; }
+
+  /* Look up, score review, change log */
+  .search { display: flex; gap: 8px; margin: 0 0 14px; }
+  .search input { flex: 1; font-size: 16px; }
+  .result-row { display: flex; gap: 12px; align-items: center; cursor: pointer; }
+  .result-row:hover { background: var(--bg); }
+  .result-row img, .thumb { width: 52px; height: 52px; border-radius: 12px; object-fit: cover; border: 1px solid var(--line); background: var(--surface-soft); flex: none; }
+  .result-row .grow { flex: 1; min-width: 0; }
+  .result-row h3 { font-size: 15px; margin: 0; }
+  .hero { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+  .hero img { width: 140px; height: 140px; border-radius: 16px; object-fit: cover; border: 1px solid var(--line); }
+  .section-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin: 18px 0 6px; }
+  .mini { display: flex; gap: 8px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; flex-wrap: wrap; }
+  .mini:last-child { border-bottom: 0; }
+  .mini .when { color: var(--muted); font-size: 12px; min-width: 120px; }
+  .bars { display: grid; gap: 8px; margin: 10px 0; }
+  .bar { display: grid; grid-template-columns: minmax(130px, 200px) 1fr 56px; gap: 10px; align-items: center; font-size: 14px; }
+  .bar .track { height: 10px; border-radius: 999px; background: var(--surface-soft); overflow: hidden; }
+  .bar .fill { display: block; height: 100%; background: var(--primary-soft); border-radius: 999px; }
+  .bar .pts { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+  .ing-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  .ing-table td { padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; font-size: 14px; }
+  .ing-table td:first-child { word-break: normal; }
+  .ing-table select { width: auto; padding: 4px 8px; font-size: 13px; border-radius: 10px; }
+  .warnbox { padding: 10px 12px; border-radius: 12px; background: var(--mod-bg); color: #7A4508; font-size: 14px; margin: 8px 0; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .diff { font-size: 13px; margin-top: 8px; padding: 10px 12px; background: var(--bg); border-radius: 12px; }
+  .diff .add { color: var(--low); } .diff .del { color: var(--high); text-decoration: line-through; }
+  @media (max-width: 560px) { .bar { grid-template-columns: 1fr 56px; } .bar .track { grid-column: 1 / -1; order: 3; } }
 </style>
 </head>
 <body>
@@ -222,6 +250,7 @@ const SUPABASE_KEY = "sb_publishable_OhskKXj-g5xXgx7Xf8UdtA_dBPBgkW9";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const QUEUES = {
+  lookup:           { label: "Look up",          statuses: [], custom: true },
   product_flags:    { label: "Product flags",    statuses: ["pending", "resolved", "dismissed"] },
   ingredient_flags: { label: "Ingredient flags", statuses: ["pending", "scoring_review", "resolved", "dismissed"] },
   allergens:        { label: "Allergen reports", statuses: ["pending", "resolved", "dismissed"] },
@@ -231,6 +260,8 @@ const QUEUES = {
                       statusLabels: { priority: "20+ misses, not picked up", open: "all open", fixed: "fixed (now has ingredients)" } },
   quarantine:       { label: "Quarantine",       statuses: ["open", "restored", "removed"],
                       statusLabels: { open: "waiting for review" } },
+  log:              { label: "Change log",       statuses: ["all", "edits", "resolutions", "quarantine"],
+                      statusLabels: { all: "everything", edits: "product changes", resolutions: "reports closed", quarantine: "quarantine and submissions" } },
   team:             { label: "Team",             statuses: [], adminOnly: true },
 };
 const STATUS_LABELS = { scoring_review: "scoring review", needs_review: "needs review" };
@@ -244,6 +275,7 @@ const ALLERGEN_NAMES = { gluten: "gluten", crustaceans: "crustaceans", eggs: "eg
 
 let me = null;
 let current = "product_flags";
+let lookupState = { q: "", barcode: null };
 let counts = {};
 
 const $ = (id) => document.getElementById(id);
@@ -411,17 +443,18 @@ function select(key) {
   for (const s of QUEUES[key].statuses) {
     sel.appendChild(el("option", { value: s }, esc(QUEUES[key].statusLabels?.[s] || nice(s))));
   }
-  $("toolbar").classList.toggle("hidden", key === "team");
+  $("toolbar").classList.toggle("hidden", key === "team" || key === "lookup");
   load();
 }
 
 const INTROS = {
-  product_flags: "Reports from people using the app. <strong>Fix product</strong> edits it here, rescores it and closes the report with a note of what changed. <strong>Hide product</strong> takes it out of the app and into Quarantine.",
+  product_flags: "Reports from people using the app. <strong>Fix product</strong> edits it here, rescores it and closes the report with a note of what changed. <strong>Review score</strong> shows exactly how the score was worked out. <strong>Quarantine</strong> hides it from the app until the weekly review.",
   ingredient_flags: "Reports about a single ingredient. If the text is wrong, fix it on the product. If it's really a question about whether an ingredient should count as a processing marker, send it to <strong>scoring review</strong>: rule changes are a separate, deliberate job.",
   allergens: "People telling us whether a product contains an allergen. Applying the answer updates the product's allergen tags. If the ingredient list mentions the allergen, fix the ingredients too, as the app checks both.",
   photos: "Photos people took of products. <strong>Tidy up and approve</strong> straightens, crops and blurs the background in your browser, shows you the result, then saves it as the product's photo.",
   missed_scans: "Barcodes people scanned that Unwrap couldn't answer. Only the barcode is counted, nothing about who scanned it, and each phone counts a barcode once per session. <strong>20+ misses, not picked up</strong> is the add-it-ourselves list. Once a barcode has ingredients in Unwrap it moves to Fixed by itself.",
-  quarantine: "Products hidden from the app until an admin reviews them, usually weekly. They land here when a moderator rejects a live product or someone presses Hide product. <strong>Restore</strong> puts it back; <strong>Remove for good</strong> keeps it out.",
+  log: "Every change made here, newest first: who, what and when. Product edits keep a before and after, and an admin can undo them.",
+  quarantine: "Products hidden from the app until an admin reviews them, usually weekly. They land here when a moderator rejects a live product or someone presses Quarantine on a report or in Look up. <strong>Restore</strong> puts it back; <strong>Remove for good</strong> keeps it out.",
 };
 
 async function load() {
@@ -429,6 +462,8 @@ async function load() {
   list.innerHTML = `<div class="empty">Loading…</div>`;
   try {
     if (current === "team") return renderTeam((await api("team")).team);
+    if (current === "lookup") return renderLookup();
+    if (current === "log") return await renderLog();
     const { rows } = await api("list", { queue: current, status: $("statusFilter").value });
     list.innerHTML = "";
     if (INTROS[current]) list.appendChild(el("p", { class: "hint" }, INTROS[current]));
@@ -470,12 +505,16 @@ function renderProductFlag(r) {
   const wrap = el("div", { class: "actions" }); wrap.appendChild(notes);
   const slot = el("div");
   const resolve = () => ({ queue: "product_flags", id: r.id, notes: notes.value.trim() || null });
+  const scoreFirst = r.reason_type === "wrong_score";
   if (r.status === "pending") {
-    wrap.appendChild(button("Fix product", "primary", () => openEditor(slot, r.barcode, { resolve })));
-    wrap.appendChild(button("Hide product", "danger", (e) => hideProduct(e.target, r.barcode, r.reason, resolve())));
+    if (scoreFirst) wrap.appendChild(button("Review score", "primary", () => openScoreReview(slot, r.barcode, { resolve })));
+    wrap.appendChild(button("Fix product", scoreFirst ? "" : "primary", () => openEditor(slot, r.barcode, { resolve })));
+    if (!scoreFirst) wrap.appendChild(button("Review score", "", () => openScoreReview(slot, r.barcode, { resolve })));
+    wrap.appendChild(button("Quarantine", "danger", (e) => hideProduct(e.target, r.barcode, r.reason, resolve())));
     wrap.appendChild(button("Dismiss", "quiet", (e) => run(e.target, () => api("set_product_flag", { id: r.id, status: "dismissed", notes: notes.value.trim() || null }), "Dismissed")));
   } else {
     wrap.appendChild(button("Open product", "quiet", () => openEditor(slot, r.barcode, {})));
+    wrap.appendChild(button("Quarantine", "danger", (e) => hideProduct(e.target, r.barcode, r.reason, null)));
     wrap.appendChild(button("Back to pending", "quiet", (e) => run(e.target, () => api("set_product_flag", { id: r.id, status: "pending", notes: notes.value.trim() || null }), "Back to pending")));
   }
   c.append(wrap, slot);
@@ -483,8 +522,8 @@ function renderProductFlag(r) {
 }
 
 async function hideProduct(btn, barcode, reason, resolve) {
-  if (!confirm("Hide this product from the app? It goes into Quarantine until the weekly review.")) return;
-  await run(btn, () => api("quarantine_product", { barcode, reason, resolve }), "Hidden and sent to Quarantine");
+  if (!confirm("Quarantine this product? It's hidden from the app until the weekly review.")) return;
+  await run(btn, () => api("quarantine_product", { barcode, reason, resolve }), "Quarantined: hidden from the app");
 }
 
 /* ─────────────── Ingredient flags ─────────────── */
@@ -991,6 +1030,257 @@ async function openStudio(slot, { barcode, url, submissionId }) {
     console.warn("segmentation failed", e);
     status.textContent = "The background tool couldn't run on this device, so it's a plain centre crop. Rotate if needed, then save.";
   }
+}
+
+/* ─────────────── Score review ───────────────
+   The score only ever comes from the ingredient list and the rules, so every
+   product is scored the same way. There's deliberately no manual override:
+   to change a score, fix the ingredients or question a rule. */
+
+const TIER_NAMES = (tiers) => Object.fromEntries(Object.entries(tiers || {}).map(([k, v]) => [String(Number(v)), k]));
+
+async function openScoreReview(slot, barcode, opts = {}) {
+  slot.innerHTML = `<div class="panel"><p class="progress">Working out the score…</p></div>`;
+  let b;
+  try { b = (await api("score_breakdown", { barcode })).breakdown; }
+  catch (e) { slot.innerHTML = `<div class="panel"><p class="err">${esc(e.message)}</p></div>`; return; }
+  if (!b) { slot.innerHTML = `<div class="panel"><p class="hint">This barcode isn't in Unwrap.</p></div>`; return; }
+  const resolve = typeof opts.resolve === "function" ? opts.resolve : null;
+  const tierName = TIER_NAMES(b.tiers);
+  const panel = el("div", { class: "panel" });
+  panel.innerHTML = `
+    <div class="row-head">${scoreBadge(b.stored_score)}<h4>Score review: ${esc(b.name)}</h4>
+      ${b.nova_group ? `<span class="tag ${b.nova_group === 4 ? "warn" : ""}">NOVA ${b.nova_group}</span>` : ""}</div>
+    ${b.suppressed ? `<div class="warnbox">No score shown in the app on purpose: ${esc(b.suppression_reason || "suppressed")}.</div>` : ""}
+    ${b.stale ? `<div class="warnbox">The saved score (${esc(b.stored_score ?? "none")}) is out of date: the ingredients now work out at <strong>${esc(b.computed_score ?? "no score")}</strong>. <span data-slot="rescore"></span></div>` : ""}
+    <p class="hint">${b.counts.ingredients || 0} ingredients counted · ${b.counts.markers || 0} processing markers · ${b.counts.transforms || 0} broken down and rebuilt. The score starts at 1.0 and each part below adds points.</p>
+    <div class="bars">${(b.components || []).map((c) => `
+      <div class="bar"><span>${esc(c.label)}</span><span class="track"><span class="fill" style="width:${Math.round(Math.min(1, c.value) * 100)}%"></span></span><span class="pts">+${Number(c.points).toFixed(1)}</span></div>`).join("")}
+    </div>
+    <div class="section-title">Ingredients</div>
+    <p class="hint">If an ingredient is being counted wrongly, choose what it should be and send it to scoring review. Rules change for every product at once, so that's a separate, deliberate job.</p>`;
+  const table = el("table", { class: "ing-table" });
+  const picks = [];
+  for (const i of b.ingredients) {
+    const tr = el("tr");
+    const kind = !i.counted ? `<span class="tag">not counted${i.ignored ? " (ignored)" : ""}</span>`
+      : i.marker ? `<span class="tag warn">${esc(tierName[String(Number(i.tier))] || "marker")}</span>` : `<span class="tag good">no marker</span>`;
+    const extras = [
+      i.transform ? `<span class="tag">broken down / rebuilt</span>` : "",
+      i.nova4 ? `<span class="tag warn">NOVA 4 sign</span>` : "",
+      i.alias_to ? `<span class="meta">read as “${esc(i.alias_to)}”</span>` : "",
+      (i.rules || []).length ? `<span class="meta">matched: ${i.rules.map((r) => esc(r.pattern)).join(", ")}</span>` : "",
+    ].join(" ");
+    tr.innerHTML = `<td style="${i.ignored ? "text-decoration:line-through;opacity:.6" : ""}">${esc(i.text)}<div>${extras}</div></td><td>${kind}</td><td></td>`;
+    if (i.counted) {
+      const sel = el("select", { "aria-label": `Question ${i.text}` });
+      sel.innerHTML = `<option value="">Looks right</option>` + (i.marker ? `<option value="should_not_count">Shouldn't count</option>` : `<option value="should_count">Should count</option>`);
+      picks.push({ text: i.text, sel });
+      tr.lastChild.appendChild(sel);
+    }
+    table.appendChild(tr);
+  }
+  panel.appendChild(table);
+  const out = el("div");
+  const actions = el("div", { class: "actions" });
+  if (b.stale) {
+    panel.querySelector('[data-slot="rescore"]').appendChild(button("Rescore now", "primary small", async (e) => {
+      e.target.disabled = true;
+      try { const r = await api("rescore", { barcode, resolve: resolve ? resolve() : undefined }); toast(r.summary); openScoreReview(slot, barcode, opts); if (resolve) setTimeout(refreshAll, 1200); }
+      catch (err) { toast("Failed: " + err.message); e.target.disabled = false; }
+    }));
+  }
+  actions.appendChild(button("Send questions to scoring review", "primary", async (e) => {
+    const items = picks.filter((p) => p.sel.value).map((p) => ({ text: p.text, direction: p.sel.value }));
+    if (!items.length) { toast("Choose at least one ingredient to question"); return; }
+    e.target.disabled = true;
+    try {
+      const r = await api("question_ingredients", { barcode, items, resolve: resolve ? resolve() : undefined });
+      out.innerHTML = `<div class="result">${esc(r.summary)}</div>`; toast("Sent to scoring review");
+      setTimeout(refreshAll, 1600);
+    } catch (err) { toast("Failed: " + err.message); e.target.disabled = false; }
+  }));
+  if (resolve) actions.appendChild(button("Score is right", "", async (e) => {
+    const r = resolve();
+    await run(e.target, () => api(r.queue === "product_flags" ? "set_product_flag" : "set_ingredient_flag",
+      { id: r.id, status: "dismissed", notes: [r.notes, `Score checked: ${b.stored_score} is correct for these ingredients`].filter(Boolean).join(" · ") }), "Closed: score is right");
+  }));
+  actions.appendChild(button("Fix ingredients", "quiet", () => openEditor(slot, barcode, opts)));
+  actions.appendChild(button("Close", "quiet", () => { slot.innerHTML = ""; }));
+  panel.append(actions, out);
+  slot.innerHTML = ""; slot.appendChild(panel);
+}
+
+/* ─────────────── Look up ─────────────── */
+
+function renderLookup() {
+  const list = $("list"); list.innerHTML = "";
+  list.appendChild(el("p", { class: "hint" }, "Find any product by barcode or name, see everything we know about it, and fix it from one place."));
+  const form = el("form", { class: "search" });
+  const q = el("input", { type: "search", placeholder: "Barcode or product name", autocomplete: "off", inputmode: "search" });
+  q.value = lookupState.q;
+  form.append(q, el("button", { class: "btn primary", type: "submit" }, "Search"));
+  const results = el("div"); const detail = el("div");
+  list.append(form, results, detail);
+  const search = async () => {
+    const term = q.value.trim(); lookupState.q = term; lookupState.barcode = null;
+    detail.innerHTML = "";
+    if (term.length < 2) { results.innerHTML = ""; return; }
+    results.innerHTML = `<p class="progress">Searching…</p>`;
+    try {
+      const { rows } = await api("lookup", { q: term });
+      results.innerHTML = "";
+      if (isBarcode(term) && !rows.some((r) => r.barcode === term)) {
+        const c = card(`<div class="row-head"><h3>${esc(term)} isn't in Unwrap</h3></div><p class="hint">${offLink(term)}</p>`);
+        const slot = el("div");
+        const act = el("div", { class: "actions" });
+        act.appendChild(button("Add product", "primary", () => openEditor(slot, term, { create: true })));
+        c.append(act, slot); results.appendChild(c);
+      }
+      if (!rows.length && !isBarcode(term)) { results.appendChild(el("div", { class: "empty" }, "No products match.")); return; }
+      if (rows.length === 1 && rows[0].barcode === term) return openProduct(term, results, detail);
+      for (const r of rows) {
+        const c = el("div", { class: "card result-row" });
+        c.innerHTML = `${r.image_url ? `<img src="${esc(r.image_url)}" alt="">` : `<span class="thumb"></span>`}
+          <div class="grow"><h3>${esc(r.name || "Unnamed")}</h3><div class="meta">${esc(r.brand || "")} · ${esc(r.barcode)} · ${esc(nice(r.category_l1 || "no category"))}</div></div>
+          ${r.is_deleted ? `<span class="tag bad">hidden</span>` : ""}${scoreBadge(r.score)}`;
+        c.addEventListener("click", () => openProduct(r.barcode, results, detail));
+        results.appendChild(c);
+      }
+    } catch (e) { results.innerHTML = `<p class="err">${esc(e.message)}</p>`; }
+  };
+  form.addEventListener("submit", (e) => { e.preventDefault(); search(); });
+  if (lookupState.barcode) openProduct(lookupState.barcode, results, detail);
+  else if (lookupState.q) search();
+  q.focus();
+}
+
+// Jump to a product from anywhere (change log, history links).
+function goLookup(barcode) {
+  lookupState = { q: barcode, barcode };
+  select("lookup");
+}
+
+const STATUS_TAG = (s) => `<span class="tag ${s === "pending" || s === "needs_review" || s === "open" ? "warn" : s === "resolved" || s === "accepted" || s === "approved" || s === "restored" ? "good" : ""}">${esc(nice(s))}</span>`;
+
+async function openProduct(barcode, results, detail) {
+  lookupState.barcode = barcode;
+  results.innerHTML = "";
+  detail.innerHTML = `<div class="empty">Loading…</div>`;
+  let h;
+  try { h = await api("history", { barcode }); }
+  catch (e) { detail.innerHTML = `<p class="err">${esc(e.message)}</p>`; return; }
+  const p = h.product;
+  detail.innerHTML = "";
+  if (!p) { detail.appendChild(el("div", { class: "empty" }, "Not in Unwrap.")); return; }
+  const c = card(`
+    <div class="hero">
+      ${p.image_url ? `<img src="${esc(p.image_url)}" alt="Product photo">` : ""}
+      <div style="flex:1;min-width:220px">
+        <div class="row-head">${scoreBadge(p.score)}<h3>${esc(p.name)}</h3>${p.is_deleted ? `<span class="tag bad">hidden from the app</span>` : ""}</div>
+        <div class="meta" style="margin-top:6px">${esc(p.brand || "")} · ${esc(p.barcode)} · ${esc(nice(p.category_l1 || "no category"))}${p.category_l2 ? " › " + esc(nice(p.category_l2)) : ""} · source: ${esc(p.source || "?")} · ${offLink(p.barcode)}</div>
+        <div class="chips">${p.ingredients.map((i) => `<span class="chip ${i.marker ? "marker" : ""} ${i.ignored ? "ignored" : ""}">${esc(i.text)}</span>`).join("") || `<span class="hint">No ingredients.</span>`}</div>
+        ${(p.allergens || []).length ? `<div class="hint">Allergen tags: ${esc(p.allergens.join(", "))}</div>` : ""}
+      </div>
+    </div>`);
+  const slot = el("div");
+  const act = el("div", { class: "actions" });
+  act.appendChild(button("Edit product", "primary", () => openEditor(slot, barcode, {})));
+  act.appendChild(button("Review score", "", () => openScoreReview(slot, barcode, {})));
+  const openQ = (h.quarantine || []).find((q) => q.status === "open");
+  if (openQ && isAdmin()) act.appendChild(button("Restore to the app", "", (e) => run(e.target, () => api("decide_quarantine", { id: openQ.id, decision: "restore" }), "Restored")));
+  else if (!p.is_deleted) act.appendChild(button("Quarantine", "danger", (e) => hideProduct(e.target, barcode, "Quarantined from Look up", null)));
+  c.append(act, slot);
+  detail.appendChild(c);
+
+  const section = (title, items, line) => {
+    if (!items || !items.length) return;
+    const box = card(`<div class="section-title" style="margin-top:0">${esc(title)}</div>`);
+    for (const it of items) box.appendChild(el("div", { class: "mini" }, line(it)));
+    detail.appendChild(box);
+  };
+  const who = (r) => r.reporter ? ` · ${esc(r.reporter)}` : "";
+  section("Reports about this product", [
+    ...h.product_flags.map((r) => ({ at: r.created_at, html: `${STATUS_TAG(r.status)} <strong>${esc(nice(r.reason_type))}</strong> ${esc(r.reason || "")}${who(r)}${r.admin_notes ? `<span class="meta"> · ${esc(r.admin_notes)}</span>` : ""}` })),
+    ...h.ingredient_flags.map((r) => ({ at: r.created_at, html: `${STATUS_TAG(r.status)} <strong>${esc(r.ingredient_name)}</strong>: ${esc(nice(r.reason))}${who(r)}${r.admin_notes ? `<span class="meta"> · ${esc(r.admin_notes)}</span>` : ""}` })),
+    ...h.allergens.map((r) => ({ at: r.created_at, html: `${STATUS_TAG(r.status)} <strong>${esc(ALLERGEN_NAMES[r.allergen_key] || r.allergen_key)}</strong>: ${esc(nice(r.answer))}${who(r)}` })),
+    ...h.submissions.map((r) => ({ at: r.created_at, html: `${STATUS_TAG(r.status)} <strong>Submission</strong> (${esc(nice(r.kind))})${who(r)}` })),
+    ...h.photos.map((r) => ({ at: r.created_at, html: `${STATUS_TAG(r.status)} <strong>Photo sent in</strong>${who(r)}` })),
+  ].sort((a, b) => String(b.at).localeCompare(String(a.at))), (it) => `<span class="when">${when(it.at)}</span><span>${it.html}</span>`);
+  if (h.missed) section("Missed scans", [h.missed], (m) => `<span><strong>${m.misses}</strong> missed scans · ${esc(m.reasons)} · ${STATUS_TAG(m.state)} · last ${when(m.last_seen)}</span>`);
+  section("Quarantine", h.quarantine, (q) => `<span class="when">${when(q.quarantined_at)}</span><span>${STATUS_TAG(q.status)} ${esc(Q_SOURCE[q.source] || q.source)}${q.reason ? ` · ${esc(q.reason)}` : ""}${q.decision_note ? ` · ${esc(q.decision_note)}` : ""}</span>`);
+  if (h.log.length) {
+    const box = card(`<div class="section-title" style="margin-top:0">Changes made here</div>`);
+    for (const e of h.log) box.appendChild(logEntry(e, { compact: true }));
+    detail.appendChild(box);
+  }
+}
+
+/* ─────────────── Change log ─────────────── */
+
+const ACTION_LABELS = {
+  edit_product: "Edited product", create_product: "Added product", undo_edit: "Undid an edit", rescore: "Rescored",
+  allergen: "Allergen tags", photo: "Product photo", explanation: "Explanation", quarantine: "Quarantined",
+  quarantine_decision: "Quarantine decision", submission_approve: "Submission approved", submission_reject: "Submission rejected",
+  scoring_question: "Scoring review", missed_scan: "Missed scan", team: "Team",
+  "status:product_flags": "Product flag", "status:ingredient_flags": "Ingredient flag",
+  "status:allergen_reports": "Allergen report", "status:product_image_submissions": "Photo",
+};
+
+async function renderLog() {
+  const list = $("list");
+  list.innerHTML = "";
+  list.appendChild(el("p", { class: "hint" }, INTROS.log));
+  const { rows } = await api("audit_log", { status: $("statusFilter").value });
+  if (!rows.length) { list.appendChild(el("div", { class: "empty" }, "Nothing logged yet.")); return; }
+  const box = card("");
+  for (const e of rows) box.appendChild(logEntry(e, {}));
+  list.appendChild(box);
+}
+
+function diffHtml(before, after) {
+  if (!before || !after) return "";
+  const out = [];
+  for (const [k, label] of [["name", "Name"], ["brand", "Brand"], ["category_l1", "Category"]]) {
+    if ((before[k] ?? "") !== (after[k] ?? "")) out.push(`${label}: <span class="del">${esc(before[k] ?? "–")}</span> → <span class="add">${esc(after[k] ?? "–")}</span>`);
+  }
+  if (Array.isArray(before.ingredients) && Array.isArray(after.ingredients)) {
+    const b = new Set(before.ingredients), a = new Set(after.ingredients);
+    const removed = before.ingredients.filter((x) => !a.has(x)), added = after.ingredients.filter((x) => !b.has(x));
+    if (removed.length) out.push(`Removed: ${removed.map((x) => `<span class="del">${esc(x)}</span>`).join(", ")}`);
+    if (added.length) out.push(`Added: ${added.map((x) => `<span class="add">${esc(x)}</span>`).join(", ")}`);
+  }
+  if ("score" in before && "score" in after && before.score !== after.score) out.push(`Score: ${esc(before.score ?? "none")} → ${esc(after.score ?? "none")}`);
+  if (before.description !== undefined && after.description !== undefined) out.push(`<span class="del">${esc(before.description)}</span><br><span class="add">${esc(after.description)}</span>`);
+  if (before.image_url !== undefined || after.image_url !== undefined) out.push(`${before.image_url ? `<img class="thumb" src="${esc(before.image_url)}" alt="Before">` : "none"} → ${after.image_url ? `<img class="thumb" src="${esc(after.image_url)}" alt="After">` : "none"}`);
+  return out.length ? `<div class="diff">${out.join("<br>")}</div>` : "";
+}
+
+function logEntry(e, { compact }) {
+  const row = el("div", { class: "mini" });
+  const product = !compact && e.barcode ? ` · <button type="button" class="linkbtn" data-go>${esc(e.product_name || e.barcode)}</button>` : "";
+  row.innerHTML = `<span class="when">${when(e.at)}</span>
+    <span style="flex:1;min-width:200px"><strong>${esc(ACTION_LABELS[e.action] || nice(e.action))}</strong>${product}
+      <div>${esc(e.summary || "")}</div>
+      <div class="meta">${esc(e.actor_email || "")}${e.undone_at ? ` · <span class="tag">undone</span>` : ""}</div>
+      <div data-diff></div></span>`;
+  row.querySelector("[data-go]")?.addEventListener("click", () => goLookup(e.barcode));
+  const d = diffHtml(e.before, e.after);
+  const holder = row.querySelector("[data-diff]");
+  if (d) {
+    const show = el("button", { type: "button", class: "linkbtn" }, "Show changes");
+    show.addEventListener("click", () => { holder.innerHTML = d; });
+    holder.appendChild(show);
+  }
+  if (isAdmin() && e.action === "edit_product" && !e.undone_at && e.before) {
+    const undo = el("button", { type: "button", class: "btn quiet small", style: "margin-left:8px" }, "Undo");
+    undo.addEventListener("click", async () => {
+      if (!confirm("Put this product back how it was before this edit?")) return;
+      await run(undo, () => api("undo_edit", { id: e.id }), "Edit undone");
+    });
+    holder.appendChild(undo);
+  }
+  return row;
 }
 
 /* ─────────────── Team ─────────────── */
