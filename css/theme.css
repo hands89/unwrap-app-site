@@ -80,7 +80,7 @@ img { display: block; max-width: 100%; }
   padding: 16px 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   position: relative;
 }
 
@@ -102,42 +102,6 @@ img { display: block; max-width: 100%; }
   font-size: 19px;
   color: var(--text);
   letter-spacing: -0.3px;
-}
-
-/* Desktop nav */
-.nav {
-  display: flex;
-  gap: 2px;
-}
-
-.nav a {
-  padding: 8px 14px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-muted);
-  transition: all 0.2s ease;
-}
-
-.nav a:hover {
-  background: rgba(44, 95, 62, 0.06);
-  color: var(--green-dark);
-}
-
-/* Mobile menu toggle */
-.menu-toggle {
-  display: none;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  z-index: 11;
-  color: var(--text);
-}
-
-.menu-toggle svg {
-  width: 24px;
-  height: 24px;
 }
 
 /* ── Buttons ── */
@@ -291,37 +255,97 @@ img { display: block; max-width: 100%; }
 /* ── Footer ── */
 .site-footer {
   border-top: 1px solid var(--border);
-  padding: 22px 0 36px;
+  margin-top: 40px;
+  padding: 26px 0 32px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 24px 28px;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.footer-h {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.footer-about .footer-brand {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 14px;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+  margin-bottom: 6px;
+  letter-spacing: -0.2px;
 }
 
-.site-footer--simple {
-  margin-top: 32px;
+.footer-about .footer-brand img { width: 22px; height: 22px; object-fit: contain; }
+.footer-about p { max-width: 30ch; }
+
+.footer-nav ul { list-style: none; margin: 0; padding: 0; }
+.footer-nav li { margin-bottom: 5px; }
+
+.site-footer a {
+  color: var(--text-muted);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+
+.site-footer a:hover {
+  color: var(--green-dark);
+  border-bottom-color: rgba(44, 95, 62, 0.35);
+}
+
+.site-footer a[aria-current="page"] { color: var(--green-dark); font-weight: 600; }
+
+.footer-contact .email-link {
+  display: inline-block;
+  margin-bottom: 4px;
   font-size: 13px;
-  color: var(--text-light);
-  display: block;
+  color: var(--green-dark);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  overflow-wrap: anywhere;
 }
 
-.footer-left {
-  font-size: 13px;
-  color: var(--text-light);
-}
-
-.footer-links {
+.footer-social {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.footer-bottom {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+  font-size: 12px;
+  color: var(--text-light);
+  display: flex;
+  gap: 8px 18px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.site-footer--simple {
+  display: block;
+  margin-top: 32px;
+  font-size: 13px;
+  color: var(--text-light);
 }
 
 .chip {
   display: inline-flex;
-  padding: 6px 14px;
+  padding: 5px 12px;
   border-radius: 999px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-muted);
   border: 1px solid var(--border);
@@ -372,33 +396,12 @@ img { display: block; max-width: 100%; }
     --gutter: 16px;
   }
 
-  .menu-toggle {
-    display: block;
+  .site-footer {
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
 
-  .nav {
-    position: fixed;
-    inset: 0;
-    background: var(--cream);
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    z-index: 10;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.25s ease;
-  }
-
-  .nav.is-open {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .nav a {
-    font-size: 18px;
-    padding: 14px 28px;
-  }
+  .footer-bottom { flex-direction: column; gap: 4px; }
 
   .card {
     padding: 20px 18px;

@@ -255,17 +255,6 @@
         <img src="/assets/images/logo.png" alt="Unwrap" class="brand-logo" width="34" height="34">
         <span class="brand-name">Unwrap</span>
       </a>
-      <button class="menu-toggle" aria-label="Toggle menu" aria-expanded="false">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-        </svg>
-      </button>
-      <nav class="nav" id="nav">
-        <a href="/">Home</a>
-        <a href="/evidence.html">Evidence</a>
-        <a href="https://hands89.github.io/unwrap-support/unwrap_privacy_policy.html">Privacy</a>
-        <a href="https://hands89.github.io/unwrap-support/unwrap_support.html">Support</a>
-      </nav>
     </header>
 
     <a href="/" class="back">
@@ -477,7 +466,38 @@
       </div>
     </div>
 
-    <footer class="site-footer site-footer--simple">&copy; <span id="year"></span> Unwrap</footer>
+    <footer class="site-footer">
+      <div class="footer-about">
+        <div class="footer-brand"><img src="/assets/images/logo.png" alt="" width="22" height="22"> Unwrap</div>
+        <p>Understand what's really in your food. No guilt, no lectures — just ingredients in plain English.</p>
+      </div>
+
+      <nav class="footer-nav" aria-label="Site">
+        <div class="footer-h">Pages</div>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/evidence.html" aria-current="page">Evidence &amp; approach</a></li>
+          <li><a href="/privacy.html">Privacy</a></li>
+          <li><a href="/support.html">Support</a></li>
+        </ul>
+      </nav>
+
+      <div class="footer-contact">
+        <div class="footer-h">Contact</div>
+        <p>A question, a correction, or something broken?</p>
+        <a class="email-link" href="mailto:eddy.at.unwrap@gmail.com">eddy.at.unwrap@gmail.com</a>
+        <p>Usually answered within 24 hours.</p>
+        <div class="footer-social">
+          <a class="chip" href="https://www.instagram.com/unwrap_your_food/" target="_blank" rel="noopener">Instagram</a>
+          <a class="chip" href="https://www.tiktok.com/@unwrappedapp" target="_blank" rel="noopener">TikTok</a>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span>© <span id="year">2026</span> Unwrap · Independent and ad-free</span>
+        <a href="https://apps.apple.com/gb/app/unwrap-app/id6757312100" target="_blank" rel="noopener">Download on iPhone</a>
+      </div>
+    </footer>
   </div>
 
   <script>
@@ -502,25 +522,6 @@
         btn.setAttribute("aria-expanded", isOpen);
       });
     });
-
-    const toggle = document.querySelector(".menu-toggle");
-    const nav = document.getElementById("nav");
-    if (toggle && nav) {
-      toggle.addEventListener("click", () => {
-        const open = nav.classList.toggle("is-open");
-        toggle.setAttribute("aria-expanded", open);
-        toggle.innerHTML = open
-          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
-          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
-      });
-      nav.querySelectorAll("a").forEach(a => {
-        a.addEventListener("click", () => {
-          nav.classList.remove("is-open");
-          toggle.setAttribute("aria-expanded", "false");
-          toggle.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
-        });
-      });
-    }
   </script>
 </body>
 </html>

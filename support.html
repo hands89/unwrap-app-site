@@ -2,13 +2,173 @@
 <html lang="en-GB">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Help with Unwrap — scanning, receipts, accounts, subscriptions, and how to get in touch." />
   <title>Unwrap — Support</title>
-  <meta name="robots" content="noindex" />
-  <link rel="canonical" href="https://hands89.github.io/unwrap-support/unwrap_support.html" />
-  <meta http-equiv="refresh" content="0; url=https://hands89.github.io/unwrap-support/unwrap_support.html" />
-  <script>location.replace("https://hands89.github.io/unwrap-support/unwrap_support.html");</script>
+
+  <link rel="icon" type="image/png" href="/assets/images/logo.png" />
+  <link rel="apple-touch-icon" href="/assets/images/logo.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/theme.css" />
+  <style>
+    .faq { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 8px; box-shadow: var(--shadow-sm); }
+    .faq summary { list-style: none; cursor: pointer; padding: 14px 16px; font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 10px; }
+    .faq summary::-webkit-details-marker { display: none; }
+    .faq summary .chev { width: 16px; height: 16px; margin-left: auto; color: var(--text-muted); transition: transform 0.15s ease; flex: none; }
+    .faq[open] summary .chev { transform: rotate(180deg); }
+    .faq p { padding: 0 16px 14px; font-size: 14px; color: var(--text-muted); line-height: 1.65; }
+    .faq summary:focus-visible, a:focus-visible, .btn:focus-visible { outline: 3px solid var(--green-dark); outline-offset: 2px; border-radius: 6px; }
+    .faq-group { margin-bottom: 26px; }
+    .faq-group h2 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: var(--green-dark); margin-bottom: 10px; }
+    .tip-jar { background: #FFF9E6; border: 1px solid var(--border); border-radius: var(--radius); padding: 24px 22px; margin-top: 28px; text-align: center; }
+    .tip-jar h3 { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .tip-jar p { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 18px; }
+    .tip-options { display: flex; gap: 12px; justify-content: center; }
+    .tip-option { flex: 1; max-width: 120px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px 8px; text-align: center; }
+    .tip-option-emoji { font-size: 28px; display: block; margin-bottom: 8px; }
+    .tip-option-price { font-size: 14px; font-weight: 600; color: var(--text); }
+  </style>
 </head>
+
 <body>
-  <p>Unwrap's support page has moved to <a href="https://hands89.github.io/unwrap-support/unwrap_support.html">https://hands89.github.io/unwrap-support/unwrap_support.html</a>.</p>
+  <div class="wrap wrap--narrow">
+    <header class="site-header">
+      <a href="/" class="brand">
+        <img src="/assets/images/logo.png" alt="Unwrap" class="brand-logo" width="34" height="34">
+        <span class="brand-name">Unwrap</span>
+      </a>
+    </header>
+
+    <main>
+      <h1 class="page-title">Support</h1>
+      <p class="page-sub">If something is broken or confusing, get in touch and we will help.</p>
+
+      <div class="faq-group">
+        <h2>Using the app</h2>
+        <details class="faq">
+          <summary>How do I scan a product?<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
+          <p>Tap the scan button and point your camera at the barcode. Unwrap finds the product and shows what's in it.</p>
+        </details>
+        <details class="faq">
+          <summary>Do I need an account?<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
+          <p>No. Unwrap works as a guest, and your history stays on your phone. A free account syncs your history across devices and unlocks swaps and alternatives.</p>
+        </details>
+        <details class="faq">
+          <summary>How does receipt scanning work?<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
+          <p>Photograph your shopping receipt and Unwrap reads the items from it. Items without a barcode are an estimate from the name, so scan those to check them.</p>
+        </details>
+        <details class="faq">
+          <summary>Why is an ingredient flagged?<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
+          <p>Flagged ingredients are ones typically used in industrial food production rather than home cooking &mdash; emulsifiers, sweeteners, flavourings and so on. Tap any flagged ingredient to see what it is and why it is highlighted. A flag does not mean an ingredient is unsafe.</p>
+        </details>
+        <details class="faq">
+          <summary>A product isn't in the database<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
+          <p>Add it in the app. It takes about a minute, and the next person to scan it gets the benefit.</p>
+        </details>
+        <details class="faq">
+          <summary>How do I report something wrong?<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
+          <p>On any product page, tap the flag icon. You can report incorrect details, wrong ingredients or a missing allergen.</p>
+        </details>
+      </div>
+
+      <div class="faq-group">
+        <h2>Account and subscription</h2>
+        <details class="faq">
+          <summary>How do I restore my subscription?<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
+          <p>Profile &rarr; Subscription &rarr; Restore Purchases. This restores anything bought with your Apple ID or Google account.</p>
+        </details>
+        <details class="faq">
+          <summary>How do I change or cancel?<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
+          <p>Subscriptions are managed by the store you bought through. iPhone: Settings &rarr; your name &rarr; Subscriptions. Android: Google Play &rarr; Profile &rarr; Payments and subscriptions.</p>
+        </details>
+        <details class="faq">
+          <summary>How do I delete my account?<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
+          <p>Profile &rarr; delete account, then confirm twice. This permanently removes your account and everything attached to it, and cannot be undone.</p>
+        </details>
+      </div>
+
+      <div class="faq-group">
+        <h2>Something isn't working</h2>
+        <details class="faq">
+          <summary>The camera won't start<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
+          <p>Check Unwrap has camera permission: iPhone Settings &rarr; Unwrap &rarr; Camera. On Android, Settings &rarr; Apps &rarr; Unwrap &rarr; Permissions.</p>
+        </details>
+        <details class="faq">
+          <summary>The app feels slow<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
+          <p>Close and reopen it, and check you are on the latest version from the App Store or Google Play.</p>
+        </details>
+        <details class="faq">
+          <summary>My data isn't syncing<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
+          <p>Check your connection, then open Profile to confirm you are signed in. Guest scans stay on the phone and do not sync.</p>
+        </details>
+      </div>
+
+      <div class="card">
+        <h3>Email us</h3>
+        <p>We usually reply within 24 hours.</p>
+        <p><a class="email-link" href="mailto:eddy.at.unwrap@gmail.com">eddy.at.unwrap@gmail.com</a></p>
+        <p style="margin-top:12px"><strong>It helps to include</strong></p>
+        <ul class="checklist">
+          <li>Your phone model and app version</li>
+          <li>What you were trying to do</li>
+          <li>The barcode, if it is about a product</li>
+          <li>A screenshot, if you have one</li>
+        </ul>
+        <p style="margin-top:14px"><a class="btn btn-primary btn-sm" href="mailto:eddy.at.unwrap@gmail.com">Email support</a></p>
+      </div>
+
+      <div class="tip-jar">
+        <h3>Buy me a coffee</h3>
+        <p>Unwrap is built by one person, ad-free and independent. A one-off thank you, if you fancy it &mdash; no pressure.</p>
+        <div class="tip-options">
+          <div class="tip-option"><span class="tip-option-emoji">&#9749;</span><span class="tip-option-price">&pound;1.99</span></div>
+          <div class="tip-option"><span class="tip-option-emoji">&#127829;</span><span class="tip-option-price">&pound;4.99</span></div>
+          <div class="tip-option"><span class="tip-option-emoji">&#127881;</span><span class="tip-option-price">&pound;9.99</span></div>
+        </div>
+        <p style="margin:16px 0 0">Tips live in the app for now: open the menu and tap Support Unwrap.</p>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-about">
+        <div class="footer-brand"><img src="/assets/images/logo.png" alt="" width="22" height="22"> Unwrap</div>
+        <p>Understand what's really in your food. No guilt, no lectures — just ingredients in plain English.</p>
+      </div>
+
+      <nav class="footer-nav" aria-label="Site">
+        <div class="footer-h">Pages</div>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/evidence.html">Evidence &amp; approach</a></li>
+          <li><a href="/privacy.html">Privacy</a></li>
+          <li><a href="/support.html" aria-current="page">Support</a></li>
+        </ul>
+      </nav>
+
+      <div class="footer-contact">
+        <div class="footer-h">Contact</div>
+        <p>A question, a correction, or something broken?</p>
+        <a class="email-link" href="mailto:eddy.at.unwrap@gmail.com">eddy.at.unwrap@gmail.com</a>
+        <p>Usually answered within 24 hours.</p>
+        <div class="footer-social">
+          <a class="chip" href="https://www.instagram.com/unwrap_your_food/" target="_blank" rel="noopener">Instagram</a>
+          <a class="chip" href="https://www.tiktok.com/@unwrappedapp" target="_blank" rel="noopener">TikTok</a>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span>© <span id="year">2026</span> Unwrap · Independent and ad-free</span>
+        <a href="https://apps.apple.com/gb/app/unwrap-app/id6757312100" target="_blank" rel="noopener">Download on iPhone</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>
