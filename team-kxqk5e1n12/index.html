@@ -181,6 +181,29 @@
   .warnbox { padding: 10px 12px; border-radius: 12px; background: var(--mod-bg); color: #7A4508; font-size: 14px; margin: 8px 0; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
   .diff { font-size: 13px; margin-top: 8px; padding: 10px 12px; background: var(--bg); border-radius: 12px; }
   .diff .add { color: var(--low); } .diff .del { color: var(--high); text-decoration: line-through; }
+  /* App mock-up for "preview before save": mirrors the scan result screen */
+  .mock-pair { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; align-items: flex-start; }
+  .mock-col { flex: 1 1 280px; max-width: 340px; }
+  .mock-col > .cap { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+  .phone { background: #FBF3E4; border: 8px solid #1E1B18; border-radius: 36px; padding: 14px 16px 22px; min-height: 480px; box-shadow: var(--shadow); }
+  .phone .top { display: flex; justify-content: space-between; color: var(--primary); margin-bottom: 8px; }
+  .phone .top svg { width: 20px; height: 20px; }
+  .phone .photo { width: 96px; height: 96px; border-radius: 16px; object-fit: cover; display: block; margin: 0 auto 10px; border: 1px solid var(--line); }
+  .phone .circle { width: 84px; height: 84px; border-radius: 50%; margin: 4px auto 6px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 30px; font-weight: 700; }
+  .phone .band { text-align: center; font-weight: 600; font-size: 14px; }
+  .phone .nova { text-align: center; font-size: 12px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+  .phone .pname { text-align: center; font-size: 18px; font-weight: 700; margin: 10px 0 2px; }
+  .phone .pbrand { text-align: center; color: var(--muted); font-size: 13px; }
+  .phone .ihead { display: flex; align-items: center; gap: 6px; margin: 14px 0 6px; font-weight: 600; font-size: 14px; }
+  .phone .pill-n { background: var(--surface-soft); border-radius: 999px; padding: 0 8px; font-size: 12px; font-weight: 600; color: var(--muted); }
+  .phone .flagged { margin-left: auto; background: var(--high-bg); color: var(--high); border-radius: 999px; padding: 1px 8px; font-size: 11px; font-weight: 600; }
+  .phone .chips { gap: 5px; }
+  .phone .chip { font-size: 12px; padding: 3px 10px; background: #F4EFE6; border-color: #E6DCCB; }
+  .phone .chip.marker { background: #FBEBD9; border-color: #C98A3E; color: #8A4E0E; }
+  .phone .fine { font-size: 11px; color: var(--muted); margin-top: 8px; }
+  .phone .changed { outline: 2px dashed var(--primary-soft); outline-offset: 2px; border-radius: 8px; }
+  .phone .circle.changed { border-radius: 50%; outline-offset: 4px; }
+  .phone .empty-ing { font-size: 13px; color: var(--muted); }
   @media (max-width: 560px) { .bar { grid-template-columns: 1fr 56px; } .bar .track { grid-column: 1 / -1; order: 3; } }
 </style>
 </head>
@@ -819,12 +842,40 @@ async function openEditor(slot, barcode, opts = {}) {
 
   const out = el("div");
   const actions = el("div", { class: "actions" });
-  const save = button(creating ? "Add to Unwrap" : resolve ? "Save and resolve" : "Save", "primary", async (e) => {
+  const confirmLabel = creating ? "Add to Unwrap" : resolve ? "Confirm, save and resolve" : "Confirm and save";
+  const preview = button("Preview in the app", "primary", async (e) => {
     if (!name.value.trim()) { toast("Name is needed"); return; }
     if (creating && !cat.value) { toast("Choose a category"); return; }
     const newList = ing.value.split("\n").map((x) => x.trim()).filter(Boolean);
     const oldList = (product?.ingredients || []).map((i) => i.text);
     const changed = creating || JSON.stringify(newList) !== JSON.stringify(oldList);
+    e.target.disabled = true;
+    out.innerHTML = `<p class="progress">Working out the new score…</p>`;
+    try {
+      const pv = changed ? (await api("preview_score", { ingredients: newList })).preview : null;
+      const now = product ? { score: product.score, nova_group: product.nova_group, name: product.name, brand: product.brand,
+        image_url: product.image_url, ingredients: product.ingredients.filter((i) => !i.ignored) } : null;
+      const after = {
+        score: pv ? pv.score : product?.score, nova_group: pv ? pv.nova_group : product?.nova_group,
+        name: name.value.trim(), brand: brand.value.trim(), image_url: product?.image_url,
+        ingredients: pv ? pv.ingredients : now.ingredients,
+      };
+      const nothing = !creating && !changed && now.name === after.name && (now.brand || "") === after.brand && !cat.value;
+      out.innerHTML = `
+        ${nothing ? `<div class="warnbox">Nothing has changed yet.</div>` : ""}
+        <div class="mock-pair">
+          ${now ? `<div class="mock-col"><div class="cap">In the app now</div>${phoneMock(now)}</div>` : ""}
+          <div class="mock-col"><div class="cap">${creating ? "What the app will show" : "After you save"}</div>${phoneMock(after, now)}</div>
+        </div>
+        <p class="hint">Dashed outlines show what's changed. The photo appears in the app from the next build.</p>`;
+      const act = el("div", { class: "actions" });
+      act.append(button(confirmLabel, "primary", (ev) => doSave(ev, newList, changed)), button("Back to editing", "quiet", () => { out.innerHTML = ""; }));
+      out.appendChild(act);
+      out.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    } catch (err) { out.innerHTML = ""; toast("Failed: " + err.message); }
+    e.target.disabled = false;
+  });
+  const doSave = async (e, newList, changed) => {
     e.target.disabled = true;
     try {
       const res = await api("save_product", {
@@ -835,8 +886,8 @@ async function openEditor(slot, barcode, opts = {}) {
       toast(resolve ? "Saved and resolved" : "Saved");
       setTimeout(refreshAll, 1600);
     } catch (err) { toast("Failed: " + err.message); e.target.disabled = false; }
-  });
-  actions.append(save, button("Close", "quiet", () => { slot.innerHTML = ""; }));
+  };
+  actions.append(preview, button("Close", "quiet", () => { slot.innerHTML = ""; }));
   panel.append(actions, out);
   slot.innerHTML = ""; slot.appendChild(panel);
   name.focus();
@@ -1030,6 +1081,39 @@ async function openStudio(slot, { barcode, url, submissionId }) {
     console.warn("segmentation failed", e);
     status.textContent = "The background tool couldn't run on this device, so it's a plain centre crop. Rotate if needed, then save.";
   }
+}
+
+/* ─────────────── App mock-up ─────────────── */
+
+const BAND = (score) => {
+  if (score === null || score === undefined) return { label: "No score yet", color: "#B8AFA3", text: "var(--muted)" };
+  const n = Number(score);
+  return n <= 3 ? { label: "Minimally processed", color: "var(--low)", text: "var(--low)" }
+    : n < 7 ? { label: "Processed", color: "var(--mod)", text: "var(--mod)" }
+    : { label: "Ultra-processed", color: "var(--high)", text: "var(--high)" };
+};
+
+// A rough copy of the app's scan result screen, so an edit can be checked by eye.
+function phoneMock(v, compareTo) {
+  const band = BAND(v.score);
+  const diff = (a, b) => compareTo && a !== b ? " changed" : "";
+  const flagged = v.ingredients.filter((i) => i.marker).length;
+  const beforeSet = compareTo ? new Set(compareTo.ingredients.map((i) => i.text)) : null;
+  return `<div class="phone">
+    <div class="top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.9l7.6-4.3M8.2 13.1l7.6 4.3"/></svg></div>
+    ${v.image_url ? `<img class="photo" src="${esc(v.image_url)}" alt="">` : ""}
+    <div class="circle${diff(v.score, compareTo?.score)}" style="background:${band.color}">${v.score === null || v.score === undefined ? "–" : Number(v.score).toFixed(1)}</div>
+    <div class="band" style="color:${band.text}">${band.label}</div>
+    ${v.nova_group === 4 ? `<div class="nova">NOVA group 4 ⓘ</div>` : ""}
+    <div class="pname${diff(v.name, compareTo?.name)}">${esc(v.name || "Unnamed product")}</div>
+    <div class="pbrand${diff(v.brand || "", compareTo?.brand || "")}">${esc(v.brand || "")}</div>
+    <div class="ihead">Ingredients <span class="pill-n">${v.ingredients.length}</span>${flagged ? `<span class="flagged">${flagged} flagged</span>` : ""}</div>
+    ${v.ingredients.length ? `<div class="chips">${v.ingredients.map((i) =>
+      `<span class="chip ${i.marker ? "marker" : ""} ${beforeSet && !beforeSet.has(i.text) ? "changed" : ""}">${esc(i.text)}</span>`).join("")}</div>
+      <div class="fine">Highlighted ingredients are often used as markers of ultra-processing.</div>`
+      : `<div class="empty-ing">No ingredients. The app will ask people to add them.</div>`}
+  </div>`;
 }
 
 /* ─────────────── Score review ───────────────
