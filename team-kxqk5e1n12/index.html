@@ -186,9 +186,11 @@ const QUEUES = {
   submissions:      { label: "Submissions",      statuses: ["needs_review", "accepted", "rejected", "duplicate"] },
   photos:           { label: "Photos",           statuses: ["pending", "approved", "rejected"] },
   allergens:        { label: "Allergen reports", statuses: ["pending", "resolved", "dismissed"] },
+  missed_scans:     { label: "Missed scans",     statuses: ["priority", "open", "investigating", "ignored", "fixed"],
+                      statusLabels: { priority: "20+ misses, not picked up", open: "all open", fixed: "fixed (now has ingredients)" } },
   team:             { label: "Team",             statuses: [], adminOnly: true },
 };
-const COUNT_KEY = { product_flags: "product_flags", ingredient_flags: "ingredient_flags", submissions: "submissions", photos: "photos", allergens: "allergens" };
+const COUNT_KEY = { product_flags: "product_flags", ingredient_flags: "ingredient_flags", submissions: "submissions", photos: "photos", allergens: "allergens", missed_scans: "missed_scans" };
 
 let me = null;
 let current = "product_flags";
@@ -198,6 +200,8 @@ const $ = (id) => document.getElementById(id);
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const when = (iso) => iso ? new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
 const nice = (s) => String(s ?? "").replace(/_/g, " ");
+const offLink = (barcode) => /^[0-9]{8,14}$/.test(String(barcode ?? ""))
+  ? `<a href="https://world.openfoodfacts.org/product/${barcode}" target="_blank" rel="noopener">Open Food Facts</a>` : "";
 
 function toast(msg) {
   const t = $("toast"); t.textContent = msg; t.classList.add("show");
@@ -259,7 +263,7 @@ const HERE = location.origin + location.pathname;
 const ONLINE = location.protocol === "https:" || location.hostname === "localhost";
 
 $("googleBtn").addEventListener("click", async () => {
-  if (!ONLINE) { $("loginErr").textContent = "Google sign-in works once this page is online (unwrap-app.co.uk/admin/). For now, use email and password."; return; }
+  if (!ONLINE) { $("loginErr").textContent = "Google sign-in only works on the live page, not a local copy. For now, use email and password."; return; }
   const { error } = await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: HERE } });
   if (error) $("loginErr").textContent = error.message;
 });
@@ -319,7 +323,7 @@ function select(key) {
   renderTabs();
   const sel = $("statusFilter"); sel.innerHTML = "";
   for (const s of QUEUES[key].statuses) {
-    const o = document.createElement("option"); o.value = s; o.textContent = nice(s); sel.appendChild(o);
+    const o = document.createElement("option"); o.value = s; o.textContent = QUEUES[key].statusLabels?.[s] || nice(s); sel.appendChild(o);
   }
   $("toolbar").classList.toggle("hidden", key === "team");
   load();
@@ -331,8 +335,13 @@ async function load() {
   try {
     if (current === "team") return renderTeam((await api("team")).team);
     const { rows } = await api("list", { queue: current, status: $("statusFilter").value });
-    if (!rows.length) { list.innerHTML = `<div class="empty">Nothing here. Good.</div>`; return; }
+    if (!rows.length) {
+      list.innerHTML = `<div class="empty">Nothing here. Good.</div>`;
+      if (current === "missed_scans") list.prepend(missedIntro());
+      return;
+    }
     list.innerHTML = "";
+    if (current === "missed_scans") list.appendChild(missedIntro());
     for (const r of rows) list.appendChild(renderRow(current, r));
   } catch (e) {
     list.innerHTML = `<div class="empty">Couldn't load: ${esc(e.message)}</div>`;
@@ -373,7 +382,7 @@ function card(html) {
 function renderRow(queue, r) {
   if (queue === "product_flags") {
     const c = card(`
-      <div class="row-head"><h3>${esc(r.product_name || "Unnamed product")}</h3><span class="meta">${esc(r.barcode)}</span></div>
+      <div class="row-head"><h3>${esc(r.product_name || "Unnamed product")}</h3><span class="meta">${esc(r.barcode)} · ${offLink(r.barcode)}</span></div>
       <div class="meta">${when(r.created_at)}${reporterLine(r)}</div>
       <div class="reason"><span class="tag">${esc(nice(r.reason_type))}</span>${esc(r.reason)}</div>
       ${r.admin_notes ? `<div class="hint">Notes: ${esc(r.admin_notes)}</div>` : ""}`);
@@ -391,7 +400,7 @@ function renderRow(queue, r) {
   }
   if (queue === "allergens") {
     const c = card(`
-      <div class="row-head"><h3>${esc(r.product_name || r.barcode)}</h3><span class="meta">${esc(r.barcode)}</span></div>
+      <div class="row-head"><h3>${esc(r.product_name || r.barcode)}</h3><span class="meta">${esc(r.barcode)} · ${offLink(r.barcode)}</span></div>
       <div class="meta">${when(r.created_at)}${reporterLine(r)}</div>
       <div class="reason"><span class="tag">${esc(nice(r.allergen_key))}</span>Answer: ${esc(r.answer)}</div>
       ${r.admin_notes ? `<div class="hint">Notes: ${esc(r.admin_notes)}</div>` : ""}`);
@@ -440,7 +449,51 @@ function renderRow(queue, r) {
     c.appendChild(wrap);
     return c;
   }
+  if (queue === "missed_scans") return renderMissedScan(r);
   return card(esc(JSON.stringify(r)));
+}
+
+const MISS_REASON = { not_found: "not in Unwrap", no_ingredients: "in Unwrap, no ingredients" };
+
+function missedIntro() {
+  const d = document.createElement("p"); d.className = "hint";
+  d.innerHTML = "Barcodes people scanned that Unwrap couldn't answer. Only the barcode is counted, nothing about who scanned it, "
+    + "and each phone counts a barcode once per session. <strong>20+ misses, not picked up</strong> is the add-it-ourselves list: "
+    + "lots of misses, nobody has sent it in, and nobody's on it yet. Once a barcode has ingredients in Unwrap it moves to Fixed by itself.";
+  return d;
+}
+
+function renderMissedScan(r) {
+  const reasons = String(r.reasons || "").split(", ").filter(Boolean).map((x) => `<span class="tag">${esc(MISS_REASON[x] || nice(x))}</span>`).join("");
+  const google = `<a href="https://www.google.com/search?q=${encodeURIComponent(r.barcode)}" target="_blank" rel="noopener">Search the barcode</a>`;
+  const c = card(`
+    <div class="row-head"><h3>${esc(r.product_name || r.barcode)}</h3>${r.product_name ? `<span class="meta">${esc(r.barcode)}</span>` : ""}</div>
+    <div class="meta"><strong>${r.misses}</strong> missed scan${r.misses === 1 ? "" : "s"} · first ${when(r.first_seen)} · last ${when(r.last_seen)}</div>
+    <div class="reason">${reasons}${r.has_submission ? `<span class="tag">someone has sent it in, see Submissions</span>` : ""}${r.state === "investigating" ? `<span class="tag">being looked into</span>` : ""}</div>
+    <div class="meta">${offLink(r.barcode)} · ${google}</div>
+    ${r.review_note ? `<div class="hint">Notes: ${esc(r.review_note)}</div>` : ""}`);
+  if (r.state === "fixed") return c;
+  const wrap = document.createElement("div"); wrap.className = "actions";
+  const notes = document.createElement("textarea");
+  notes.placeholder = "Notes (optional): what it is, or why it's ignored";
+  notes.value = r.review_note ?? "";
+  wrap.appendChild(notes);
+  const choices = [["investigating", "I'm on it", "primary"], ["ignored", "Ignore (not food, not UK…)"], ["open", "Back to open"]];
+  for (const [status, label, cls] of choices) {
+    if (status === r.state) continue;
+    const b = document.createElement("button"); b.className = "btn " + (cls || ""); b.textContent = label;
+    b.addEventListener("click", async () => {
+      b.disabled = true;
+      try {
+        await api("set_missed_scan", { id: r.barcode, status, notes: notes.value.trim() || null });
+        toast(status === "open" ? "Back to open" : `Marked ${nice(status)}`);
+        await loadCounts(); renderTabs(); load();
+      } catch (e) { toast("Failed: " + e.message); b.disabled = false; }
+    });
+    wrap.appendChild(b);
+  }
+  c.appendChild(wrap);
+  return c;
 }
 
 function renderTeam(team) {
