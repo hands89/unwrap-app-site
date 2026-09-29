@@ -842,7 +842,6 @@ async function openEditor(slot, barcode, opts = {}) {
 
   const out = el("div");
   const actions = el("div", { class: "actions" });
-  const confirmLabel = creating ? "Add to Unwrap" : resolve ? "Confirm, save and resolve" : "Confirm and save";
   const preview = button("Preview in the app", "primary", async (e) => {
     if (!name.value.trim()) { toast("Name is needed"); return; }
     if (creating && !cat.value) { toast("Choose a category"); return; }
@@ -869,21 +868,30 @@ async function openEditor(slot, barcode, opts = {}) {
         </div>
         <p class="hint">Dashed outlines show what's changed. The photo appears in the app from the next build.</p>`;
       const act = el("div", { class: "actions" });
-      act.append(button(confirmLabel, "primary", (ev) => doSave(ev, newList, changed)), button("Back to editing", "quiet", () => { out.innerHTML = ""; }));
+      // Save keeps any report open; Save and submit also closes the report it came from.
+      if (resolve) {
+        act.append(
+          button("Save", "", (ev) => doSave(ev, newList, changed, false)),
+          button("Save and submit", "primary", (ev) => doSave(ev, newList, changed, true)));
+      } else {
+        act.append(button(creating ? "Add to Unwrap" : "Save", "primary", (ev) => doSave(ev, newList, changed, false)));
+      }
+      act.append(button("Back to editing", "quiet", () => { out.innerHTML = ""; }));
       out.appendChild(act);
+      if (resolve) out.appendChild(el("p", { class: "hint" }, "<strong>Save</strong> keeps the report open so you can come back to it. <strong>Save and submit</strong> saves and closes the report with a note of what changed."));
       out.scrollIntoView({ behavior: "smooth", block: "nearest" });
     } catch (err) { out.innerHTML = ""; toast("Failed: " + err.message); }
     e.target.disabled = false;
   });
-  const doSave = async (e, newList, changed) => {
+  const doSave = async (e, newList, changed, submit) => {
     e.target.disabled = true;
     try {
       const res = await api("save_product", {
         barcode, name: name.value, brand: brand.value, category_l1: cat.value || null,
-        ingredients: changed ? newList : null, resolve: resolve ? resolve() : undefined,
+        ingredients: changed ? newList : null, resolve: resolve && submit ? resolve() : undefined,
       });
       out.innerHTML = `<div class="result">${scoreBadge(res.old_score)}<span class="arrow">→</span>${scoreBadge(res.new_score)}<span>${esc(res.summary)}</span></div>`;
-      toast(resolve ? "Saved and resolved" : "Saved");
+      toast(resolve && submit ? "Saved and report closed" : "Saved");
       setTimeout(refreshAll, 1600);
     } catch (err) { toast("Failed: " + err.message); e.target.disabled = false; }
   };
