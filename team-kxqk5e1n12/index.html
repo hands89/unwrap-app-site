@@ -1311,7 +1311,7 @@ async function openProduct(barcode, results, detail) {
 /* ─────────────── Change log ─────────────── */
 
 const ACTION_LABELS = {
-  edit_product: "Edited product", create_product: "Added product", undo_edit: "Undid an edit", rescore: "Rescored",
+  edit_product: "Edited product", create_product: "Added product", undo_edit: "Undid an edit", recategorise: "Recategorised", rescore: "Rescored",
   allergen: "Allergen tags", photo: "Product photo", explanation: "Explanation", quarantine: "Quarantined",
   quarantine_decision: "Quarantine decision", submission_approve: "Submission approved", submission_reject: "Submission rejected",
   scoring_question: "Scoring review", missed_scan: "Missed scan", team: "Team",
@@ -1333,7 +1333,7 @@ async function renderLog() {
 function diffHtml(before, after) {
   if (!before || !after) return "";
   const out = [];
-  for (const [k, label] of [["name", "Name"], ["brand", "Brand"], ["category_l1", "Category"]]) {
+  for (const [k, label] of [["name", "Name"], ["brand", "Brand"], ["category_l1", "Category"], ["category", "Category"]]) {
     if ((before[k] ?? "") !== (after[k] ?? "")) out.push(`${label}: <span class="del">${esc(before[k] ?? "–")}</span> → <span class="add">${esc(after[k] ?? "–")}</span>`);
   }
   if (Array.isArray(before.ingredients) && Array.isArray(after.ingredients)) {
@@ -1364,7 +1364,7 @@ function logEntry(e, { compact }) {
     show.addEventListener("click", () => { holder.innerHTML = d; });
     holder.appendChild(show);
   }
-  if (isAdmin() && e.action === "edit_product" && !e.undone_at && e.before) {
+  if (isAdmin() && ["edit_product", "recategorise"].includes(e.action) && !e.undo_of && !e.undone_at && e.before) {
     const undo = el("button", { type: "button", class: "btn quiet small", style: "margin-left:8px" }, "Undo");
     undo.addEventListener("click", async () => {
       if (!confirm("Put this product back how it was before this edit?")) return;
