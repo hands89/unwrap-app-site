@@ -178,6 +178,8 @@
   .ing-table td { padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; font-size: 14px; }
   .ing-table td:first-child { word-break: normal; }
   .ing-table select { width: auto; padding: 4px 8px; font-size: 13px; border-radius: 10px; }
+  .cat-picker { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
+  .cat-picker select { flex: 1 1 140px; }
   .warnbox { padding: 10px 12px; border-radius: 12px; background: var(--mod-bg); color: #7A4508; font-size: 14px; margin: 8px 0; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
   .diff { font-size: 13px; margin-top: 8px; padding: 10px 12px; background: var(--bg); border-radius: 12px; }
   .diff .add { color: var(--low); } .diff .del { color: var(--high); text-decoration: line-through; }
@@ -283,6 +285,8 @@ const QUEUES = {
                       statusLabels: { priority: "20+ misses, not picked up", open: "all open", fixed: "fixed (now has ingredients)" } },
   quarantine:       { label: "Quarantine",       statuses: ["open", "restored", "removed"],
                       statusLabels: { open: "waiting for review" } },
+  categories:       { label: "Categories",       statuses: ["open", "no_category", "no_l3"],
+                      statusLabels: { open: "all needing a look", no_category: "no category at all", no_l3: "aisle only, no swaps yet" } },
   log:              { label: "Change log",       statuses: ["all", "edits", "resolutions", "quarantine"],
                       statusLabels: { all: "everything", edits: "product changes", resolutions: "reports closed", quarantine: "quarantine and submissions" } },
   team:             { label: "Team",             statuses: [], adminOnly: true },
@@ -478,6 +482,7 @@ const INTROS = {
   missed_scans: "Barcodes people scanned that Unwrap couldn't answer. Only the barcode is counted, nothing about who scanned it, and each phone counts a barcode once per session. <strong>20+ misses, not picked up</strong> is the add-it-ourselves list. Once a barcode has ingredients in Unwrap it moves to Fixed by itself.",
   log: "Every change made here, newest first: who, what and when. Product edits keep a before and after, and an admin can undo them.",
   quarantine: "Products hidden from the app until an admin reviews them, usually weekly. They land here when a moderator rejects a live product or someone presses Quarantine on a report or in Look up. <strong>Restore</strong> puts it back; <strong>Remove for good</strong> keeps it out.",
+  categories: "Products whose category was guessed by the bulk import and needs a human eye. They already scan and score; a product only offers swaps once it has all three levels. If the guess is right press <strong>Looks right</strong>. Otherwise pick the category and <strong>Save</strong>. Not food at all? <strong>Hide</strong> sends it to Quarantine.",
 };
 
 async function load() {
@@ -512,6 +517,7 @@ function renderRow(queue, r) {
     case "photos": return renderPhoto(r);
     case "missed_scans": return renderMissedScan(r);
     case "quarantine": return renderQuarantine(r);
+    case "categories": return renderCategoryReview(r);
   }
   return card(esc(JSON.stringify(r)));
 }
@@ -725,6 +731,69 @@ function renderMissedScan(r) {
     wrap.appendChild(button(label, "quiet", (e) => run(e.target, () => api("set_missed_scan", { id: r.barcode, status, notes: notes.value.trim() || null }),
       status === "open" ? "Back to open" : `Marked ${nice(status)}`)));
   }
+  c.append(wrap, slot);
+  return c;
+}
+
+/* ─────────────── Category review ─────────────── */
+
+let taxonomyRows = null;   // [{category_l1, category_l2, category_l3, category_l4, n}]
+async function loadTaxonomy() {
+  if (!taxonomyRows) taxonomyRows = (await api("taxonomy")).rows || [];
+  return taxonomyRows;
+}
+const catPath = (r) => [r.category_l1, r.category_l2, r.category_l3, r.category_l4].filter(Boolean).map(nice).join(" › ") || "no category";
+
+function renderCategoryReview(r) {
+  const ings = (r.ingredients_preview || []).map((x) => esc(x)).join(", ");
+  const c = card(`
+    <div class="row-head">${scoreBadge(r.score)}<h3>${esc(r.name || "Unnamed product")}</h3><span class="meta">${esc(r.brand || "")} · ${esc(r.barcode)} · ${offLink(r.barcode)}</span></div>
+    <div class="reason"><span class="tag ${r.category_l3 ? "" : "warn"}">${esc(catPath(r))}</span>${r.category_l3 ? "" : `<span class="tag warn">no swaps until it has all three levels</span>`}</div>
+    ${ings ? `<div class="meta">Ingredients: ${ings}${(r.ingredients_preview || []).length >= 6 ? "…" : ""}</div>` : ""}`);
+  const slot = el("div");
+  const wrap = el("div", { class: "actions" });
+  const picker = el("div", { class: "cat-picker" });
+  const sel = { l1: el("select"), l2: el("select"), l3: el("select"), l4: el("select") };
+  picker.append(sel.l1, sel.l2, sel.l3, sel.l4);
+  const fill = (s, values, current, placeholder) => {
+    s.innerHTML = "";
+    s.appendChild(el("option", { value: "" }, esc(placeholder)));
+    for (const v of values) { const o = el("option", { value: v.value }, esc(nice(v.value)) + (v.n ? ` (${v.n})` : "")); if (v.value === current) o.selected = true; s.appendChild(o); }
+    s.disabled = !values.length;
+  };
+  const distinct = (rows, key) => {
+    const m = new Map();
+    for (const t of rows) { if (!t[key]) continue; m.set(t[key], (m.get(t[key]) || 0) + Number(t.n || 0)); }
+    return [...m].map(([value, n]) => ({ value, n })).sort((a, b) => b.n - a.n);
+  };
+  loadTaxonomy().then((tax) => {
+    const cascade = (level) => {
+      const l1 = sel.l1.value, l2 = sel.l2.value, l3 = sel.l3.value;
+      if (level <= 1) fill(sel.l2, distinct(tax.filter((t) => t.category_l1 === l1), "category_l2"), level === 0 ? r.category_l2 : "", "aisle…");
+      if (level <= 2) fill(sel.l3, distinct(tax.filter((t) => t.category_l1 === l1 && t.category_l2 === sel.l2.value), "category_l3"), level === 0 ? r.category_l3 : "", "type…");
+      if (level <= 3) fill(sel.l4, distinct(tax.filter((t) => t.category_l1 === l1 && t.category_l2 === sel.l2.value && t.category_l3 === sel.l3.value), "category_l4"), level === 0 ? r.category_l4 : "", "variant (optional)");
+      void l2; void l3;
+    };
+    fill(sel.l1, distinct(tax, "category_l1"), r.category_l1, "category…");
+    cascade(0);
+    sel.l1.addEventListener("change", () => cascade(1));
+    sel.l2.addEventListener("change", () => cascade(2));
+    sel.l3.addEventListener("change", () => cascade(3));
+  }).catch((e) => toast("Couldn't load categories: " + e.message));
+  wrap.appendChild(picker);
+  const notes = notesBox("", "Notes (optional)");
+  wrap.appendChild(notes);
+  if (r.category_l3) {
+    wrap.appendChild(button("Looks right", "primary", (e) => run(e.target, () => api("set_category", { barcode: r.barcode, confirm: true }), "Confirmed")));
+  }
+  wrap.appendChild(button("Save category", r.category_l3 ? "" : "primary", (e) => {
+    if (!sel.l1.value || !sel.l2.value || !sel.l3.value) { toast("Pick all three levels first."); return; }
+    run(e.target, () => api("set_category", { barcode: r.barcode, category_l1: sel.l1.value, category_l2: sel.l2.value,
+      category_l3: sel.l3.value, category_l4: sel.l4.value || null, notes: notes.value.trim() || null }), (res) => res.summary || "Saved");
+  }));
+  wrap.appendChild(button("Open product", "quiet", () => openEditor(slot, r.barcode, {})));
+  wrap.appendChild(button("Hide (not food)", "danger", (e) => run(e.target,
+    () => api("quarantine_product", { barcode: r.barcode, reason: notes.value.trim() || "Not food, or unreadable (category review)" }), "Hidden and sent to Quarantine")));
   c.append(wrap, slot);
   return c;
 }
