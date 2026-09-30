@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Your Unwrap account." />
+  <title>Unwrap — Your account</title>
+
+  <link rel="icon" type="image/png" href="/assets/images/logo.png" />
+  <link rel="apple-touch-icon" href="/assets/images/logo.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/theme.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth.js"></script>
+</head>
+
+<body>
+  <div class="wrap wrap--narrow">
+    <header class="site-header">
+      <a href="/" class="brand">
+        <img src="/assets/images/logo.png" alt="Unwrap" class="brand-logo" width="34" height="34">
+        <span class="brand-name">Unwrap</span>
+      </a>
+
+      <button class="menu-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="nav">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/">Home</a>
+        <a href="/evidence.html">Evidence &amp; approach</a>
+        <a href="/login.html" class="nav-account">Sign in</a>
+      </nav>
+    </header>
+
+    <main>
+      <h1 class="page-title">Your account</h1>
+
+      <div class="card">
+        <div class="account-head">
+          <div>
+            <div class="account-email" id="acct-email">…</div>
+            <div style="font-size:13px;color:var(--text-muted);margin-top:2px" id="acct-since"></div>
+          </div>
+          <span class="tier-pill" id="acct-tier">Checking…</span>
+        </div>
+        <div class="highlight-box" id="acct-note">
+          <p>Your account works here and in the app. Manage your Supporter subscription in the app, through Apple or Google Play.</p>
+        </div>
+      </div>
+
+      <h2 class="section-title" style="font-size:22px;margin:26px 0 12px">Coming to the website</h2>
+      <div class="coming-grid">
+        <div class="card">
+          <span class="soon-tag">Coming soon</span>
+          <h3>Scan history</h3>
+          <p>Everything you've scanned in the app, searchable on a bigger screen.</p>
+        </div>
+        <div class="card">
+          <span class="soon-tag">Coming soon</span>
+          <h3>Receipts</h3>
+          <p>Your receipt scans and what they showed, shop by shop.</p>
+        </div>
+        <div class="card">
+          <span class="soon-tag">Coming soon</span>
+          <h3>Product lookup</h3>
+          <p>Type a barcode or a name and get the same score and swaps as the app.</p>
+        </div>
+        <div class="card">
+          <span class="soon-tag">Coming soon</span>
+          <h3>Recipes &amp; Make Your Own</h3>
+          <p>For Supporters: the recipe and MYO cards, laid out for the kitchen.</p>
+        </div>
+      </div>
+
+      <div style="margin-top:26px;display:flex;gap:12px;flex-wrap:wrap">
+        <button type="button" class="btn btn-outline btn-sm" id="btn-signout">Sign out</button>
+        <a class="btn btn-outline btn-sm" href="/support.html">Need help?</a>
+      </div>
+    </main>
+    <footer class="site-footer">
+      <div class="footer-about">
+        <div class="footer-brand"><img src="/assets/images/logo.png" alt="" width="22" height="22"> Unwrap</div>
+        <p>Understand what's really in your food. No guilt, no lectures — just ingredients in plain English.</p>
+      </div>
+
+      <nav class="footer-nav" aria-label="Site">
+        <div class="footer-h">Pages</div>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/evidence.html">Evidence &amp; approach</a></li>
+          <li><a href="/privacy.html">Privacy</a></li>
+          <li><a href="/support.html">Support</a></li>
+        </ul>
+      </nav>
+
+      <div class="footer-contact">
+        <div class="footer-h">Contact</div>
+        <p>A question, a correction, or something broken?</p>
+        <a class="email-link" href="mailto:eddy.at.unwrap@gmail.com">eddy.at.unwrap@gmail.com</a>
+        <p>Usually answered within 24 hours.</p>
+        <div class="footer-social">
+          <a class="chip" href="https://www.instagram.com/unwrap_your_food/" target="_blank" rel="noopener">Instagram</a>
+          <a class="chip" href="https://www.tiktok.com/@unwrappedapp" target="_blank" rel="noopener">TikTok</a>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span>© <span id="year">2026</span> Unwrap · Independent and ad-free</span>
+        <a href="https://apps.apple.com/gb/app/unwrap-app/id6757312100" target="_blank" rel="noopener">Download on iPhone</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+  <script>
+  (async function () {
+    const A = window.unwrapAuth, $ = A.$;
+    const session = await A.requireAuth();
+    if (!session) return;
+    const u = session.user;
+    $("acct-email").textContent = u.email || "Signed in";
+    if (u.created_at) {
+      const d = new Date(u.created_at);
+      $("acct-since").textContent = "Unwrap account since " + d.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+    }
+    $("btn-signout").addEventListener("click", A.signOut);
+
+    const t = await A.getTier(session);
+    const pill = $("acct-tier");
+    if (t.tier === "subscriber") {
+      pill.textContent = "Supporter"; pill.classList.add("is-subscriber");
+      if (t.expires_at) $("acct-note").innerHTML = "<p>Thank you for supporting Unwrap. Your subscription renews or ends on " +
+        new Date(t.expires_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) + ". Manage it in the app, through Apple or Google Play.</p>";
+    } else if (t.verified) {
+      pill.textContent = "Free account";
+    } else {
+      pill.textContent = "Free account";
+      pill.title = "Couldn't confirm subscription status just now";
+    }
+  })();
+  </script>
+</body>
+</html>

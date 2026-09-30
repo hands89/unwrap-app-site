@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Sign in to Unwrap with the same account as the app." />
+  <title>Unwrap — Sign in</title>
+
+  <link rel="icon" type="image/png" href="/assets/images/logo.png" />
+  <link rel="apple-touch-icon" href="/assets/images/logo.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/theme.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth.js"></script>
+</head>
+
+<body>
+  <div class="wrap wrap--narrow">
+    <header class="site-header">
+      <a href="/" class="brand">
+        <img src="/assets/images/logo.png" alt="Unwrap" class="brand-logo" width="34" height="34">
+        <span class="brand-name">Unwrap</span>
+      </a>
+
+      <button class="menu-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="nav">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/">Home</a>
+        <a href="/evidence.html">Evidence &amp; approach</a>
+        <a href="/login.html" class="nav-account">Sign in</a>
+      </nav>
+    </header>
+
+    <main>
+      <div class="card auth-card" id="auth-card">
+        <!-- Sign in -->
+        <section id="panel-signin">
+          <h1>Sign in</h1>
+          <p class="lead">Use the same account as the Unwrap app.</p>
+          <div id="msg-signin" class="alert hidden" role="alert"></div>
+          <form id="form-signin" novalidate>
+            <div class="field">
+              <label for="si-email">Email</label>
+              <input id="si-email" type="email" autocomplete="email" required inputmode="email">
+            </div>
+            <div class="field">
+              <label for="si-password">Password</label>
+              <input id="si-password" type="password" autocomplete="current-password" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" id="btn-signin">Sign in</button>
+          </form>
+          <div class="divider">or</div>
+          <button type="button" class="btn btn-google btn-block" id="btn-google"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.5 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.8 6C12.3 13.2 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.4 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.8-6A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.2 0 11.6-2 15.4-5.6l-7.5-5.8c-2 1.4-4.7 2.3-7.9 2.3-6.3 0-11.7-3.7-13.6-9.2l-7.8 6C6.5 42.6 14.6 48 24 48z"/></svg> Continue with Google</button>
+          <div class="auth-links">
+            <button type="button" class="link-btn" data-show="panel-reset">Forgot password?</button>
+            <button type="button" class="link-btn" data-show="panel-signup">Create an account</button>
+          </div>
+        </section>
+
+        <!-- Create account -->
+        <section id="panel-signup" class="hidden">
+          <h1>Create an account</h1>
+          <p class="lead">Free. Your scans and receipts sync between the app and here.</p>
+          <div id="msg-signup" class="alert hidden" role="alert"></div>
+          <form id="form-signup" novalidate>
+            <div class="field">
+              <label for="su-email">Email</label>
+              <input id="su-email" type="email" autocomplete="email" required inputmode="email">
+            </div>
+            <div class="field">
+              <label for="su-password">Password <span style="font-weight:400">(8+ characters)</span></label>
+              <input id="su-password" type="password" autocomplete="new-password" minlength="8" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" id="btn-signup">Create account</button>
+          </form>
+          <div class="divider">or</div>
+          <button type="button" class="btn btn-google btn-block" id="btn-google-2"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.5 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.8 6C12.3 13.2 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.4 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.8-6A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.2 0 11.6-2 15.4-5.6l-7.5-5.8c-2 1.4-4.7 2.3-7.9 2.3-6.3 0-11.7-3.7-13.6-9.2l-7.8 6C6.5 42.6 14.6 48 24 48z"/></svg> Continue with Google</button>
+          <div class="auth-links">
+            <span></span>
+            <button type="button" class="link-btn" data-show="panel-signin">Already have an account? Sign in</button>
+          </div>
+          <p class="fine" style="margin-top:16px;font-size:12px;color:var(--text-light)">By creating an account you agree to how we handle data, described on the <a href="/privacy.html" style="text-decoration:underline">Privacy</a> page.</p>
+        </section>
+
+        <!-- Forgot password -->
+        <section id="panel-reset" class="hidden">
+          <h1>Reset your password</h1>
+          <p class="lead">We'll email you a link to choose a new one.</p>
+          <div id="msg-reset" class="alert hidden" role="alert"></div>
+          <form id="form-reset" novalidate>
+            <div class="field">
+              <label for="rs-email">Email</label>
+              <input id="rs-email" type="email" autocomplete="email" required inputmode="email">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" id="btn-reset">Send reset link</button>
+          </form>
+          <div class="auth-links">
+            <span></span>
+            <button type="button" class="link-btn" data-show="panel-signin">Back to sign in</button>
+          </div>
+        </section>
+
+        <!-- New password (after clicking the reset link) -->
+        <section id="panel-newpw" class="hidden">
+          <h1>Choose a new password</h1>
+          <p class="lead">You're signed in from the reset link. Set your new password below.</p>
+          <div id="msg-newpw" class="alert hidden" role="alert"></div>
+          <form id="form-newpw" novalidate>
+            <div class="field">
+              <label for="np-password">New password <span style="font-weight:400">(8+ characters)</span></label>
+              <input id="np-password" type="password" autocomplete="new-password" minlength="8" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" id="btn-newpw">Save password</button>
+          </form>
+        </section>
+      </div>
+    </main>
+    <footer class="site-footer">
+      <div class="footer-about">
+        <div class="footer-brand"><img src="/assets/images/logo.png" alt="" width="22" height="22"> Unwrap</div>
+        <p>Understand what's really in your food. No guilt, no lectures — just ingredients in plain English.</p>
+      </div>
+
+      <nav class="footer-nav" aria-label="Site">
+        <div class="footer-h">Pages</div>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/evidence.html">Evidence &amp; approach</a></li>
+          <li><a href="/privacy.html">Privacy</a></li>
+          <li><a href="/support.html">Support</a></li>
+        </ul>
+      </nav>
+
+      <div class="footer-contact">
+        <div class="footer-h">Contact</div>
+        <p>A question, a correction, or something broken?</p>
+        <a class="email-link" href="mailto:eddy.at.unwrap@gmail.com">eddy.at.unwrap@gmail.com</a>
+        <p>Usually answered within 24 hours.</p>
+        <div class="footer-social">
+          <a class="chip" href="https://www.instagram.com/unwrap_your_food/" target="_blank" rel="noopener">Instagram</a>
+          <a class="chip" href="https://www.tiktok.com/@unwrappedapp" target="_blank" rel="noopener">TikTok</a>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span>© <span id="year">2026</span> Unwrap · Independent and ad-free</span>
+        <a href="https://apps.apple.com/gb/app/unwrap-app/id6757312100" target="_blank" rel="noopener">Download on iPhone</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+  <script>
+  (function () {
+    const A = window.unwrapAuth, sb = A.sb, $ = A.$;
+    const HERE = location.origin + "/login.html";
+
+    const show = (id) => {
+      ["panel-signin", "panel-signup", "panel-reset", "panel-newpw"].forEach((p) => $(p).classList.toggle("hidden", p !== id));
+      const first = $(id).querySelector("input"); if (first) first.focus();
+    };
+    document.querySelectorAll("[data-show]").forEach((b) => b.addEventListener("click", () => show(b.dataset.show)));
+
+    const msg = (id, text, ok) => {
+      const el = $(id);
+      el.textContent = text; el.className = "alert " + (ok ? "alert-ok" : "alert-error");
+      if (!text) el.classList.add("hidden");
+    };
+    const busy = (btn, on, label) => { btn.disabled = on; btn.textContent = on ? "One moment…" : label; };
+
+    const friendly = (e) => {
+      const m = (e && e.message) || "Something went wrong.";
+      if (/invalid login credentials/i.test(m)) return "That email and password don't match.";
+      if (/email not confirmed/i.test(m)) return "Please confirm your email first — check your inbox for the link.";
+      if (/already registered|already been registered/i.test(m)) return "There's already an account with that email. Try signing in.";
+      if (/rate limit/i.test(m)) return "Too many attempts — give it a minute and try again.";
+      return m;
+    };
+
+    const done = () => location.replace(A.nextPath("/account.html"));
+
+    $("form-signin").addEventListener("submit", async (ev) => {
+      ev.preventDefault(); msg("msg-signin", "");
+      const btn = $("btn-signin"); busy(btn, true, "Sign in");
+      const { error } = await sb.auth.signInWithPassword({ email: $("si-email").value.trim(), password: $("si-password").value });
+      busy(btn, false, "Sign in");
+      if (error) return msg("msg-signin", friendly(error));
+      done();
+    });
+
+    $("form-signup").addEventListener("submit", async (ev) => {
+      ev.preventDefault(); msg("msg-signup", "");
+      const pw = $("su-password").value;
+      if (pw.length < 8) return msg("msg-signup", "Please use at least 8 characters.");
+      const btn = $("btn-signup"); busy(btn, true, "Create account");
+      const { data, error } = await sb.auth.signUp({ email: $("su-email").value.trim(), password: pw, options: { emailRedirectTo: HERE } });
+      busy(btn, false, "Create account");
+      if (error) return msg("msg-signup", friendly(error));
+      if (data.session) return done();
+      msg("msg-signup", "Almost there — we've sent a confirmation link to your email. Open it, then sign in.", true);
+    });
+
+    const google = async () => {
+      const next = A.nextPath("/account.html");
+      const { error } = await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: HERE + "?next=" + encodeURIComponent(next) } });
+      if (error) msg("msg-signin", friendly(error));
+    };
+    $("btn-google").addEventListener("click", google);
+    $("btn-google-2").addEventListener("click", google);
+
+    $("form-reset").addEventListener("submit", async (ev) => {
+      ev.preventDefault(); msg("msg-reset", "");
+      const btn = $("btn-reset"); busy(btn, true, "Send reset link");
+      const { error } = await sb.auth.resetPasswordForEmail($("rs-email").value.trim(), { redirectTo: HERE });
+      busy(btn, false, "Send reset link");
+      if (error) return msg("msg-reset", friendly(error));
+      msg("msg-reset", "If that email has an account, a reset link is on its way.", true);
+    });
+
+    $("form-newpw").addEventListener("submit", async (ev) => {
+      ev.preventDefault(); msg("msg-newpw", "");
+      const pw = $("np-password").value;
+      if (pw.length < 8) return msg("msg-newpw", "Please use at least 8 characters.");
+      const btn = $("btn-newpw"); busy(btn, true, "Save password");
+      const { error } = await sb.auth.updateUser({ password: pw });
+      busy(btn, false, "Save password");
+      if (error) return msg("msg-newpw", friendly(error));
+      msg("msg-newpw", "Password saved.", true);
+      setTimeout(done, 700);
+    });
+
+    // Arriving from a reset link, an OAuth redirect, or already signed in.
+    let recovering = false;
+    sb.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY") { recovering = true; show("panel-newpw"); return; }
+      if (session && !recovering && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) done();
+    });
+    if (location.hash.includes("type=recovery")) { recovering = true; show("panel-newpw"); }
+  })();
+  </script>
+</body>
+</html>
