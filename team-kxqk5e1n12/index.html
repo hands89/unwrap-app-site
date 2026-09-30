@@ -179,6 +179,12 @@
   .ing-table td:first-child { word-break: normal; }
   .ing-table select { width: auto; padding: 4px 8px; font-size: 13px; border-radius: 10px; }
   .cat-picker { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
+  .cand-side { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 10px; }
+  @media (min-width: 720px) { .cand-side { grid-template-columns: 300px 1fr; } }
+  .photos { display: flex; flex-direction: column; gap: 8px; }
+  .photos img { width: 100%; max-height: 360px; object-fit: contain; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+  .cand-form { display: flex; flex-direction: column; gap: 6px; }
+  .cand-form textarea { min-height: 160px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
   .cat-picker select { flex: 1 1 140px; }
   .warnbox { padding: 10px 12px; border-radius: 12px; background: var(--mod-bg); color: #7A4508; font-size: 14px; margin: 8px 0; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
   .diff { font-size: 13px; margin-top: 8px; padding: 10px 12px; background: var(--bg); border-radius: 12px; }
@@ -287,6 +293,8 @@ const QUEUES = {
                       statusLabels: { open: "waiting for review" } },
   categories:       { label: "Categories",       statuses: ["open", "no_category", "no_l3"],
                       statusLabels: { open: "all needing a look", no_category: "no category at all", no_l3: "aisle only, no swaps yet" } },
+  imports:          { label: "Imports",          statuses: ["pending", "high", "approved", "rejected", "skipped"],
+                      statusLabels: { pending: "waiting", high: "waiting · high confidence", skipped: "skipped for later" } },
   log:              { label: "Change log",       statuses: ["all", "edits", "resolutions", "quarantine"],
                       statusLabels: { all: "everything", edits: "product changes", resolutions: "reports closed", quarantine: "quarantine and submissions" } },
   team:             { label: "Team",             statuses: [], adminOnly: true },
@@ -482,6 +490,7 @@ const INTROS = {
   missed_scans: "Barcodes people scanned that Unwrap couldn't answer. Only the barcode is counted, nothing about who scanned it, and each phone counts a barcode once per session. <strong>20+ misses, not picked up</strong> is the add-it-ourselves list. Once a barcode has ingredients in Unwrap it moves to Fixed by itself.",
   log: "Every change made here, newest first: who, what and when. Product edits keep a before and after, and an admin can undo them.",
   quarantine: "Products hidden from the app until an admin reviews them, usually weekly. They land here when a moderator rejects a live product or someone presses Quarantine on a report or in Look up. <strong>Restore</strong> puts it back; <strong>Remove for good</strong> keeps it out.",
+  imports: "Products Open Food Facts has a <strong>label photo</strong> for but no typed ingredients. The list is what a machine read off the photo, so treat it as a draft: check it against the photo, fix anything wrong (one ingredient per line), pick the category and <strong>Approve</strong>. Nothing here is in the app until you do. <strong>Reject</strong> if the photo is unreadable or it isn't food.",
   categories: "Products whose category was guessed by the bulk import and needs a human eye. They already scan and score; a product only offers swaps once it has all three levels. If the guess is right press <strong>Looks right</strong>. Otherwise pick the category and <strong>Save</strong>. Not food at all? <strong>Hide</strong> sends it to Quarantine.",
 };
 
@@ -492,9 +501,10 @@ async function load() {
     if (current === "team") return renderTeam((await api("team")).team);
     if (current === "lookup") return renderLookup();
     if (current === "log") return await renderLog();
-    const { rows } = await api("list", { queue: current, status: $("statusFilter").value });
+    const { rows } = await api("list", { queue: current, status: $("statusFilter").value, batch: current === "imports" ? importBatch : undefined });
     list.innerHTML = "";
     if (INTROS[current]) list.appendChild(el("p", { class: "hint" }, INTROS[current]));
+    if (current === "imports") list.appendChild(await importBatchBar());
     if (!rows.length) { list.appendChild(el("div", { class: "empty" }, "Nothing here. Good.")); return; }
     for (const r of rows) list.appendChild(renderRow(current, r));
   } catch (e) {
@@ -518,6 +528,7 @@ function renderRow(queue, r) {
     case "missed_scans": return renderMissedScan(r);
     case "quarantine": return renderQuarantine(r);
     case "categories": return renderCategoryReview(r);
+    case "imports": return renderImportCandidate(r);
   }
   return card(esc(JSON.stringify(r)));
 }
@@ -752,6 +763,27 @@ function renderCategoryReview(r) {
     ${ings ? `<div class="meta">Ingredients: ${ings}${(r.ingredients_preview || []).length >= 6 ? "…" : ""}</div>` : ""}`);
   const slot = el("div");
   const wrap = el("div", { class: "actions" });
+  const { picker, sel } = buildCatPicker(r);
+  wrap.appendChild(picker);
+  const notes = notesBox("", "Notes (optional)");
+  wrap.appendChild(notes);
+  if (r.category_l3) {
+    wrap.appendChild(button("Looks right", "primary", (e) => run(e.target, () => api("set_category", { barcode: r.barcode, confirm: true }), "Confirmed")));
+  }
+  wrap.appendChild(button("Save category", r.category_l3 ? "" : "primary", (e) => {
+    if (!sel.l1.value || !sel.l2.value || !sel.l3.value) { toast("Pick all three levels first."); return; }
+    run(e.target, () => api("set_category", { barcode: r.barcode, category_l1: sel.l1.value, category_l2: sel.l2.value,
+      category_l3: sel.l3.value, category_l4: sel.l4.value || null, notes: notes.value.trim() || null }), (res) => res.summary || "Saved");
+  }));
+  wrap.appendChild(button("Open product", "quiet", () => openEditor(slot, r.barcode, {})));
+  wrap.appendChild(button("Hide (not food)", "danger", (e) => run(e.target,
+    () => api("quarantine_product", { barcode: r.barcode, reason: notes.value.trim() || "Not food, or unreadable (category review)" }), "Hidden and sent to Quarantine")));
+  c.append(wrap, slot);
+  return c;
+}
+
+// Cascading L1 › L2 › L3 › L4 picker from the live taxonomy. `initial` supplies the starting values.
+function buildCatPicker(initial) {
   const picker = el("div", { class: "cat-picker" });
   const sel = { l1: el("select"), l2: el("select"), l3: el("select"), l4: el("select") };
   picker.append(sel.l1, sel.l2, sel.l3, sel.l4);
@@ -768,33 +800,95 @@ function renderCategoryReview(r) {
   };
   loadTaxonomy().then((tax) => {
     const cascade = (level) => {
-      const l1 = sel.l1.value, l2 = sel.l2.value, l3 = sel.l3.value;
-      if (level <= 1) fill(sel.l2, distinct(tax.filter((t) => t.category_l1 === l1), "category_l2"), level === 0 ? r.category_l2 : "", "aisle…");
-      if (level <= 2) fill(sel.l3, distinct(tax.filter((t) => t.category_l1 === l1 && t.category_l2 === sel.l2.value), "category_l3"), level === 0 ? r.category_l3 : "", "type…");
-      if (level <= 3) fill(sel.l4, distinct(tax.filter((t) => t.category_l1 === l1 && t.category_l2 === sel.l2.value && t.category_l3 === sel.l3.value), "category_l4"), level === 0 ? r.category_l4 : "", "variant (optional)");
-      void l2; void l3;
+      const l1 = sel.l1.value;
+      if (level <= 1) fill(sel.l2, distinct(tax.filter((t) => t.category_l1 === l1), "category_l2"), level === 0 ? initial.category_l2 : "", "aisle…");
+      if (level <= 2) fill(sel.l3, distinct(tax.filter((t) => t.category_l1 === l1 && t.category_l2 === sel.l2.value), "category_l3"), level === 0 ? initial.category_l3 : "", "type…");
+      if (level <= 3) fill(sel.l4, distinct(tax.filter((t) => t.category_l1 === l1 && t.category_l2 === sel.l2.value && t.category_l3 === sel.l3.value), "category_l4"), level === 0 ? initial.category_l4 : "", "variant (optional)");
     };
-    fill(sel.l1, distinct(tax, "category_l1"), r.category_l1, "category…");
+    fill(sel.l1, distinct(tax, "category_l1"), initial.category_l1, "category…");
     cascade(0);
     sel.l1.addEventListener("change", () => cascade(1));
     sel.l2.addEventListener("change", () => cascade(2));
     sel.l3.addEventListener("change", () => cascade(3));
   }).catch((e) => toast("Couldn't load categories: " + e.message));
-  wrap.appendChild(picker);
-  const notes = notesBox("", "Notes (optional)");
-  wrap.appendChild(notes);
-  if (r.category_l3) {
-    wrap.appendChild(button("Looks right", "primary", (e) => run(e.target, () => api("set_category", { barcode: r.barcode, confirm: true }), "Confirmed")));
+  return { picker, sel };
+}
+
+/* ─────────────── Imports (label-photo candidates) ─────────────── */
+
+let importBatch = "";
+async function importBatchBar() {
+  const bar = el("div", { class: "actions" });
+  const s = el("select");
+  s.appendChild(el("option", { value: "" }, "All batches"));
+  try {
+    const { rows } = await api("import_batches");
+    for (const b of rows) {
+      const o = el("option", { value: b.batch }, `${esc(b.batch)} — ${b.pending} waiting (${b.high} high)`);
+      if (b.batch === importBatch) o.selected = true; s.appendChild(o);
+    }
+  } catch (_) { /* no batches yet */ }
+  s.addEventListener("change", () => { importBatch = s.value; load(); });
+  bar.append(el("span", { class: "meta" }, "Batch:"), s);
+  if ($("statusFilter").value === "high") {
+    bar.appendChild(button("Approve everything shown, as shown", "danger", async (e) => {
+      const cards = [...document.querySelectorAll("[data-candidate]")];
+      if (!cards.length) return;
+      if (!confirm(`Approve all ${cards.length} high-confidence products on this page exactly as they appear? You can undo each one from the change log.`)) return;
+      e.target.disabled = true; let ok = 0;
+      for (const c of cards) { try { await c._approve(); ok++; } catch (err) { toast("Failed: " + err.message); } }
+      toast(`Approved ${ok} of ${cards.length}`); refreshAll();
+    }));
   }
-  wrap.appendChild(button("Save category", r.category_l3 ? "" : "primary", (e) => {
-    if (!sel.l1.value || !sel.l2.value || !sel.l3.value) { toast("Pick all three levels first."); return; }
-    run(e.target, () => api("set_category", { barcode: r.barcode, category_l1: sel.l1.value, category_l2: sel.l2.value,
-      category_l3: sel.l3.value, category_l4: sel.l4.value || null, notes: notes.value.trim() || null }), (res) => res.summary || "Saved");
-  }));
-  wrap.appendChild(button("Open product", "quiet", () => openEditor(slot, r.barcode, {})));
-  wrap.appendChild(button("Hide (not food)", "danger", (e) => run(e.target,
-    () => api("quarantine_product", { barcode: r.barcode, reason: notes.value.trim() || "Not food, or unreadable (category review)" }), "Hidden and sent to Quarantine")));
-  c.append(wrap, slot);
+  return bar;
+}
+
+const CONF_TAG = { high: "good", medium: "", low: "warn" };
+function renderImportCandidate(r) {
+  const c = card(`
+    <div class="row-head"><h3>${esc(r.name || "Unnamed product")}</h3><span class="meta">${esc(r.brand || "")} · ${esc(r.barcode)} · ${esc(r.batch)} · ${offLink(r.barcode)}</span></div>
+    <div class="reason"><span class="tag ${CONF_TAG[r.confidence] || ""}">${esc(r.confidence)} confidence</span><span class="tag">${r.ingredient_count} ingredients read · ${Math.round((r.known_share || 0) * 100)}% recognised</span>${r.status !== "pending" ? `<span class="tag">${esc(nice(r.status))}</span>` : ""}</div>
+    ${r.decision_note ? `<div class="hint">Notes: ${esc(r.decision_note)}</div>` : ""}`);
+  c.setAttribute("data-candidate", r.id);
+  const photos = el("div", { class: "photos" });
+  for (const [url, label] of [[r.ingredients_image_url, "Ingredients photo"], [r.front_image_url, "Front"]]) {
+    if (!url) continue;
+    photos.appendChild(el("a", { href: url.replace(".400.jpg", ".full.jpg"), target: "_blank", rel: "noopener", title: label + " — open full size" },
+      `<img src="${esc(url)}" alt="${esc(label)}" loading="lazy">`));
+  }
+  const form = el("div", { class: "cand-form" });
+  const name = el("input", { placeholder: "Product name" }); name.value = r.name || "";
+  const brand = el("input", { placeholder: "Brand" }); brand.value = r.brand || "";
+  const ings = el("textarea", { placeholder: "One ingredient per line", rows: "8" }); ings.value = (r.ingredients || []).join("\n");
+  const { picker, sel } = buildCatPicker({ category_l1: r.predicted_l1, category_l2: r.predicted_l2, category_l3: r.predicted_l3, category_l4: r.predicted_l4 });
+  form.append(name, brand, ings, picker);
+  const side = el("div", { class: "cand-side" }); side.append(photos, form);
+  c.appendChild(side);
+  const wrap = el("div", { class: "actions" });
+  const notes = notesBox("", "Notes (optional): why rejected, or what you fixed");
+  const values = () => ({ id: r.id, name: name.value.trim(), brand: brand.value.trim() || null,
+    ingredients: ings.value.split("\n").map((x) => x.trim()).filter(Boolean),
+    category_l1: sel.l1.value || null, category_l2: sel.l2.value || null, category_l3: sel.l3.value || null, category_l4: sel.l4.value || null });
+  c._approve = () => api("approve_candidate", values());
+  if (r.status === "pending" || r.status === "skipped") {
+    wrap.appendChild(notes);
+    wrap.appendChild(button("Approve — add to Unwrap", "primary", (e) => {
+      const v = values();
+      if (!v.name) { toast("It needs a name."); return; }
+      if (!v.ingredients.length) { toast("It needs at least one ingredient."); return; }
+      if (!v.category_l1 || !v.category_l2 || !v.category_l3) { toast("Pick all three category levels first."); return; }
+      run(e.target, () => api("approve_candidate", v), (res) => res.summary || "Added");
+    }));
+    wrap.appendChild(button("Reject", "danger", (e) => run(e.target, () => api("decide_candidate", { id: r.id, status: "rejected", notes: notes.value.trim() || null }), "Rejected")));
+    if (r.status === "pending") wrap.appendChild(button("Skip for now", "quiet", (e) => run(e.target, () => api("decide_candidate", { id: r.id, status: "skipped", notes: notes.value.trim() || null }), "Skipped")));
+  } else if (r.status === "rejected") {
+    wrap.appendChild(button("Back to waiting", "quiet", (e) => run(e.target, () => api("decide_candidate", { id: r.id, status: "pending" }), "Back in the queue")));
+  } else if (r.status === "approved") {
+    const slot = el("div");
+    wrap.appendChild(button("Open product", "quiet", () => openEditor(slot, r.barcode, {})));
+    c.appendChild(slot);
+  }
+  c.appendChild(wrap);
   return c;
 }
 
