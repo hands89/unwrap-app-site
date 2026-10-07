@@ -1,1582 +1,389 @@
-<!doctype html>
-<html lang="en-GB">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#F8F4EC">
-<title>Unwrap Admin</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bulwark — Putting Me First</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  /* Colours are the app's UnwrapColors tokens (lib/theme.dart). The app uses
-     the system font, so this page does too. Light only, like the app. */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg: #F8F4EC;             /* background */
-    --surface: #FFFFFF;        /* surface */
-    --surface-soft: #F0E7D9;   /* surfaceSoft */
-    --line: #E1D8C8;           /* borderSubtle */
-    --primary: #2F7D4A;        /* primary: key action */
-    --primary-soft: #6AA155;   /* primarySoft */
-    --primary-pale: #8FB468;   /* primaryPale */
-    --primary-wash: #E0F2E8;   /* upfLowBackground */
-    --text: #1E1B18;           /* textPrimary */
-    --muted: #6B6560;          /* textSecondary */
-    --low: #1F7A4D;      --low-bg: #E0F2E8;
-    --mod: #B46915;      --mod-bg: #FBE9D7;
-    --high: #B3261E;     --high-bg: #F9E0DE;
-    --radius: 18px;
-    --shadow: 0 2px 10px rgba(30, 27, 24, 0.05);
-    color-scheme: light;
+    --bone:   #F5F3EC;
+    --sand:   #DDD8D0;
+    --stone:  #B0B4AD;
+    --iron:   #4A4A4A;
+    --pitch:  #0D0D0D;
+    --hazard: #A6543B;
   }
-  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
   body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font: 15px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bone);
+    color: var(--pitch);
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
   }
-  button, input, select, textarea { font: inherit; color: inherit; }
-  a { color: var(--primary); font-weight: 500; }
-  .wrap { max-width: 980px; margin: 0 auto; padding: 16px; }
-  .hidden { display: none !important; }
 
-  header.bar {
-    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-    padding: 12px 16px; background: var(--bg); border-bottom: 1px solid var(--line);
-    position: sticky; top: 0; z-index: 5;
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 52px;
+    background: var(--bone);
+    border-bottom: 1px solid var(--sand);
   }
-  .logo { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 20px; letter-spacing: -0.2px; }
-  .logo svg { width: 26px; height: 28px; }
-  .logo small { font-size: 13px; font-weight: 500; color: var(--muted); }
-  .who { margin-left: auto; color: var(--muted); font-size: 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-  .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--primary-wash); color: var(--primary); }
-
-  .btn {
-    border: 1.5px solid var(--primary); background: transparent; color: var(--primary);
-    padding: 8px 16px; border-radius: 999px; cursor: pointer; font-weight: 600; font-size: 14px;
-    min-height: 38px;
+  .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .nav-mark { width: 32px; height: 27px; display: block; }
+  .nav-wordmark {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800; font-size: 23px; letter-spacing: 0.04em;
+    color: var(--pitch); line-height: 1;
   }
-  .btn:hover { background: var(--primary-wash); }
-  .btn.primary { background: var(--primary); color: #fff; }
-  .btn.primary:hover { background: #276B3F; }
-  .btn.quiet { border-color: var(--line); color: var(--text); font-weight: 500; }
-  .btn.quiet:hover { background: var(--surface-soft); }
-  .btn.danger { border-color: var(--high); color: var(--high); }
-  .btn.danger:hover { background: var(--high-bg); }
-  .btn.small { padding: 4px 12px; min-height: 30px; font-size: 13px; }
-  .btn:disabled { opacity: .5; cursor: default; }
-  .linkbtn { background: none; border: 0; padding: 0; color: var(--primary); cursor: pointer; font-weight: 600; font-size: 13px; }
-
-  .card {
-    background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow);
-    padding: 16px; margin-bottom: 12px; border: 1px solid rgba(225, 216, 200, .6);
+  .nav-tag {
+    font-size: 10px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--stone);
   }
-  .login { max-width: 400px; margin: 8vh auto; }
-  .login h1 { font-size: 24px; margin: 8px 0 4px; }
-  label { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 4px; font-weight: 500; }
-  input[type=email], input[type=password], input[type=text], input[type=search], select, textarea {
-    width: 100%; padding: 10px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface);
+
+  /* HERO */
+  .hero {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 120px 48px 80px; text-align: center;
   }
-  input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary-pale); outline-offset: 0; border-color: var(--primary-soft); }
-  textarea { min-height: 42px; resize: vertical; }
-  .err { color: var(--high); font-size: 14px; margin-top: 10px; min-height: 1em; }
-  .hint { color: var(--muted); font-size: 13px; margin: 6px 0; }
-  .btn.provider { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 14px; border-color: var(--line); color: var(--text); }
-  .btn.provider svg { width: 18px; height: 18px; }
-  .divider { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; margin: 16px 0 4px; }
-  .divider::before, .divider::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
-
-  nav.tabs { display: flex; gap: 6px; overflow-x: auto; padding: 12px 0; scrollbar-width: none; }
-  @media (min-width: 720px) { nav.tabs { flex-wrap: wrap; overflow: visible; } }
-  nav.tabs button {
-    border: 1px solid var(--line); background: var(--surface); padding: 8px 14px; border-radius: 999px;
-    cursor: pointer; white-space: nowrap; font-weight: 500; font-size: 14px;
+  /* Mark only, no wordmark — wordmark rendered as text below */
+  .hero-mark { width: min(180px, 42vw); display: block; margin: 0 auto 24px; }
+  .hero-wordmark {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 800;
+    font-size: clamp(56px, 12vw, 110px); letter-spacing: 0.03em;
+    color: var(--pitch); line-height: 1; margin-bottom: 28px;
+    text-transform: uppercase;
   }
-  nav.tabs button[aria-selected=true] { background: var(--primary); border-color: var(--primary); color: #fff; }
-  .count { display: inline-block; min-width: 20px; margin-left: 6px; padding: 0 6px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--mod-bg); color: var(--mod); text-align: center; }
-  nav.tabs button[aria-selected=true] .count { background: rgba(255,255,255,.22); color: #fff; }
-  .toolbar { display: flex; gap: 10px; align-items: center; margin: 0 0 14px; flex-wrap: wrap; }
-  .toolbar select { width: auto; min-width: 180px; }
-  .toolbar label { margin: 0; }
-
-  .row-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-  .row-head h3 { margin: 0; font-size: 17px; font-weight: 600; }
-  .meta { color: var(--muted); font-size: 13px; }
-  .reason { margin: 10px 0 4px; }
-  .tag { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; background: var(--surface-soft); margin: 0 6px 4px 0; }
-  .tag.warn { background: var(--mod-bg); color: var(--mod); }
-  .tag.bad { background: var(--high-bg); color: var(--high); }
-  .tag.good { background: var(--low-bg); color: var(--low); }
-  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; align-items: center; }
-  .actions textarea { flex: 1 1 240px; }
-  .photos { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; align-items: flex-start; }
-  .photos img { max-width: 220px; max-height: 220px; border-radius: 14px; border: 1px solid var(--line); display: block; }
-  .photos figure { margin: 0; }
-  .photos figcaption { font-size: 12px; color: var(--muted); margin-top: 4px; }
-  .ingredients { font-size: 14px; margin-top: 8px; }
-  .empty { text-align: center; color: var(--muted); padding: 40px 0; }
-  .toast {
-    position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
-    background: var(--text); color: var(--bg); padding: 10px 18px; border-radius: 999px; font-size: 14px;
-    opacity: 0; transition: opacity .2s; pointer-events: none; max-width: calc(100% - 32px); z-index: 20;
+  .hero-tagline {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 800;
+    font-size: clamp(20px, 3vw, 28px); letter-spacing: 0.22em;
+    color: var(--iron); text-transform: uppercase; margin-bottom: 10px;
   }
-  .toast.show { opacity: 1; }
-  .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; }
-  td:first-child { word-break: break-all; }
-  td, th { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .hero-sub {
+    font-size: 11px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--stone); margin-bottom: 52px;
+  }
+  .hero-cta {
+    display: inline-block; padding: 14px 44px;
+    background: var(--pitch); color: var(--bone);
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none;
+    transition: background 0.2s;
+  }
+  .hero-cta:hover { background: var(--hazard); }
 
-  /* Score badge, like the app's UnwrapScoreBadge */
-  .score { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%;
-           font-weight: 700; font-size: 15px; color: #fff; flex: none; }
-  .score.low { background: var(--low); } .score.mod { background: var(--mod); } .score.high { background: var(--high); }
-  .score.none { background: var(--surface-soft); color: var(--muted); }
-  .arrow { color: var(--muted); font-weight: 600; }
+  /* RULE */
+  .rule { border: none; border-top: 1px solid var(--sand); margin: 0 52px; }
 
-  /* Ingredient chips, like the scan result page */
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
-  .chip { padding: 4px 12px; border-radius: 999px; font-size: 13px; background: var(--surface); border: 1px solid var(--line); }
-  .chip.marker { background: var(--mod-bg); border-color: #E7C49A; color: #7A4508; }
-  .chip.ignored { text-decoration: line-through; opacity: .6; }
+  /* PROBLEM */
+  .problem { padding: 96px 52px; max-width: 860px; margin: 0 auto; }
+  .section-label {
+    font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--hazard); margin-bottom: 24px;
+  }
+  .problem-body { font-size: 17px; line-height: 1.85; color: var(--iron); }
+  .problem-body strong { color: var(--pitch); }
 
-  /* Inline panels (editor, photo studio) */
-  .panel { margin-top: 14px; padding: 14px; border-radius: 16px; background: var(--bg); border: 1px solid var(--line); }
-  .panel h4 { margin: 0 0 6px; font-size: 15px; }
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
-  @media (max-width: 560px) { .grid2 { grid-template-columns: 1fr; } }
-  textarea.ing { min-height: 180px; font-size: 14px; line-height: 1.5; }
-  .result { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: var(--low-bg); color: var(--low); font-size: 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  /* PRODUCT */
+  .product { padding: 80px 52px 96px; max-width: 1120px; margin: 0 auto; }
+  .product-header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 48px; flex-wrap: wrap; gap: 12px;
+  }
+  .product-title {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 800;
+    font-size: clamp(36px, 5vw, 60px); letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--pitch);
+  }
+  .product-version {
+    font-size: 10px; letter-spacing: 0.18em; color: var(--stone); text-transform: uppercase;
+  }
+  .warning-bar {
+    display: flex; align-items: center; gap: 20px;
+    padding: 18px 24px; border: 1px solid var(--hazard);
+    margin-bottom: 32px; background: rgba(166,84,59,0.04);
+  }
+  .warning-icon { color: var(--hazard); font-size: 18px; flex-shrink: 0; }
+  .warning-text {
+    font-size: 11px; letter-spacing: 0.13em;
+    text-transform: uppercase; color: var(--hazard); line-height: 1.6;
+  }
+  .spec-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 1px; background: var(--sand); border: 1px solid var(--sand);
+  }
+  .spec-cell { background: var(--bone); padding: 28px 24px; }
+  .spec-key {
+    font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--stone); margin-bottom: 10px;
+  }
+  .spec-val { font-size: 14px; color: var(--pitch); line-height: 1.4; font-weight: 700; }
+  .spec-note { font-size: 11px; color: var(--stone); font-weight: 400; margin-top: 4px; display: block; }
 
-  .studio { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-items: start; }
-  @media (max-width: 560px) { .studio { grid-template-columns: 1fr; } }
-  .studio canvas, .studio img { width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--line); background: var(--surface-soft); display: block; }
-  .studio .cap { font-size: 12px; color: var(--muted); margin-top: 4px; }
-  .progress { font-size: 13px; color: var(--muted); margin: 8px 0; }
-  input[type=range] { width: 140px; accent-color: var(--primary); vertical-align: middle; }
-  .switch { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; margin: 0; color: var(--text); }
-  .switch input[type=checkbox] { accent-color: var(--primary); width: 18px; height: 18px; }
+  /* PRINCIPLES */
+  .principles {
+    padding: 80px 52px 96px; background: var(--sand);
+    border-top: 1px solid var(--sand); border-bottom: 1px solid var(--sand);
+  }
+  .principles-inner { max-width: 1120px; margin: 0 auto; }
+  .principles-heading {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 800;
+    font-size: clamp(36px, 4.5vw, 56px); letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--pitch); margin-bottom: 56px;
+  }
+  .principles-list {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    gap: 48px; list-style: none;
+  }
+  .principle-num {
+    font-size: 9px; letter-spacing: 0.22em; color: var(--hazard);
+    text-transform: uppercase; margin-bottom: 10px;
+  }
+  .principle-name {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 800;
+    font-size: 26px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--pitch); margin-bottom: 12px;
+  }
+  .principle-desc { font-size: 13px; color: var(--iron); line-height: 1.75; }
 
-  /* Look up, score review, change log */
-  .search { display: flex; gap: 8px; margin: 0 0 14px; }
-  .search input { flex: 1; font-size: 16px; }
-  .result-row { display: flex; gap: 12px; align-items: center; cursor: pointer; }
-  .result-row:hover { background: var(--bg); }
-  .result-row img, .thumb { width: 52px; height: 52px; border-radius: 12px; object-fit: cover; border: 1px solid var(--line); background: var(--surface-soft); flex: none; }
-  .result-row .grow { flex: 1; min-width: 0; }
-  .result-row h3 { font-size: 15px; margin: 0; }
-  .hero { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
-  .hero img { width: 140px; height: 140px; border-radius: 16px; object-fit: cover; border: 1px solid var(--line); }
-  .section-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin: 18px 0 6px; }
-  .mini { display: flex; gap: 8px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; flex-wrap: wrap; }
-  .mini:last-child { border-bottom: 0; }
-  .mini .when { color: var(--muted); font-size: 12px; min-width: 120px; }
-  .bars { display: grid; gap: 8px; margin: 10px 0; }
-  .bar { display: grid; grid-template-columns: minmax(130px, 200px) 1fr 56px; gap: 10px; align-items: center; font-size: 14px; }
-  .bar .track { height: 10px; border-radius: 999px; background: var(--surface-soft); overflow: hidden; }
-  .bar .fill { display: block; height: 100%; background: var(--primary-soft); border-radius: 999px; }
-  .bar .pts { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
-  .ing-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-  .ing-table td { padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; font-size: 14px; }
-  .ing-table td:first-child { word-break: normal; }
-  .ing-table select { width: auto; padding: 4px 8px; font-size: 13px; border-radius: 10px; }
-  .cat-picker { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
-  .cand-side { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 10px; }
-  @media (min-width: 720px) { .cand-side { grid-template-columns: 300px 1fr; } }
-  .photos { display: flex; flex-direction: column; gap: 8px; }
-  .photos img { width: 100%; max-height: 360px; object-fit: contain; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
-  .cand-form { display: flex; flex-direction: column; gap: 6px; }
-  .cand-form textarea { min-height: 160px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
-  .cat-picker select { flex: 1 1 140px; }
-  .warnbox { padding: 10px 12px; border-radius: 12px; background: var(--mod-bg); color: #7A4508; font-size: 14px; margin: 8px 0; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-  .diff { font-size: 13px; margin-top: 8px; padding: 10px 12px; background: var(--bg); border-radius: 12px; }
-  .diff .add { color: var(--low); } .diff .del { color: var(--high); text-decoration: line-through; }
-  /* App mock-up for "preview before save": mirrors the scan result screen */
-  .mock-pair { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; align-items: flex-start; }
-  .mock-col { flex: 1 1 280px; max-width: 340px; }
-  .mock-col > .cap { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
-  .phone { background: #FBF3E4; border: 8px solid #1E1B18; border-radius: 36px; padding: 14px 16px 22px; min-height: 480px; box-shadow: var(--shadow); }
-  .phone .top { display: flex; justify-content: space-between; color: var(--primary); margin-bottom: 8px; }
-  .phone .top svg { width: 20px; height: 20px; }
-  .phone .photo { width: 96px; height: 96px; border-radius: 16px; object-fit: cover; display: block; margin: 0 auto 10px; border: 1px solid var(--line); }
-  .phone .circle { width: 84px; height: 84px; border-radius: 50%; margin: 4px auto 6px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 30px; font-weight: 700; }
-  .phone .band { text-align: center; font-weight: 600; font-size: 14px; }
-  .phone .nova { text-align: center; font-size: 12px; color: var(--muted); font-weight: 600; margin-top: 2px; }
-  .phone .pname { text-align: center; font-size: 18px; font-weight: 700; margin: 10px 0 2px; }
-  .phone .pbrand { text-align: center; color: var(--muted); font-size: 13px; }
-  .phone .ihead { display: flex; align-items: center; gap: 6px; margin: 14px 0 6px; font-weight: 600; font-size: 14px; }
-  .phone .pill-n { background: var(--surface-soft); border-radius: 999px; padding: 0 8px; font-size: 12px; font-weight: 600; color: var(--muted); }
-  .phone .flagged { margin-left: auto; background: var(--high-bg); color: var(--high); border-radius: 999px; padding: 1px 8px; font-size: 11px; font-weight: 600; }
-  .phone .chips { gap: 5px; }
-  .phone .chip { font-size: 12px; padding: 3px 10px; background: #F4EFE6; border-color: #E6DCCB; }
-  .phone .chip.marker { background: #FBEBD9; border-color: #C98A3E; color: #8A4E0E; }
-  .phone .fine { font-size: 11px; color: var(--muted); margin-top: 8px; }
-  .phone .changed { outline: 2px dashed var(--primary-soft); outline-offset: 2px; border-radius: 8px; }
-  .phone .circle.changed { border-radius: 50%; outline-offset: 4px; }
-  .phone .empty-ing { font-size: 13px; color: var(--muted); }
-  @media (max-width: 560px) { .bar { grid-template-columns: 1fr 56px; } .bar .track { grid-column: 1 / -1; order: 3; } }
+  /* WAITLIST */
+  .waitlist { padding: 96px 52px; max-width: 660px; margin: 0 auto; text-align: center; }
+  .waitlist-heading {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 800;
+    font-size: clamp(36px, 5vw, 58px); letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--pitch); margin-bottom: 14px;
+  }
+  .waitlist-sub { font-size: 13px; color: var(--iron); margin-bottom: 44px; line-height: 1.75; }
+  .waitlist-form { display: flex; max-width: 460px; margin: 0 auto 16px; }
+  .waitlist-input {
+    flex: 1; background: transparent; border: 1px solid var(--stone); border-right: none;
+    padding: 14px 18px; font-family: 'Space Mono', monospace; font-size: 12px;
+    color: var(--pitch); outline: none; transition: border-color 0.2s;
+  }
+  .waitlist-input::placeholder { color: var(--stone); }
+  .waitlist-input:focus { border-color: var(--pitch); }
+  .waitlist-btn {
+    background: var(--pitch); border: 1px solid var(--pitch); color: var(--bone);
+    padding: 14px 26px; font-family: 'Space Mono', monospace; font-size: 11px;
+    letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: background 0.2s;
+  }
+  .waitlist-btn:hover { background: var(--hazard); border-color: var(--hazard); }
+  .waitlist-note { font-size: 10px; color: var(--stone); letter-spacing: 0.12em; text-transform: uppercase; }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--sand); padding: 28px 52px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .footer-logo { display: flex; align-items: center; gap: 10px; }
+  .footer-mark { width: 22px; height: 18px; display: block; opacity: 0.35; }
+  .footer-wordmark {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 800;
+    font-size: 16px; letter-spacing: 0.05em; color: var(--stone);
+  }
+  .footer-right { font-size: 10px; color: var(--stone); letter-spacing: 0.14em; text-transform: uppercase; }
+
+  /* RESPONSIVE */
+  @media (max-width: 640px) {
+    nav { padding: 14px 20px; }
+    .nav-tag { display: none; }
+    .hero { padding: 100px 24px 60px; }
+    .rule { margin: 0 20px; }
+    .problem { padding: 60px 24px; }
+    .product { padding: 60px 24px 80px; }
+    .principles { padding: 60px 24px 80px; }
+    .waitlist { padding: 60px 24px; }
+    .waitlist-form { flex-direction: column; }
+    .waitlist-input { border-right: 1px solid var(--stone); border-bottom: none; }
+    footer { padding: 20px 24px; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .fade-in { opacity: 0; transform: translateY(16px); transition: opacity 0.55s ease, transform 0.55s ease; }
+    .fade-in.visible { opacity: 1; transform: none; }
+  }
 </style>
 </head>
 <body>
 
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="leaf" viewBox="0 0 563.92 596.89">
-    <path fill="#6aa155" d="M563.92.13s-243.78-11.38-244.73,177.38v322.51s12.33,87.27-141.33,75.88c0,0,67.35,34.15,173.59,13.28,0,0,114.78-28.46,178.33-133.75,0,0,34.15-47.43,34.15-133.75V.13Z"/>
-    <path fill="#8fb468" d="M0,1.08s243.78-11.38,244.73,177.38v322.51s-12.33,87.27,141.33,75.88c0,0-67.35,34.15-173.59,13.28,0,0-114.78-28.46-178.33-133.75,0,0-34.15-47.43-34.15-133.75V1.08Z"/>
-    <path fill="#4a8b41" d="M318.71,330.23s18.02-105.29,183.07-190.66c0,0,18.02,174.53-15.18,233.34,0,0-65.45,124.26-167.89,135.64v-178.33Z"/>
-    <path fill="none" stroke="#8fb468" stroke-miterlimit="10" stroke-width="3" d="M501.79,139.57s-120.47,288.36-183.07,368.99"/>
+<!--
+  The logo path data is taken directly from the supplied SVG file.
+  Original viewBox: 0 0 997 826
+  The mark (three-arm isometric bolt) occupies roughly y=20 to y=643, x=151 to x=834
+  The wordmark occupies y=687 to y=805, x=20 to x=976
+  We use only the MARK portion (paths with y < 650) for the standalone mark SVG,
+  and use text for the wordmark so it scales and renders crisp at all sizes.
+  The full path uses fill-rule="evenodd" which creates the white gaps between faces.
+-->
+
+<!-- REUSABLE MARK SYMBOL — mark region only, cropped viewBox -->
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="bw-mark" viewBox="151 20 683 624">
+    <path fill="#0D0D0D" fill-rule="evenodd" d="
+      M 830.0 453.0 L 823.0 453.0 L 726.0 517.0 L 721.0 522.0 L 718.0 530.0 L 718.0 636.0 L 719.0 639.0 L 722.0 642.0 L 731.0 642.0 L 831.0 574.0 L 834.0 567.0 L 834.0 459.0 L 833.0 456.0 Z
+      M 155.0 453.0 L 151.0 458.0 L 151.0 569.0 L 155.0 576.0 L 252.0 641.0 L 257.0 643.0 L 263.0 642.0 L 266.0 638.0 L 266.0 527.0 L 265.0 524.0 L 260.0 518.0 L 161.0 453.0 Z
+      M 289.0 530.0 L 289.0 636.0 L 294.0 642.0 L 302.0 641.0 L 486.0 561.0 L 498.0 561.0 L 683.0 641.0 L 691.0 642.0 L 695.0 637.0 L 695.0 529.0 L 692.0 523.0 L 501.0 418.0 L 486.0 417.0 L 298.0 518.0 Z
+      M 599.0 115.0 L 509.0 163.0 L 503.0 171.0 L 503.0 387.0 L 510.0 397.0 L 698.0 498.0 L 710.0 500.0 L 807.0 437.0 L 810.0 430.0 L 636.0 313.0 L 629.0 306.0 L 625.0 297.0 L 603.0 120.0 L 602.0 115.0 Z
+      M 385.0 115.0 L 382.0 115.0 L 360.0 293.0 L 356.0 305.0 L 347.0 314.0 L 174.0 431.0 L 176.0 436.0 L 275.0 500.0 L 287.0 498.0 L 471.0 398.0 L 479.0 385.0 L 478.0 170.0 L 470.0 161.0 Z
+      M 386.0 77.0 L 386.0 87.0 L 389.0 92.0 L 486.0 143.0 L 496.0 143.0 L 520.0 131.0 L 568.0 105.0 L 593.0 93.0 L 597.0 89.0 L 598.0 86.0 L 598.0 77.0 L 594.0 70.0 L 496.0 21.0 L 492.0 20.0 L 486.0 21.0 L 391.0 69.0 L 388.0 72.0 Z
+    "/>
   </symbol>
 </svg>
 
-<div id="login" class="wrap hidden">
-  <div class="card login">
-    <div class="logo"><svg aria-hidden="true"><use href="#leaf"/></svg>Unwrap <small>Admin</small></div>
-    <h1>Sign in</h1>
-    <p class="hint">Use your Unwrap account. You'll only get in if Eddy has added you to the admin team.</p>
-    <button class="btn provider" type="button" id="googleBtn">
-      <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.2-.1-2.3-.4-3.5z"/></svg>
-      Continue with Google
-    </button>
-    <div class="divider">or with email</div>
-    <form id="loginForm">
-      <label for="email">Email</label>
-      <input id="email" type="email" autocomplete="username" required>
-      <label for="password">Password</label>
-      <input id="password" type="password" autocomplete="current-password" required>
-      <div style="margin-top:16px"><button class="btn primary" type="submit" id="loginBtn">Sign in</button></div>
-      <div class="err" id="loginErr"></div>
-      <p class="hint"><button type="button" class="linkbtn" id="forgotBtn">Forgot your password? Email me a link</button></p>
-    </form>
-    <form id="recoveryForm" class="hidden">
-      <p class="hint">Choose a new password for your Unwrap account.</p>
-      <label for="newPw">New password</label>
-      <input id="newPw" type="password" autocomplete="new-password" minlength="8" required>
-      <label for="newPw2">Confirm password</label>
-      <input id="newPw2" type="password" autocomplete="new-password" minlength="8" required>
-      <div style="margin-top:16px"><button class="btn primary" type="submit">Save and sign in</button></div>
-    </form>
-  </div>
-</div>
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <svg class="nav-mark" viewBox="151 20 683 624" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#0D0D0D" fill-rule="evenodd" d="M 830.0 453.0 L 823.0 453.0 L 726.0 517.0 L 721.0 522.0 L 718.0 530.0 L 718.0 636.0 L 719.0 639.0 L 722.0 642.0 L 731.0 642.0 L 831.0 574.0 L 834.0 567.0 L 834.0 459.0 L 833.0 456.0 Z M 155.0 453.0 L 151.0 458.0 L 151.0 569.0 L 155.0 576.0 L 252.0 641.0 L 257.0 643.0 L 263.0 642.0 L 266.0 638.0 L 266.0 527.0 L 265.0 524.0 L 260.0 518.0 L 161.0 453.0 Z M 289.0 530.0 L 289.0 636.0 L 294.0 642.0 L 302.0 641.0 L 486.0 561.0 L 498.0 561.0 L 683.0 641.0 L 691.0 642.0 L 695.0 637.0 L 695.0 529.0 L 692.0 523.0 L 501.0 418.0 L 486.0 417.0 L 298.0 518.0 Z M 599.0 115.0 L 509.0 163.0 L 503.0 171.0 L 503.0 387.0 L 510.0 397.0 L 698.0 498.0 L 710.0 500.0 L 807.0 437.0 L 810.0 430.0 L 636.0 313.0 L 629.0 306.0 L 625.0 297.0 L 603.0 120.0 L 602.0 115.0 Z M 385.0 115.0 L 382.0 115.0 L 360.0 293.0 L 356.0 305.0 L 347.0 314.0 L 174.0 431.0 L 176.0 436.0 L 275.0 500.0 L 287.0 498.0 L 471.0 398.0 L 479.0 385.0 L 478.0 170.0 L 470.0 161.0 Z M 386.0 77.0 L 386.0 87.0 L 389.0 92.0 L 486.0 143.0 L 496.0 143.0 L 520.0 131.0 L 568.0 105.0 L 593.0 93.0 L 597.0 89.0 L 598.0 86.0 L 598.0 77.0 L 594.0 70.0 L 496.0 21.0 L 492.0 20.0 L 486.0 21.0 L 391.0 69.0 L 388.0 72.0 Z"/>
+    </svg>
+    <span class="nav-wordmark">BULWARK</span>
+  </a>
+  <span class="nav-tag">Protection Beyond the Physical</span>
+</nav>
 
-<div id="app" class="hidden">
-  <header class="bar">
-    <div class="logo"><svg aria-hidden="true"><use href="#leaf"/></svg>Unwrap <small>Admin</small></div>
-    <div class="who"><span id="whoEmail"></span><span class="pill" id="whoRole"></span><button class="btn quiet small" id="signOut">Sign out</button></div>
-  </header>
-  <div class="wrap">
-    <nav class="tabs" id="tabs" role="tablist"></nav>
-    <div class="toolbar" id="toolbar">
-      <label for="statusFilter">Show</label>
-      <select id="statusFilter"></select>
-      <button class="btn quiet small" id="refresh">Refresh</button>
+<!-- HERO -->
+<section class="hero">
+  <svg class="hero-mark" viewBox="151 20 683 624" xmlns="http://www.w3.org/2000/svg">
+    <path fill="#0D0D0D" fill-rule="evenodd" d="M 830.0 453.0 L 823.0 453.0 L 726.0 517.0 L 721.0 522.0 L 718.0 530.0 L 718.0 636.0 L 719.0 639.0 L 722.0 642.0 L 731.0 642.0 L 831.0 574.0 L 834.0 567.0 L 834.0 459.0 L 833.0 456.0 Z M 155.0 453.0 L 151.0 458.0 L 151.0 569.0 L 155.0 576.0 L 252.0 641.0 L 257.0 643.0 L 263.0 642.0 L 266.0 638.0 L 266.0 527.0 L 265.0 524.0 L 260.0 518.0 L 161.0 453.0 Z M 289.0 530.0 L 289.0 636.0 L 294.0 642.0 L 302.0 641.0 L 486.0 561.0 L 498.0 561.0 L 683.0 641.0 L 691.0 642.0 L 695.0 637.0 L 695.0 529.0 L 692.0 523.0 L 501.0 418.0 L 486.0 417.0 L 298.0 518.0 Z M 599.0 115.0 L 509.0 163.0 L 503.0 171.0 L 503.0 387.0 L 510.0 397.0 L 698.0 498.0 L 710.0 500.0 L 807.0 437.0 L 810.0 430.0 L 636.0 313.0 L 629.0 306.0 L 625.0 297.0 L 603.0 120.0 L 602.0 115.0 Z M 385.0 115.0 L 382.0 115.0 L 360.0 293.0 L 356.0 305.0 L 347.0 314.0 L 174.0 431.0 L 176.0 436.0 L 275.0 500.0 L 287.0 498.0 L 471.0 398.0 L 479.0 385.0 L 478.0 170.0 L 470.0 161.0 Z M 386.0 77.0 L 386.0 87.0 L 389.0 92.0 L 486.0 143.0 L 496.0 143.0 L 520.0 131.0 L 568.0 105.0 L 593.0 93.0 L 597.0 89.0 L 598.0 86.0 L 598.0 77.0 L 594.0 70.0 L 496.0 21.0 L 492.0 20.0 L 486.0 21.0 L 391.0 69.0 L 388.0 72.0 Z"/>
+  </svg>
+
+  <h1 class="hero-wordmark">BULWARK</h1>
+  <p class="hero-tagline">Putting <span style="color:var(--hazard)">ME</span> First</p>
+  <p class="hero-sub">Built by firefighters. Trusted by firefighters.</p>
+  <a href="#waitlist" class="hero-cta">Register Interest</a>
+</section>
+
+<hr class="rule">
+
+<!-- PROBLEM -->
+<section class="problem fade-in">
+  <p class="section-label">The Problem</p>
+  <p class="problem-body">
+    Brigades across the UK have instructed crews to stop storing gloves in helmets and boots.
+    <strong>Carcinogen contamination is the reason.</strong> No replacement has been issued.
+    Firefighters are carrying contaminated kit loose — in pockets, in bags that were never designed for the job.
+    <br><br>
+    Chemical exposure is the second fire. It accumulates silently over a career.
+    Bulwark exists to address it — starting with carry goods that treat decontamination as the foundation, not an afterthought.
+  </p>
+</section>
+
+<hr class="rule">
+
+<!-- PRODUCT -->
+<section class="product fade-in">
+  <div class="product-header">
+    <h2 class="product-title">Glove &amp; PPE Tool Roll</h2>
+    <span class="product-version">Specification Sheet — V1.0</span>
+  </div>
+  <div class="warning-bar">
+    <span class="warning-icon">⚠</span>
+    <p class="warning-text">Clean zone. Dirty zone. No compromise.<br>Decontaminable by design — not as an afterthought.</p>
+  </div>
+  <div class="spec-grid">
+    <div class="spec-cell">
+      <p class="spec-key">Shell Material</p>
+      <p class="spec-val">Hypalon<span class="spec-note">Chemical-resistant. UV stable. Fully decontaminable.</span></p>
     </div>
-    <div id="list"></div>
+    <div class="spec-cell">
+      <p class="spec-key">Seams</p>
+      <p class="spec-val">RF-Welded<span class="spec-note">No stitching. No contamination pathways. No failure points.</span></p>
+    </div>
+    <div class="spec-cell">
+      <p class="spec-key">Webbing</p>
+      <p class="spec-val">Laser-Cut MOLLE<span class="spec-note">Modular. Clean-edge. Attaches to existing kit.</span></p>
+    </div>
+    <div class="spec-cell">
+      <p class="spec-key">Hardware</p>
+      <p class="spec-val">Corrosion Resistant<span class="spec-note">Throughout. Built to survive the job site.</span></p>
+    </div>
+    <div class="spec-cell">
+      <p class="spec-key">Capacity</p>
+      <p class="spec-val">Three Glove Types<span class="spec-note">Structural, extrication, and medical — all carried clean.</span></p>
+    </div>
+    <div class="spec-cell">
+      <p class="spec-key">Origin</p>
+      <p class="spec-val">Designed by Firefighters<span class="spec-note">UK fire service. Operational problem. Operational solution.</span></p>
+    </div>
   </div>
-</div>
+</section>
 
-<div class="toast" id="toast" role="status"></div>
+<hr class="rule">
+
+<!-- PRINCIPLES -->
+<section class="principles fade-in">
+  <div class="principles-inner">
+    <h2 class="principles-heading">What This Is Built On</h2>
+    <ul class="principles-list">
+      <li class="principle-item">
+        <p class="principle-num">01</p>
+        <p class="principle-name">Decon by Design</p>
+        <p class="principle-desc">Clean/dirty separation is the architecture, not a feature. Every material choice, every seam, every closure exists because of it.</p>
+      </li>
+      <li class="principle-item">
+        <p class="principle-num">02</p>
+        <p class="principle-name">Honest Specification</p>
+        <p class="principle-desc">If it's on the spec sheet, it's on the product. Real material provenance. No tactical aesthetics without operational substance to back them up.</p>
+      </li>
+      <li class="principle-item">
+        <p class="principle-num">03</p>
+        <p class="principle-name">Built by the Job</p>
+        <p class="principle-desc">Designed by someone who does it. The problem is real. The solution is operational. This is kit for the people who need it, not the people who like the look of it.</p>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- WAITLIST -->
+<section class="waitlist fade-in" id="waitlist">
+  <p class="section-label">Get Notified</p>
+  <h2 class="waitlist-heading">Be First in Line</h2>
+  <p class="waitlist-sub">V1.0 is in development. Register your interest and we will reach out directly when the first run is ready. No mailing list. No noise.</p>
+  <div class="waitlist-form">
+    <input class="waitlist-input" type="email" placeholder="your@email.com" id="email-input">
+    <button class="waitlist-btn" id="register-btn">Register</button>
+  </div>
+  <p class="waitlist-note" id="waitlist-note">Direct contact only.</p>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">
+    <svg class="footer-mark" viewBox="151 20 683 624" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#0D0D0D" fill-rule="evenodd" d="M 830.0 453.0 L 823.0 453.0 L 726.0 517.0 L 721.0 522.0 L 718.0 530.0 L 718.0 636.0 L 719.0 639.0 L 722.0 642.0 L 731.0 642.0 L 831.0 574.0 L 834.0 567.0 L 834.0 459.0 L 833.0 456.0 Z M 155.0 453.0 L 151.0 458.0 L 151.0 569.0 L 155.0 576.0 L 252.0 641.0 L 257.0 643.0 L 263.0 642.0 L 266.0 638.0 L 266.0 527.0 L 265.0 524.0 L 260.0 518.0 L 161.0 453.0 Z M 289.0 530.0 L 289.0 636.0 L 294.0 642.0 L 302.0 641.0 L 486.0 561.0 L 498.0 561.0 L 683.0 641.0 L 691.0 642.0 L 695.0 637.0 L 695.0 529.0 L 692.0 523.0 L 501.0 418.0 L 486.0 417.0 L 298.0 518.0 Z M 599.0 115.0 L 509.0 163.0 L 503.0 171.0 L 503.0 387.0 L 510.0 397.0 L 698.0 498.0 L 710.0 500.0 L 807.0 437.0 L 810.0 430.0 L 636.0 313.0 L 629.0 306.0 L 625.0 297.0 L 603.0 120.0 L 602.0 115.0 Z M 385.0 115.0 L 382.0 115.0 L 360.0 293.0 L 356.0 305.0 L 347.0 314.0 L 174.0 431.0 L 176.0 436.0 L 275.0 500.0 L 287.0 498.0 L 471.0 398.0 L 479.0 385.0 L 478.0 170.0 L 470.0 161.0 Z M 386.0 77.0 L 386.0 87.0 L 389.0 92.0 L 486.0 143.0 L 496.0 143.0 L 520.0 131.0 L 568.0 105.0 L 593.0 93.0 L 597.0 89.0 L 598.0 86.0 L 598.0 77.0 L 594.0 70.0 L 496.0 21.0 L 492.0 20.0 L 486.0 21.0 L 391.0 69.0 L 388.0 72.0 Z"/>
+    </svg>
+    <span class="footer-wordmark">BULWARK</span>
+  </div>
+  <span class="footer-right">Putting me first &nbsp;·&nbsp; © 2026</span>
+</footer>
 
 <script>
-const SUPABASE_URL = "https://gmxcsjdyzbuucfapjfbr.supabase.co";
-// Publishable key: safe to ship in a page. Admin powers live in the admin-api function.
-const SUPABASE_KEY = "sb_publishable_OhskKXj-g5xXgx7Xf8UdtA_dBPBgkW9";
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const els = document.querySelectorAll('.fade-in');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }});
+  }, { threshold: 0.08 });
+  els.forEach(el => obs.observe(el));
 
-const QUEUES = {
-  lookup:           { label: "Look up",          statuses: [], custom: true },
-  product_flags:    { label: "Product flags",    statuses: ["pending", "resolved", "dismissed"] },
-  ingredient_flags: { label: "Ingredient flags", statuses: ["pending", "scoring_review", "resolved", "dismissed"] },
-  allergens:        { label: "Allergen reports", statuses: ["pending", "resolved", "dismissed"] },
-  submissions:      { label: "Submissions",      statuses: ["needs_review", "accepted", "rejected", "duplicate"] },
-  photos:           { label: "Photos",           statuses: ["pending", "approved", "rejected"] },
-  missed_scans:     { label: "Missed scans",     statuses: ["priority", "open", "investigating", "ignored", "fixed"],
-                      statusLabels: { priority: "20+ misses, not picked up", open: "all open", fixed: "fixed (now has ingredients)" } },
-  quarantine:       { label: "Quarantine",       statuses: ["open", "restored", "removed"],
-                      statusLabels: { open: "waiting for review" } },
-  categories:       { label: "Categories",       statuses: ["open", "no_category", "no_l3"],
-                      statusLabels: { open: "all needing a look", no_category: "no category at all", no_l3: "aisle only, no swaps yet" } },
-  imports:          { label: "Imports",          statuses: ["pending", "high", "approved", "rejected", "skipped"],
-                      statusLabels: { pending: "waiting", high: "waiting · high confidence", skipped: "skipped for later" } },
-  log:              { label: "Change log",       statuses: ["all", "edits", "resolutions", "quarantine"],
-                      statusLabels: { all: "everything", edits: "product changes", resolutions: "reports closed", quarantine: "quarantine and submissions" } },
-  team:             { label: "Team",             statuses: [], adminOnly: true },
-};
-const STATUS_LABELS = { scoring_review: "scoring review", needs_review: "needs review" };
-
-const CATEGORIES = ["biscuits", "bread_bakery", "breakfast_cereal", "confectionery", "crisps", "dairy_desserts", "drinks",
-  "eggs", "fish_seafood", "fruit_vegetables", "grains_rice_pasta", "herbs_spices_seasoning", "home_baking", "infant",
-  "meat_poultry", "oils_vinegar", "pizza", "ready_meals", "sauces_condiments", "snacks", "soup", "spreads"];
-const ALLERGEN_NAMES = { gluten: "gluten", crustaceans: "crustaceans", eggs: "eggs", fish: "fish", peanuts: "peanuts",
-  soya: "soya", milk: "milk", tree_nuts: "tree nuts", celery: "celery", mustard: "mustard", sesame: "sesame",
-  sulphites: "sulphites", lupin: "lupin", molluscs: "molluscs" };
-
-let me = null;
-let current = "product_flags";
-let lookupState = { q: "", barcode: null };
-let counts = {};
-
-const $ = (id) => document.getElementById(id);
-const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const when = (iso) => iso ? new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
-const nice = (s) => STATUS_LABELS[s] || String(s ?? "").replace(/_/g, " ");
-const isBarcode = (b) => /^[0-9]{8,14}$/.test(String(b ?? ""));
-const offLink = (barcode) => isBarcode(barcode)
-  ? `<a href="https://world.openfoodfacts.org/product/${barcode}" target="_blank" rel="noopener">Open Food Facts</a>` : "";
-const isAdmin = () => me?.role === "admin";
-
-function scoreBadge(score) {
-  if (score === null || score === undefined || score === "") return `<span class="score none" title="No score">–</span>`;
-  const n = Number(score);
-  const band = n <= 3 ? "low" : n < 7 ? "mod" : "high";
-  return `<span class="score ${band}" title="Score ${n.toFixed(1)}">${n.toFixed(1)}</span>`;
-}
-
-function el(tag, attrs = {}, html = "") {
-  const e = document.createElement(tag);
-  for (const [k, v] of Object.entries(attrs)) {
-    if (k === "class") e.className = v; else if (k.startsWith("on")) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v);
-  }
-  if (html) e.innerHTML = html;
-  return e;
-}
-function button(label, cls, onclick) { return el("button", { class: "btn " + (cls || ""), type: "button", onclick }, esc(label)); }
-
-function toast(msg) {
-  const t = $("toast"); t.textContent = msg; t.classList.add("show");
-  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), 3200);
-}
-
-async function api(action, payload = {}) {
-  const { data, error } = await sb.functions.invoke("admin-api", { body: { action, ...payload } });
-  if (error) {
-    let body = null;
-    try { body = await error.context.json(); } catch (_) { /* not JSON */ }
-    const code = body?.error || error.message;
-    if (code === "not_signed_in") { await showLogin(); }
-    throw new Error(body?.message || code);
-  }
-  return data;
-}
-
-// Runs an action from a button: disables it, shows errors, refreshes after.
-async function run(btn, fn, okMsg) {
-  if (btn) btn.disabled = true;
-  try {
-    const res = await fn();
-    if (okMsg) toast(typeof okMsg === "function" ? okMsg(res) : okMsg);
-    await refreshAll();
-    return res;
-  } catch (e) {
-    toast("Failed: " + e.message);
-    if (btn) btn.disabled = false;
-  }
-}
-
-async function refreshAll() { await loadCounts(); renderTabs(); await load(); }
-
-/* ─────────────── Sign in ─────────────── */
-
-async function showLogin(msg = "") {
-  $("app").classList.add("hidden");
-  $("login").classList.remove("hidden");
-  $("loginErr").textContent = msg;
-}
-
-async function start() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) return showLogin();
-  try {
-    me = await api("me");
-  } catch (e) {
-    const who = session.user?.email || "that account";
-    await sb.auth.signOut();
-    return showLogin(e.message === "not_authorised"
-      ? `You signed in as ${who}, which isn't on the admin team. Ask Eddy to add it, or sign in with a different account.`
-      : "Couldn't check your access: " + e.message);
-  }
-  $("login").classList.add("hidden");
-  $("app").classList.remove("hidden");
-  $("whoEmail").textContent = me.email;
-  $("whoRole").textContent = me.role;
-  await loadCounts();
-  select(current);
-}
-
-$("loginForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  $("loginBtn").disabled = true; $("loginErr").textContent = "";
-  const { error } = await sb.auth.signInWithPassword({ email: $("email").value.trim(), password: $("password").value });
-  $("loginBtn").disabled = false;
-  if (error) { $("loginErr").textContent = error.message; return; }
-  start();
-});
-$("signOut").addEventListener("click", async () => { await sb.auth.signOut(); me = null; showLogin(); });
-
-// Google and password-reset links must come back to this page, so they only
-// work once the page is online (not when opened as a file from Finder).
-const HERE = location.origin + location.pathname;
-const ONLINE = location.protocol === "https:" || location.hostname === "localhost";
-
-$("googleBtn").addEventListener("click", async () => {
-  if (!ONLINE) { $("loginErr").textContent = "Google sign-in only works on the live page, not a local copy. For now, use email and password."; return; }
-  const { error } = await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: HERE } });
-  if (error) $("loginErr").textContent = error.message;
-});
-
-$("forgotBtn").addEventListener("click", async () => {
-  const email = $("email").value.trim();
-  if (!email) { $("loginErr").textContent = "Type your email above first."; return; }
-  if (!ONLINE) { $("loginErr").textContent = "Reset links work once this page is online. For now, reset in the app: Profile → Change password."; return; }
-  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: HERE });
-  $("loginErr").textContent = error ? error.message : "If that email has an Unwrap account, a reset link is on its way.";
-});
-
-$("recoveryForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const a = $("newPw").value, b = $("newPw2").value;
-  if (a.length < 8) { $("loginErr").textContent = "Password must be at least 8 characters."; return; }
-  if (a !== b) { $("loginErr").textContent = "Passwords don't match."; return; }
-  const { error } = await sb.auth.updateUser({ password: a });
-  if (error) { $("loginErr").textContent = error.message; return; }
-  $("recoveryForm").classList.add("hidden"); $("loginForm").classList.remove("hidden");
-  toast("Password updated"); start();
-});
-
-sb.auth.onAuthStateChange((event) => {
-  if (event === "PASSWORD_RECOVERY") {
-    showLogin();
-    $("loginForm").classList.add("hidden"); $("googleBtn").classList.add("hidden");
-    document.querySelector(".divider").classList.add("hidden");
-    $("recoveryForm").classList.remove("hidden");
-  } else if (event === "SIGNED_IN" && !me && $("recoveryForm").classList.contains("hidden")) {
-    start();
-  }
-});
-$("refresh").addEventListener("click", refreshAll);
-$("statusFilter").addEventListener("change", load);
-
-/* ─────────────── Tabs and lists ─────────────── */
-
-async function loadCounts() {
-  try { counts = await api("counts"); } catch (_) { counts = {}; }
-}
-
-function renderTabs() {
-  const tabs = $("tabs"); tabs.innerHTML = "";
-  for (const [key, q] of Object.entries(QUEUES)) {
-    if (q.adminOnly && !isAdmin()) continue;
-    const b = el("button", { role: "tab", "aria-selected": String(key === current) });
-    const n = counts[key];
-    b.innerHTML = esc(q.label) + (n ? `<span class="count">${n}</span>` : "");
-    b.addEventListener("click", () => select(key));
-    tabs.appendChild(b);
-  }
-}
-
-function select(key) {
-  current = key;
-  renderTabs();
-  const sel = $("statusFilter"); sel.innerHTML = "";
-  for (const s of QUEUES[key].statuses) {
-    sel.appendChild(el("option", { value: s }, esc(QUEUES[key].statusLabels?.[s] || nice(s))));
-  }
-  $("toolbar").classList.toggle("hidden", key === "team" || key === "lookup");
-  load();
-}
-
-const INTROS = {
-  product_flags: "Reports from people using the app. <strong>Fix product</strong> edits it here, rescores it and closes the report with a note of what changed. <strong>Review score</strong> shows exactly how the score was worked out. <strong>Quarantine</strong> hides it from the app until the weekly review.",
-  ingredient_flags: "Reports about a single ingredient. If the text is wrong, fix it on the product. If it's really a question about whether an ingredient should count as a processing marker, send it to <strong>scoring review</strong>: rule changes are a separate, deliberate job.",
-  allergens: "People telling us whether a product contains an allergen. Applying the answer updates the product's allergen tags. If the ingredient list mentions the allergen, fix the ingredients too, as the app checks both.",
-  photos: "Photos people took of products. <strong>Tidy up and approve</strong> straightens, crops and blurs the background in your browser, shows you the result, then saves it as the product's photo.",
-  missed_scans: "Barcodes people scanned that Unwrap couldn't answer. Only the barcode is counted, nothing about who scanned it, and each phone counts a barcode once per session. <strong>20+ misses, not picked up</strong> is the add-it-ourselves list. Once a barcode has ingredients in Unwrap it moves to Fixed by itself.",
-  log: "Every change made here, newest first: who, what and when. Product edits keep a before and after, and an admin can undo them.",
-  quarantine: "Products hidden from the app until an admin reviews them, usually weekly. They land here when a moderator rejects a live product or someone presses Quarantine on a report or in Look up. <strong>Restore</strong> puts it back; <strong>Remove for good</strong> keeps it out.",
-  imports: "Products Open Food Facts has a <strong>label photo</strong> for but no typed ingredients. The list is what a machine read off the photo, so treat it as a draft: check it against the photo, fix anything wrong (one ingredient per line), pick the category and <strong>Approve</strong>. Nothing here is in the app until you do. <strong>Reject</strong> if the photo is unreadable or it isn't food.",
-  categories: "Products whose category was guessed by the bulk import and needs a human eye. They already scan and score; a product only offers swaps once it has all three levels. If the guess is right press <strong>Looks right</strong>. Otherwise pick the category and <strong>Save</strong>. Not food at all? <strong>Hide</strong> sends it to Quarantine.",
-};
-
-async function load() {
-  const list = $("list");
-  list.innerHTML = `<div class="empty">Loading…</div>`;
-  try {
-    if (current === "team") return renderTeam((await api("team")).team);
-    if (current === "lookup") return renderLookup();
-    if (current === "log") return await renderLog();
-    const { rows } = await api("list", { queue: current, status: $("statusFilter").value, batch: current === "imports" ? importBatch : undefined });
-    list.innerHTML = "";
-    if (INTROS[current]) list.appendChild(el("p", { class: "hint" }, INTROS[current]));
-    if (current === "imports") list.appendChild(await importBatchBar());
-    if (!rows.length) { list.appendChild(el("div", { class: "empty" }, "Nothing here. Good.")); return; }
-    for (const r of rows) list.appendChild(renderRow(current, r));
-  } catch (e) {
-    list.innerHTML = `<div class="empty">Couldn't load: ${esc(e.message)}</div>`;
-  }
-}
-
-function reporterLine(r) { return r.reporter ? ` · from ${esc(r.reporter)}` : ""; }
-function card(html) { return el("div", { class: "card" }, html); }
-function notesBox(value, placeholder = "Notes (optional): what you changed or why") {
-  const t = el("textarea", { placeholder }); t.value = value ?? ""; return t;
-}
-
-function renderRow(queue, r) {
-  switch (queue) {
-    case "product_flags": return renderProductFlag(r);
-    case "ingredient_flags": return renderIngredientFlag(r);
-    case "allergens": return renderAllergen(r);
-    case "submissions": return renderSubmission(r);
-    case "photos": return renderPhoto(r);
-    case "missed_scans": return renderMissedScan(r);
-    case "quarantine": return renderQuarantine(r);
-    case "categories": return renderCategoryReview(r);
-    case "imports": return renderImportCandidate(r);
-  }
-  return card(esc(JSON.stringify(r)));
-}
-
-/* ─────────────── Product flags ─────────────── */
-
-function renderProductFlag(r) {
-  const c = card(`
-    <div class="row-head"><h3>${esc(r.product_name || "Unnamed product")}</h3><span class="meta">${esc(r.barcode)} · ${offLink(r.barcode)}</span></div>
-    <div class="meta">${when(r.created_at)}${reporterLine(r)}</div>
-    <div class="reason"><span class="tag warn">${esc(nice(r.reason_type))}</span>${esc(r.reason)}</div>
-    ${r.admin_notes ? `<div class="hint">Notes: ${esc(r.admin_notes)}</div>` : ""}`);
-  const notes = notesBox(r.admin_notes);
-  const wrap = el("div", { class: "actions" }); wrap.appendChild(notes);
-  const slot = el("div");
-  const resolve = () => ({ queue: "product_flags", id: r.id, notes: notes.value.trim() || null });
-  const scoreFirst = r.reason_type === "wrong_score";
-  if (r.status === "pending") {
-    if (scoreFirst) wrap.appendChild(button("Review score", "primary", () => openScoreReview(slot, r.barcode, { resolve })));
-    wrap.appendChild(button("Fix product", scoreFirst ? "" : "primary", () => openEditor(slot, r.barcode, { resolve })));
-    if (!scoreFirst) wrap.appendChild(button("Review score", "", () => openScoreReview(slot, r.barcode, { resolve })));
-    wrap.appendChild(button("Quarantine", "danger", (e) => hideProduct(e.target, r.barcode, r.reason, resolve())));
-    wrap.appendChild(button("Dismiss", "quiet", (e) => run(e.target, () => api("set_product_flag", { id: r.id, status: "dismissed", notes: notes.value.trim() || null }), "Dismissed")));
-  } else {
-    wrap.appendChild(button("Open product", "quiet", () => openEditor(slot, r.barcode, {})));
-    wrap.appendChild(button("Quarantine", "danger", (e) => hideProduct(e.target, r.barcode, r.reason, null)));
-    wrap.appendChild(button("Back to pending", "quiet", (e) => run(e.target, () => api("set_product_flag", { id: r.id, status: "pending", notes: notes.value.trim() || null }), "Back to pending")));
-  }
-  c.append(wrap, slot);
-  return c;
-}
-
-async function hideProduct(btn, barcode, reason, resolve) {
-  if (!confirm("Quarantine this product? It's hidden from the app until the weekly review.")) return;
-  await run(btn, () => api("quarantine_product", { barcode, reason, resolve }), "Quarantined: hidden from the app");
-}
-
-/* ─────────────── Ingredient flags ─────────────── */
-
-function renderIngredientFlag(r) {
-  const c = card(`
-    <div class="row-head"><h3>${esc(r.ingredient_name)}</h3><span class="meta">in ${esc(r.product_name || r.product_barcode || "unknown product")} · ${offLink(r.product_barcode)}</span></div>
-    <div class="meta">${when(r.created_at)}${reporterLine(r)}</div>
-    <div class="reason"><span class="tag warn">${esc(nice(r.reason))}</span>${esc(r.notes)}</div>
-    ${r.admin_notes ? `<div class="hint">Notes: ${esc(r.admin_notes)}</div>` : ""}`);
-  const notes = notesBox(r.admin_notes);
-  const wrap = el("div", { class: "actions" }); wrap.appendChild(notes);
-  const slot = el("div");
-  const resolve = () => ({ queue: "ingredient_flags", id: r.id, notes: notes.value.trim() || null });
-  const setTo = (status, msg) => (e) => run(e.target, () => api("set_ingredient_flag", { id: r.id, status, notes: notes.value.trim() || null }), msg);
-
-  if (r.status === "pending") {
-    if (isBarcode(r.product_barcode)) wrap.appendChild(button("Fix ingredient text", "primary", () => openEditor(slot, r.product_barcode, { resolve, highlight: r.ingredient_name })));
-    if (r.reason === "wrong_explanation") {
-      if (isAdmin()) wrap.appendChild(button("Edit explanation", "", () => openExplanation(slot, r.ingredient_name, resolve)));
+  document.getElementById('register-btn').addEventListener('click', () => {
+    const input = document.getElementById('email-input');
+    const note  = document.getElementById('waitlist-note');
+    if (input.value && input.value.includes('@')) {
+      input.value = '';
+      input.placeholder = "Registered. We'll be in touch.";
+      input.style.borderColor = '#A6543B';
+      note.textContent = 'Registered. Direct contact only when V1.0 is ready.';
+      note.style.color = '#A6543B';
     } else {
-      wrap.appendChild(button("Send to scoring review", "", setTo("scoring_review", "Sent to scoring review")));
+      input.style.borderColor = '#A6543B';
+      input.focus();
     }
-    wrap.appendChild(button("Dismiss", "quiet", setTo("dismissed", "Dismissed")));
-  } else if (r.status === "scoring_review") {
-    wrap.appendChild(button("Done: rules updated", "primary", setTo("resolved", "Marked resolved")));
-    wrap.appendChild(button("No rule change", "quiet", setTo("dismissed", "Dismissed")));
-    wrap.appendChild(button("Back to pending", "quiet", setTo("pending", "Back to pending")));
-  } else {
-    wrap.appendChild(button("Back to pending", "quiet", setTo("pending", "Back to pending")));
-  }
-  c.append(wrap, slot);
-  return c;
-}
-
-async function openExplanation(slot, ingredientName, resolve) {
-  slot.innerHTML = "";
-  const p = el("div", { class: "panel" }, `<h4>Ingredient explanation</h4><p class="hint">This is the text people see when they tap an ingredient. Plain English, no scare words.</p>`);
-  const q = el("input", { type: "search", placeholder: "Search explanations" }); q.value = String(ingredientName || "").split(/[(:,]/)[0].trim();
-  const results = el("div");
-  p.append(q, results); slot.appendChild(p);
-  const search = async () => {
-    results.innerHTML = `<p class="progress">Searching…</p>`;
-    try {
-      const { rows } = await api("search_ingredient_info", { q: q.value });
-      results.innerHTML = rows.length ? "" : `<p class="hint">No explanation matches. Try a shorter word.</p>`;
-      for (const row of rows) {
-        const box = el("div", { class: "card" }, `<strong>${esc(row.display_name)}</strong> <span class="meta">matches “${esc(row.pattern)}”</span>`);
-        const t = el("textarea"); t.value = row.description || ""; t.style.minHeight = "90px";
-        const act = el("div", { class: "actions" });
-        act.appendChild(button("Save and resolve", "primary small", (e) => run(e.target, () => api("update_ingredient_info", { info_id: row.id, description: t.value, resolve: resolve() }), "Explanation saved")));
-        box.append(t, act);
-        results.appendChild(box);
-      }
-    } catch (e) { results.innerHTML = `<p class="err">${esc(e.message)}</p>`; }
-  };
-  q.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); search(); } });
-  search();
-}
-
-/* ─────────────── Allergen reports ─────────────── */
-
-function renderAllergen(r) {
-  const name = ALLERGEN_NAMES[r.allergen_key] || nice(r.allergen_key);
-  const said = r.answer === "contains" ? `Says it <strong>contains ${esc(name)}</strong>`
-    : r.answer === "does_not_contain" ? `Says it <strong>doesn't contain ${esc(name)}</strong>` : `Not sure about <strong>${esc(name)}</strong>`;
-  const c = card(`
-    <div class="row-head"><h3>${esc(r.product_name || r.barcode)}</h3><span class="meta">${esc(r.barcode)} · ${offLink(r.barcode)}</span></div>
-    <div class="meta">${when(r.created_at)}${reporterLine(r)}</div>
-    <div class="reason"><span class="tag warn">${esc(name)}</span>${said}</div>
-    ${r.admin_notes ? `<div class="hint">Notes: ${esc(r.admin_notes)}</div>` : ""}`);
-  const notes = notesBox(r.admin_notes);
-  const wrap = el("div", { class: "actions" }); wrap.appendChild(notes);
-  const slot = el("div");
-  if (r.status === "pending") {
-    wrap.appendChild(button(`Apply: contains ${name}`, r.answer === "contains" ? "primary" : "", (e) =>
-      run(e.target, () => api("apply_allergen", { id: r.id, contains: true, notes: notes.value.trim() || null }), (x) => x.summary)));
-    wrap.appendChild(button(`Apply: no ${name}`, r.answer === "does_not_contain" ? "primary" : "", (e) =>
-      run(e.target, () => api("apply_allergen", { id: r.id, contains: false, notes: notes.value.trim() || null }), (x) => x.summary)));
-    wrap.appendChild(button("Fix ingredients", "quiet", () => openEditor(slot, r.barcode, { resolve: () => ({ queue: "allergens", id: r.id, notes: notes.value.trim() || null }) })));
-    wrap.appendChild(button("Dismiss", "quiet", (e) => run(e.target, () => api("set_allergen", { id: r.id, status: "dismissed", notes: notes.value.trim() || null }), "Dismissed")));
-  } else {
-    wrap.appendChild(button("Back to pending", "quiet", (e) => run(e.target, () => api("set_allergen", { id: r.id, status: "pending", notes: notes.value.trim() || null }), "Back to pending")));
-  }
-  c.append(wrap, slot);
-  return c;
-}
-
-/* ─────────────── Submissions ─────────────── */
-
-function renderSubmission(r) {
-  const ings = Array.isArray(r.ingredients) ? r.ingredients : [];
-  const c = card(`
-    <div class="row-head"><h3>${esc(r.name || "Unnamed")}</h3><span class="meta">${esc(r.brand || "")} · ${esc(r.barcode)} · ${offLink(r.barcode)}</span></div>
-    <div class="meta">${when(r.created_at)}${reporterLine(r)} · ${esc(nice(r.kind))} · ${esc(nice(r.category_l1 || "no category"))}</div>
-    <div class="reason">${(r.review_reasons || []).map((x) => `<span class="tag warn">${esc(nice(x))}</span>`).join("")}</div>
-    <div class="ingredients"><strong>${ings.length} ingredients:</strong> ${esc(ings.join(", "))}</div>
-    ${(r.allergens || []).length ? `<div class="hint">Allergens: ${esc(r.allergens.join(", "))}</div>` : ""}
-    ${r.reject_reason ? `<div class="hint">Rejected because: ${esc(r.reject_reason)}</div>` : ""}
-    <div class="photos">
-      ${r.ingredients_photo_url ? `<figure><a href="${esc(r.ingredients_photo_url)}" target="_blank" rel="noopener"><img src="${esc(r.ingredients_photo_url)}" alt="Ingredients photo"></a><figcaption>Ingredients</figcaption></figure>` : ""}
-      ${r.front_photo_url ? `<figure><a href="${esc(r.front_photo_url)}" target="_blank" rel="noopener"><img src="${esc(r.front_photo_url)}" alt="Front of pack photo"></a><figcaption>Front of pack</figcaption></figure>` : ""}
-    </div>`);
-  const wrap = el("div", { class: "actions" });
-  const slot = el("div");
-  const reason = notesBox("", "Reason if rejecting (the contributor may see this)");
-  wrap.appendChild(reason);
-  if (r.status !== "accepted") {
-    wrap.appendChild(button("Approve and publish", "primary", (e) =>
-      run(e.target, () => api("approve_submission", { id: r.id }), (res) => res?.status === "duplicate" ? "Already in Unwrap: marked duplicate" : "Approved and published")));
-  } else {
-    wrap.appendChild(button("Edit product", "quiet", () => openEditor(slot, r.barcode, {})));
-    if (r.front_photo_url) wrap.appendChild(button("Use front photo", "quiet", () => openStudio(slot, { barcode: r.barcode, url: r.front_photo_url })));
-  }
-  if (r.status !== "rejected") {
-    wrap.appendChild(button("Reject", "danger", async (e) => {
-      const live = r.status === "accepted";
-      const msg = !live ? "Reject this submission?"
-        : isAdmin() ? "This product is live. Rejecting removes it from Unwrap. Continue?"
-        : "This product is live. It'll be hidden and sent to Quarantine for the weekly review. Continue?";
-      if (!confirm(msg)) return;
-      await run(e.target, () => api("reject_submission", { id: r.id, reason: reason.value.trim() || null }),
-        (res) => res?.status === "quarantined" ? "Hidden and sent to Quarantine" : "Rejected");
-    }));
-  }
-  c.append(wrap, slot);
-  return c;
-}
-
-/* ─────────────── Photos ─────────────── */
-
-function renderPhoto(r) {
-  const c = card(`
-    <div class="row-head"><h3>${esc(r.product_name || "Not in Unwrap yet")}</h3><span class="meta">${esc(r.barcode)} · ${offLink(r.barcode)}</span></div>
-    <div class="meta">${when(r.created_at)}${reporterLine(r)}</div>
-    <div class="photos">
-      ${r.photo_url ? `<figure><a href="${esc(r.photo_url)}" target="_blank" rel="noopener"><img src="${esc(r.photo_url)}" alt="Submitted photo for ${esc(r.barcode)}"></a><figcaption>Sent in</figcaption></figure>` : `<span class="hint">Photo file missing</span>`}
-      ${r.current_image_url ? `<figure><img src="${esc(r.current_image_url)}" alt="Current product photo"><figcaption>Current product photo</figcaption></figure>` : ""}
-    </div>`);
-  const wrap = el("div", { class: "actions" });
-  const slot = el("div");
-  if (r.status === "pending") {
-    const approve = button("Tidy up and approve", "primary", () => openStudio(slot, { barcode: r.barcode, url: r.photo_url, submissionId: r.id }));
-    if (!r.in_catalogue || !r.photo_url) approve.disabled = true;
-    wrap.appendChild(approve);
-    wrap.appendChild(button("Reject", "danger", (e) => run(e.target, () => api("set_photo", { id: r.id, status: "rejected" }), "Rejected")));
-    if (!r.in_catalogue) wrap.appendChild(el("span", { class: "hint" }, "Add the product first (Missed scans → Add product), then approve."));
-  } else {
-    wrap.appendChild(button("Back to pending", "quiet", (e) => run(e.target, () => api("set_photo", { id: r.id, status: "pending" }), "Back to pending")));
-  }
-  c.append(wrap, slot);
-  return c;
-}
-
-/* ─────────────── Missed scans ─────────────── */
-
-const MISS_REASON = { not_found: "not in Unwrap", no_ingredients: "in Unwrap, no ingredients" };
-
-function renderMissedScan(r) {
-  const reasons = String(r.reasons || "").split(", ").filter(Boolean).map((x) => `<span class="tag">${esc(MISS_REASON[x] || nice(x))}</span>`).join("");
-  const google = `<a href="https://www.google.com/search?q=${encodeURIComponent(r.barcode)}" target="_blank" rel="noopener">Search the barcode</a>`;
-  const c = card(`
-    <div class="row-head"><h3>${esc(r.product_name || r.barcode)}</h3>${r.product_name ? `<span class="meta">${esc(r.barcode)}</span>` : ""}</div>
-    <div class="meta"><strong>${r.misses}</strong> missed scan${r.misses === 1 ? "" : "s"} · first ${when(r.first_seen)} · last ${when(r.last_seen)}</div>
-    <div class="reason">${reasons}${r.has_submission ? `<span class="tag good">someone has sent it in, see Submissions</span>` : ""}${r.state === "investigating" ? `<span class="tag warn">being looked into</span>` : ""}</div>
-    <div class="meta">${offLink(r.barcode)} · ${google}</div>
-    ${r.review_note ? `<div class="hint">Notes: ${esc(r.review_note)}</div>` : ""}`);
-  if (r.state === "fixed") return c;
-  const slot = el("div");
-  const wrap = el("div", { class: "actions" });
-  const notes = notesBox(r.review_note, "Notes (optional): what it is, or why it's ignored");
-  wrap.appendChild(notes);
-  wrap.appendChild(button(r.in_catalogue ? "Add ingredients" : "Add product", "primary", () => openEditor(slot, r.barcode, { create: !r.in_catalogue })));
-  for (const [status, label] of [["investigating", "I'm on it"], ["ignored", "Ignore (not food, not UK…)"], ["open", "Back to open"]]) {
-    if (status === r.state) continue;
-    wrap.appendChild(button(label, "quiet", (e) => run(e.target, () => api("set_missed_scan", { id: r.barcode, status, notes: notes.value.trim() || null }),
-      status === "open" ? "Back to open" : `Marked ${nice(status)}`)));
-  }
-  c.append(wrap, slot);
-  return c;
-}
-
-/* ─────────────── Category review ─────────────── */
-
-let taxonomyRows = null;   // [{category_l1, category_l2, category_l3, category_l4, n}]
-async function loadTaxonomy() {
-  if (!taxonomyRows) taxonomyRows = (await api("taxonomy")).rows || [];
-  return taxonomyRows;
-}
-const catPath = (r) => [r.category_l1, r.category_l2, r.category_l3, r.category_l4].filter(Boolean).map(nice).join(" › ") || "no category";
-
-function renderCategoryReview(r) {
-  const ings = (r.ingredients_preview || []).map((x) => esc(x)).join(", ");
-  const c = card(`
-    <div class="row-head">${scoreBadge(r.score)}<h3>${esc(r.name || "Unnamed product")}</h3><span class="meta">${esc(r.brand || "")} · ${esc(r.barcode)} · ${offLink(r.barcode)}</span></div>
-    <div class="reason"><span class="tag ${r.category_l3 ? "" : "warn"}">${esc(catPath(r))}</span>${r.category_l3 ? "" : `<span class="tag warn">no swaps until it has all three levels</span>`}</div>
-    ${ings ? `<div class="meta">Ingredients: ${ings}${(r.ingredients_preview || []).length >= 6 ? "…" : ""}</div>` : ""}`);
-  const slot = el("div");
-  const wrap = el("div", { class: "actions" });
-  const { picker, sel } = buildCatPicker(r);
-  wrap.appendChild(picker);
-  const notes = notesBox("", "Notes (optional)");
-  wrap.appendChild(notes);
-  if (r.category_l3) {
-    wrap.appendChild(button("Looks right", "primary", (e) => run(e.target, () => api("set_category", { barcode: r.barcode, confirm: true }), "Confirmed")));
-  }
-  wrap.appendChild(button("Save category", r.category_l3 ? "" : "primary", (e) => {
-    if (!sel.l1.value || !sel.l2.value || !sel.l3.value) { toast("Pick all three levels first."); return; }
-    run(e.target, () => api("set_category", { barcode: r.barcode, category_l1: sel.l1.value, category_l2: sel.l2.value,
-      category_l3: sel.l3.value, category_l4: sel.l4.value || null, notes: notes.value.trim() || null }), (res) => res.summary || "Saved");
-  }));
-  wrap.appendChild(button("Open product", "quiet", () => openEditor(slot, r.barcode, {})));
-  wrap.appendChild(button("Hide (not food)", "danger", (e) => run(e.target,
-    () => api("quarantine_product", { barcode: r.barcode, reason: notes.value.trim() || "Not food, or unreadable (category review)" }), "Hidden and sent to Quarantine")));
-  c.append(wrap, slot);
-  return c;
-}
-
-// Cascading L1 › L2 › L3 › L4 picker from the live taxonomy. `initial` supplies the starting values.
-function buildCatPicker(initial) {
-  const picker = el("div", { class: "cat-picker" });
-  const sel = { l1: el("select"), l2: el("select"), l3: el("select"), l4: el("select") };
-  picker.append(sel.l1, sel.l2, sel.l3, sel.l4);
-  const fill = (s, values, current, placeholder) => {
-    s.innerHTML = "";
-    s.appendChild(el("option", { value: "" }, esc(placeholder)));
-    for (const v of values) { const o = el("option", { value: v.value }, esc(nice(v.value)) + (v.n ? ` (${v.n})` : "")); if (v.value === current) o.selected = true; s.appendChild(o); }
-    s.disabled = !values.length;
-  };
-  const distinct = (rows, key) => {
-    const m = new Map();
-    for (const t of rows) { if (!t[key]) continue; m.set(t[key], (m.get(t[key]) || 0) + Number(t.n || 0)); }
-    return [...m].map(([value, n]) => ({ value, n })).sort((a, b) => b.n - a.n);
-  };
-  loadTaxonomy().then((tax) => {
-    const cascade = (level) => {
-      const l1 = sel.l1.value;
-      if (level <= 1) fill(sel.l2, distinct(tax.filter((t) => t.category_l1 === l1), "category_l2"), level === 0 ? initial.category_l2 : "", "aisle…");
-      if (level <= 2) fill(sel.l3, distinct(tax.filter((t) => t.category_l1 === l1 && t.category_l2 === sel.l2.value), "category_l3"), level === 0 ? initial.category_l3 : "", "type…");
-      if (level <= 3) fill(sel.l4, distinct(tax.filter((t) => t.category_l1 === l1 && t.category_l2 === sel.l2.value && t.category_l3 === sel.l3.value), "category_l4"), level === 0 ? initial.category_l4 : "", "variant (optional)");
-    };
-    fill(sel.l1, distinct(tax, "category_l1"), initial.category_l1, "category…");
-    cascade(0);
-    sel.l1.addEventListener("change", () => cascade(1));
-    sel.l2.addEventListener("change", () => cascade(2));
-    sel.l3.addEventListener("change", () => cascade(3));
-  }).catch((e) => toast("Couldn't load categories: " + e.message));
-  return { picker, sel };
-}
-
-/* ─────────────── Imports (label-photo candidates) ─────────────── */
-
-let importBatch = "";
-async function importBatchBar() {
-  const bar = el("div", { class: "actions" });
-  const s = el("select");
-  s.appendChild(el("option", { value: "" }, "All batches"));
-  try {
-    const { rows } = await api("import_batches");
-    for (const b of rows) {
-      const o = el("option", { value: b.batch }, `${esc(b.batch)} — ${b.pending} waiting (${b.high} high)`);
-      if (b.batch === importBatch) o.selected = true; s.appendChild(o);
-    }
-  } catch (_) { /* no batches yet */ }
-  s.addEventListener("change", () => { importBatch = s.value; load(); });
-  bar.append(el("span", { class: "meta" }, "Batch:"), s);
-  if ($("statusFilter").value === "high") {
-    bar.appendChild(button("Approve everything shown, as shown", "danger", async (e) => {
-      const cards = [...document.querySelectorAll("[data-candidate]")];
-      if (!cards.length) return;
-      if (!confirm(`Approve all ${cards.length} high-confidence products on this page exactly as they appear? You can undo each one from the change log.`)) return;
-      e.target.disabled = true; let ok = 0;
-      for (const c of cards) { try { await c._approve(); ok++; } catch (err) { toast("Failed: " + err.message); } }
-      toast(`Approved ${ok} of ${cards.length}`); refreshAll();
-    }));
-  }
-  return bar;
-}
-
-const CONF_TAG = { high: "good", medium: "", low: "warn" };
-function renderImportCandidate(r) {
-  const c = card(`
-    <div class="row-head"><h3>${esc(r.name || "Unnamed product")}</h3><span class="meta">${esc(r.brand || "")} · ${esc(r.barcode)} · ${esc(r.batch)} · ${offLink(r.barcode)}</span></div>
-    <div class="reason"><span class="tag ${CONF_TAG[r.confidence] || ""}">${esc(r.confidence)} confidence</span><span class="tag">${r.ingredient_count} ingredients read · ${Math.round((r.known_share || 0) * 100)}% recognised</span>${r.status !== "pending" ? `<span class="tag">${esc(nice(r.status))}</span>` : ""}</div>
-    ${r.decision_note ? `<div class="hint">Notes: ${esc(r.decision_note)}</div>` : ""}`);
-  c.setAttribute("data-candidate", r.id);
-  const photos = el("div", { class: "photos" });
-  for (const [url, label] of [[r.ingredients_image_url, "Ingredients photo"], [r.front_image_url, "Front"]]) {
-    if (!url) continue;
-    photos.appendChild(el("a", { href: url.replace(".400.jpg", ".full.jpg"), target: "_blank", rel: "noopener", title: label + " — open full size" },
-      `<img src="${esc(url)}" alt="${esc(label)}" loading="lazy">`));
-  }
-  const form = el("div", { class: "cand-form" });
-  const name = el("input", { placeholder: "Product name" }); name.value = r.name || "";
-  const brand = el("input", { placeholder: "Brand" }); brand.value = r.brand || "";
-  const ings = el("textarea", { placeholder: "One ingredient per line", rows: "8" }); ings.value = (r.ingredients || []).join("\n");
-  const { picker, sel } = buildCatPicker({ category_l1: r.predicted_l1, category_l2: r.predicted_l2, category_l3: r.predicted_l3, category_l4: r.predicted_l4 });
-  form.append(name, brand, ings, picker);
-  const side = el("div", { class: "cand-side" }); side.append(photos, form);
-  c.appendChild(side);
-  const wrap = el("div", { class: "actions" });
-  const notes = notesBox("", "Notes (optional): why rejected, or what you fixed");
-  const values = () => ({ id: r.id, name: name.value.trim(), brand: brand.value.trim() || null,
-    ingredients: ings.value.split("\n").map((x) => x.trim()).filter(Boolean),
-    category_l1: sel.l1.value || null, category_l2: sel.l2.value || null, category_l3: sel.l3.value || null, category_l4: sel.l4.value || null });
-  c._approve = () => api("approve_candidate", values());
-  if (r.status === "pending" || r.status === "skipped") {
-    wrap.appendChild(notes);
-    wrap.appendChild(button("Approve — add to Unwrap", "primary", (e) => {
-      const v = values();
-      if (!v.name) { toast("It needs a name."); return; }
-      if (!v.ingredients.length) { toast("It needs at least one ingredient."); return; }
-      if (!v.category_l1 || !v.category_l2 || !v.category_l3) { toast("Pick all three category levels first."); return; }
-      run(e.target, () => api("approve_candidate", v), (res) => res.summary || "Added");
-    }));
-    wrap.appendChild(button("Reject", "danger", (e) => run(e.target, () => api("decide_candidate", { id: r.id, status: "rejected", notes: notes.value.trim() || null }), "Rejected")));
-    if (r.status === "pending") wrap.appendChild(button("Skip for now", "quiet", (e) => run(e.target, () => api("decide_candidate", { id: r.id, status: "skipped", notes: notes.value.trim() || null }), "Skipped")));
-  } else if (r.status === "rejected") {
-    wrap.appendChild(button("Back to waiting", "quiet", (e) => run(e.target, () => api("decide_candidate", { id: r.id, status: "pending" }), "Back in the queue")));
-  } else if (r.status === "approved") {
-    const slot = el("div");
-    wrap.appendChild(button("Open product", "quiet", () => openEditor(slot, r.barcode, {})));
-    c.appendChild(slot);
-  }
-  c.appendChild(wrap);
-  return c;
-}
-
-/* ─────────────── Quarantine ─────────────── */
-
-const Q_SOURCE = { moderator_reject: "rejected by a moderator", flag: "hidden from a report", manual: "hidden by hand" };
-
-function renderQuarantine(r) {
-  const p = r.product || {};
-  const days = Math.floor((Date.now() - new Date(r.quarantined_at).getTime()) / 86400000);
-  const c = card(`
-    <div class="row-head">${scoreBadge(p.score)}<h3>${esc(p.name || "Unnamed product")}</h3><span class="meta">${esc(p.brand || "")} · ${esc(r.barcode)} · ${offLink(r.barcode)}</span></div>
-    <div class="reason"><span class="tag bad">${esc(Q_SOURCE[r.source] || nice(r.source))}</span>${esc(r.reason || "")}</div>
-    <div class="meta">Hidden ${when(r.quarantined_at)}${r.status === "open" ? ` · ${days} day${days === 1 ? "" : "s"} ago` : ""}${r.quarantined_by ? ` · by ${esc(r.quarantined_by)}` : ""}</div>
-    ${r.decision_note ? `<div class="hint">Decision: ${esc(r.decision_note)}</div>` : ""}`);
-  const slot = el("div");
-  const wrap = el("div", { class: "actions" });
-  if (r.status === "open" && isAdmin()) {
-    const notes = notesBox("", "Notes (optional): why");
-    wrap.appendChild(notes);
-    wrap.appendChild(button("Restore to the app", "primary", (e) => run(e.target, () => api("decide_quarantine", { id: r.id, decision: "restore", notes: notes.value.trim() || null }), "Restored")));
-    wrap.appendChild(button("Remove for good", "danger", (e) => {
-      if (!confirm("Remove this product from Unwrap for good?")) return;
-      run(e.target, () => api("decide_quarantine", { id: r.id, decision: "remove", notes: notes.value.trim() || null }), "Removed");
-    }));
-  }
-  wrap.appendChild(button("Open product", "quiet", () => openEditor(slot, r.barcode, {})));
-  if (r.status === "open" && !isAdmin()) wrap.appendChild(el("span", { class: "hint" }, "Eddy reviews these weekly."));
-  c.append(wrap, slot);
-  return c;
-}
-
-/* ─────────────── Product editor ─────────────── */
-
-// Split an ingredient list on commas/semicolons that aren't inside brackets.
-function splitIngredients(text) {
-  const out = [];
-  for (const line of String(text || "").split(/\n+/)) {
-    let depth = 0, cur = "";
-    for (const ch of line) {
-      if ("([{".includes(ch)) depth++;
-      if (")]}".includes(ch)) depth = Math.max(0, depth - 1);
-      if ((ch === "," || ch === ";") && depth === 0) { out.push(cur); cur = ""; } else cur += ch;
-    }
-    out.push(cur);
-  }
-  return out.map((x) => x.replace(/^\s*ingredients?\s*:\s*/i, "").replace(/[.\s]+$/, "").trim()).filter(Boolean);
-}
-
-async function fetchOff(barcode) {
-  const r = await fetch(`https://world.openfoodfacts.org/api/v2/product/${barcode}?fields=product_name,product_name_en,brands,ingredients_text_en,ingredients_text`);
-  if (!r.ok) throw new Error("Open Food Facts didn't answer");
-  const j = await r.json();
-  if (j.status !== 1 || !j.product) throw new Error("Not on Open Food Facts");
-  return j.product;
-}
-
-async function openEditor(slot, barcode, opts = {}) {
-  slot.innerHTML = `<div class="panel"><p class="progress">Loading product…</p></div>`;
-  let product = null;
-  try { product = opts.create ? null : (await api("product", { barcode })).product; }
-  catch (e) { slot.innerHTML = `<div class="panel"><p class="err">${esc(e.message)}</p></div>`; return; }
-  const creating = !product;
-  const resolve = typeof opts.resolve === "function" ? opts.resolve : null;
-
-  const panel = el("div", { class: "panel" });
-  const head = el("div", { class: "row-head" });
-  head.innerHTML = creating
-    ? `<h4>Add ${esc(barcode)} to Unwrap</h4>`
-    : `${scoreBadge(product.score)}<h4>${esc(product.name)}</h4>${product.is_deleted ? `<span class="tag bad">hidden from the app</span>` : ""}`;
-  panel.appendChild(head);
-
-  if (!creating) {
-    const hl = String(opts.highlight || "").toLowerCase();
-    const chips = el("div", { class: "chips" });
-    chips.innerHTML = product.ingredients.length
-      ? product.ingredients.map((i) => `<span class="chip ${i.marker ? "marker" : ""} ${i.ignored ? "ignored" : ""}" ${hl && i.text.toLowerCase() === hl ? 'style="outline:2px solid var(--primary)"' : ""}>${esc(i.text)}</span>`).join("")
-      : `<span class="hint">No ingredients yet.</span>`;
-    panel.appendChild(chips);
-    panel.appendChild(el("p", { class: "hint" }, `${product.ingredients.length} ingredients · ${product.marker_count ?? 0} processing markers (highlighted) · ${esc(nice(product.category_l1 || "no category"))}${product.category_l2 ? " › " + esc(nice(product.category_l2)) : ""}`));
-  }
-
-  const g = el("div", { class: "grid2" });
-  const name = el("input", { type: "text" }); name.value = product?.name || "";
-  const brand = el("input", { type: "text" }); brand.value = product?.brand || "";
-  const cat = el("select");
-  cat.appendChild(el("option", { value: "" }, creating ? "Choose a category" : "(keep current)"));
-  for (const k of CATEGORIES) { const o = el("option", { value: k }, esc(nice(k))); if (product?.category_l1 === k) o.selected = true; cat.appendChild(o); }
-  const lab = (t, input) => { const w = el("div"); w.append(el("label", {}, t), input); return w; };
-  g.append(lab("Name", name), lab("Brand", brand));
-  panel.append(g, lab("Category", cat));
-
-  const ing = el("textarea", { class: "ing", spellcheck: "true" });
-  ing.value = (product?.ingredients || []).map((i) => i.text).join("\n");
-  const ingInfo = el("span", { class: "hint" });
-  const updateInfo = () => { ingInfo.textContent = `${ing.value.split("\n").filter((x) => x.trim()).length} ingredients, one per line`; };
-  ing.addEventListener("input", updateInfo); updateInfo();
-  const tools = el("div", { class: "actions" });
-  tools.appendChild(button("Split on commas", "quiet small", () => { ing.value = splitIngredients(ing.value).join("\n"); updateInfo(); }));
-  tools.appendChild(button("Fill from Open Food Facts", "quiet small", async (e) => {
-    e.target.disabled = true;
-    try {
-      const p = await fetchOff(barcode);
-      const text = p.ingredients_text_en || p.ingredients_text || "";
-      if (!name.value) name.value = p.product_name_en || p.product_name || "";
-      if (!brand.value) brand.value = String(p.brands || "").split(",")[0].trim();
-      if (text) { ing.value = splitIngredients(text).join("\n"); updateInfo(); toast("Filled from Open Food Facts. Check it against the pack."); }
-      else toast("Open Food Facts has no ingredient list for this one");
-    } catch (err) { toast(err.message); }
-    e.target.disabled = false;
-  }));
-  tools.appendChild(ingInfo);
-  panel.append(el("label", {}, "Ingredients"), ing, tools);
-
-  const out = el("div");
-  const actions = el("div", { class: "actions" });
-  const preview = button("Preview in the app", "primary", async (e) => {
-    if (!name.value.trim()) { toast("Name is needed"); return; }
-    if (creating && !cat.value) { toast("Choose a category"); return; }
-    const newList = ing.value.split("\n").map((x) => x.trim()).filter(Boolean);
-    const oldList = (product?.ingredients || []).map((i) => i.text);
-    const changed = creating || JSON.stringify(newList) !== JSON.stringify(oldList);
-    e.target.disabled = true;
-    out.innerHTML = `<p class="progress">Working out the new score…</p>`;
-    try {
-      const pv = changed ? (await api("preview_score", { ingredients: newList })).preview : null;
-      const now = product ? { score: product.score, nova_group: product.nova_group, name: product.name, brand: product.brand,
-        image_url: product.image_url, ingredients: product.ingredients.filter((i) => !i.ignored) } : null;
-      const after = {
-        score: pv ? pv.score : product?.score, nova_group: pv ? pv.nova_group : product?.nova_group,
-        name: name.value.trim(), brand: brand.value.trim(), image_url: product?.image_url,
-        ingredients: pv ? pv.ingredients : now.ingredients,
-      };
-      const nothing = !creating && !changed && now.name === after.name && (now.brand || "") === after.brand && !cat.value;
-      out.innerHTML = `
-        ${nothing ? `<div class="warnbox">Nothing has changed yet.</div>` : ""}
-        <div class="mock-pair">
-          ${now ? `<div class="mock-col"><div class="cap">In the app now</div>${phoneMock(now)}</div>` : ""}
-          <div class="mock-col"><div class="cap">${creating ? "What the app will show" : "After you save"}</div>${phoneMock(after, now)}</div>
-        </div>
-        <p class="hint">Dashed outlines show what's changed. The photo appears in the app from the next build.</p>`;
-      const act = el("div", { class: "actions" });
-      // Save keeps any report open; Save and submit also closes the report it came from.
-      if (resolve) {
-        act.append(
-          button("Save", "", (ev) => doSave(ev, newList, changed, false)),
-          button("Save and submit", "primary", (ev) => doSave(ev, newList, changed, true)));
-      } else {
-        act.append(button(creating ? "Add to Unwrap" : "Save", "primary", (ev) => doSave(ev, newList, changed, false)));
-      }
-      act.append(button("Back to editing", "quiet", () => { out.innerHTML = ""; }));
-      out.appendChild(act);
-      if (resolve) out.appendChild(el("p", { class: "hint" }, "<strong>Save</strong> keeps the report open so you can come back to it. <strong>Save and submit</strong> saves and closes the report with a note of what changed."));
-      out.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    } catch (err) { out.innerHTML = ""; toast("Failed: " + err.message); }
-    e.target.disabled = false;
   });
-  const doSave = async (e, newList, changed, submit) => {
-    e.target.disabled = true;
-    try {
-      const res = await api("save_product", {
-        barcode, name: name.value, brand: brand.value, category_l1: cat.value || null,
-        ingredients: changed ? newList : null, resolve: resolve && submit ? resolve() : undefined,
-      });
-      out.innerHTML = `<div class="result">${scoreBadge(res.old_score)}<span class="arrow">→</span>${scoreBadge(res.new_score)}<span>${esc(res.summary)}</span></div>`;
-      toast(resolve && submit ? "Saved and report closed" : "Saved");
-      setTimeout(refreshAll, 1600);
-    } catch (err) { toast("Failed: " + err.message); e.target.disabled = false; }
-  };
-  actions.append(preview, button("Close", "quiet", () => { slot.innerHTML = ""; }));
-  panel.append(actions, out);
-  slot.innerHTML = ""; slot.appendChild(panel);
-  name.focus();
-}
-
-/* ─────────────── Photo studio ───────────────
-   Runs in the admin's browser: the image is read with its camera rotation
-   applied, a background-removal model (BiRefNet lite, MIT licence) finds the
-   product, and the photo is cropped to it on a blurred copy of itself. The
-   model is ~115 MB, downloaded once and then cached by the browser. */
-
-const TRANSFORMERS_URL = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1/dist/transformers.min.js";
-const MODEL_ID = "onnx-community/BiRefNet_lite-ONNX";
-const OUT_SIZE = 1000;
-const WORK_MAX = 1024;
-let segmenterPromise = null;
-
-function loadSegmenter(onStatus) {
-  if (!segmenterPromise) {
-    segmenterPromise = (async () => {
-      const T = await import(TRANSFORMERS_URL);
-      const device = navigator.gpu ? "webgpu" : "wasm";
-      onStatus?.("Downloading the background model (about 115 MB, first time only)…");
-      let model;
-      try { model = await T.AutoModel.from_pretrained(MODEL_ID, { dtype: "fp16", device }); }
-      catch (e) {
-        if (device === "wasm") throw e;
-        model = await T.AutoModel.from_pretrained(MODEL_ID, { dtype: "fp16", device: "wasm" });
-      }
-      const processor = await T.AutoProcessor.from_pretrained(MODEL_ID);
-      return { T, model, processor };
-    })().catch((e) => { segmenterPromise = null; throw e; });
-  }
-  return segmenterPromise;
-}
-
-function canvasOf(w, h) { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; }
-
-// Returns a canvas whose alpha channel is the product (soft edges kept).
-async function segment(workCanvas, onStatus) {
-  const { T, model, processor } = await loadSegmenter(onStatus);
-  onStatus?.("Finding the product…");
-  const blob = await new Promise((res) => workCanvas.toBlob(res, "image/png"));
-  const image = await T.RawImage.fromBlob(blob);
-  const { pixel_values } = await processor(image);
-  const { output_image } = await model({ input_image: pixel_values });
-  const mask = await T.RawImage.fromTensor(output_image[0].sigmoid().mul(255).to("uint8")).resize(workCanvas.width, workCanvas.height);
-  return maskCanvas(mask.data, mask.channels || 1, workCanvas.width, workCanvas.height);
-}
-
-function maskCanvas(data, channels, w, h) {
-  const m = canvasOf(w, h), ctx = m.getContext("2d");
-  const img = ctx.createImageData(w, h);
-  for (let i = 0, j = 0; i < img.data.length; i += 4, j += channels) {
-    img.data[i] = img.data[i + 1] = img.data[i + 2] = 255; img.data[i + 3] = data[j];
-  }
-  ctx.putImageData(img, 0, 0);
-  return m;
-}
-
-function rotated(src, quarterTurns) {
-  const q = ((quarterTurns % 4) + 4) % 4;
-  if (!q) return src;
-  const w = q % 2 ? src.height : src.width, h = q % 2 ? src.width : src.height;
-  const c = canvasOf(w, h), ctx = c.getContext("2d");
-  ctx.translate(w / 2, h / 2); ctx.rotate(q * Math.PI / 2); ctx.drawImage(src, -src.width / 2, -src.height / 2);
-  return c;
-}
-
-function maskBox(mask) {
-  const { width: w, height: h } = mask;
-  const d = mask.getContext("2d").getImageData(0, 0, w, h).data;
-  let x0 = w, y0 = h, x1 = -1, y1 = -1, n = 0, total = 0;
-  for (let y = 0; y < h; y += 2) for (let x = 0; x < w; x += 2) {
-    total++;
-    if (d[(y * w + x) * 4 + 3] > 128) { n++; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
-  }
-  if (x1 < 0 || n / total < 0.02) return null; // nothing sensible found
-  return { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
-}
-
-// Cheap blur that works in every browser (canvas filter isn't in all Safaris).
-function blurred(src, factor = 24) {
-  const sw = Math.max(8, Math.round(src.width / factor)), sh = Math.max(8, Math.round(src.height / factor));
-  const small = canvasOf(sw, sh); const sctx = small.getContext("2d");
-  sctx.imageSmoothingQuality = "high"; sctx.drawImage(src, 0, 0, sw, sh);
-  const mid = canvasOf(sw * 3, sh * 3); const mctx = mid.getContext("2d");
-  mctx.imageSmoothingQuality = "high"; mctx.drawImage(small, 0, 0, mid.width, mid.height);
-  const out = canvasOf(src.width, src.height); const octx = out.getContext("2d");
-  octx.imageSmoothingQuality = "high"; octx.drawImage(mid, 0, 0, out.width, out.height);
-  return out;
-}
-
-// Build the square output from the (rotated) image and mask.
-function compose(base, mask, { blur = true, pad = 0.12 } = {}) {
-  const box = mask ? maskBox(mask) : null;
-  let cx, cy, side;
-  if (box) {
-    cx = box.x + box.w / 2; cy = box.y + box.h / 2;
-    side = Math.max(box.w, box.h) * (1 + pad * 2);
-  } else {
-    cx = base.width / 2; cy = base.height / 2; side = Math.min(base.width, base.height);
-  }
-  const sx = cx - side / 2, sy = cy - side / 2, k = OUT_SIZE / side;
-  const out = canvasOf(OUT_SIZE, OUT_SIZE), ctx = out.getContext("2d");
-  ctx.imageSmoothingQuality = "high";
-  if (blur && box) {
-    const b = blurred(base);
-    // Blurred copy scaled to cover the whole square first, so a crop that runs
-    // past the photo's edge never shows empty corners.
-    const cover = Math.max(OUT_SIZE / b.width, OUT_SIZE / b.height);
-    ctx.drawImage(b, (OUT_SIZE - b.width * cover) / 2, (OUT_SIZE - b.height * cover) / 2, b.width * cover, b.height * cover);
-    ctx.drawImage(b, -sx * k, -sy * k, base.width * k, base.height * k);
-    ctx.fillStyle = "rgba(248, 244, 236, 0.18)"; ctx.fillRect(0, 0, OUT_SIZE, OUT_SIZE);
-    const fg = canvasOf(base.width, base.height), fctx = fg.getContext("2d");
-    fctx.drawImage(base, 0, 0);
-    fctx.globalCompositeOperation = "destination-in"; fctx.drawImage(mask, 0, 0);
-    ctx.drawImage(fg, -sx * k, -sy * k, base.width * k, base.height * k);
-  } else {
-    ctx.fillStyle = "#F8F4EC"; ctx.fillRect(0, 0, OUT_SIZE, OUT_SIZE);
-    ctx.drawImage(base, -sx * k, -sy * k, base.width * k, base.height * k);
-  }
-  return out;
-}
-
-async function loadImageCanvas(url) {
-  const res = await fetch(url, { mode: "cors" });
-  if (!res.ok) throw new Error("Couldn't download the photo");
-  const blob = await res.blob();
-  // imageOrientation "from-image" applies the camera's rotation (EXIF).
-  const bmp = await createImageBitmap(blob, { imageOrientation: "from-image" });
-  const s = Math.min(1, WORK_MAX / Math.max(bmp.width, bmp.height));
-  const c = canvasOf(Math.round(bmp.width * s), Math.round(bmp.height * s));
-  c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
-  return c;
-}
-
-async function openStudio(slot, { barcode, url, submissionId }) {
-  slot.innerHTML = "";
-  const panel = el("div", { class: "panel" }, `<h4>Tidy up the photo</h4>`);
-  const status = el("p", { class: "progress" }, "Loading the photo…");
-  const grid = el("div", { class: "studio" });
-  const before = el("div"), after = el("div");
-  grid.append(before, after);
-  const controls = el("div", { class: "actions" });
-  const actions = el("div", { class: "actions" });
-  panel.append(status, grid, controls, actions);
-  slot.appendChild(panel);
-
-  let base, mask = null, turns = 0, blurOn = true, pad = 0.12, outCanvas = null;
-  try { base = await loadImageCanvas(url); }
-  catch (e) { status.textContent = e.message; return; }
-  const beforeImg = el("img", { alt: "Original photo" }); beforeImg.src = url;
-  before.append(beforeImg, el("div", { class: "cap" }, "Sent in"));
-
-  const redraw = () => {
-    const b = rotated(base, turns), m = mask ? rotated(mask, turns) : null;
-    outCanvas = compose(b, m, { blur: blurOn, pad });
-    after.innerHTML = ""; after.append(outCanvas, el("div", { class: "cap" }, "What the app will show"));
-  };
-  redraw();
-
-  const blurLab = el("label", { class: "switch" }, `<input type="checkbox" checked> Blur background`);
-  blurLab.querySelector("input").addEventListener("change", (e) => { blurOn = e.target.checked; redraw(); });
-  const zoomLab = el("label", { class: "switch" }, `Space around it <input type="range" min="0" max="40" value="12">`);
-  zoomLab.querySelector("input").addEventListener("input", (e) => { pad = Number(e.target.value) / 100; redraw(); });
-  controls.append(
-    button("↺ Rotate", "quiet small", () => { turns -= 1; redraw(); }),
-    button("↻ Rotate", "quiet small", () => { turns += 1; redraw(); }),
-    blurLab, zoomLab);
-
-  const save = button("Save as product photo", "primary", async (e) => {
-    e.target.disabled = true;
-    try {
-      const blob = await new Promise((res) => outCanvas.toBlob(res, "image/jpeg", 0.86));
-      const b64 = await new Promise((res) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(blob); });
-      await api("save_photo", { barcode, image: b64, photo_submission_id: submissionId || null });
-      toast("Saved as the product photo");
-      slot.innerHTML = "";
-      await refreshAll();
-    } catch (err) { toast("Failed: " + err.message); e.target.disabled = false; }
-  });
-  actions.append(save, button("Cancel", "quiet", () => { slot.innerHTML = ""; }));
-
-  try {
-    const m = await segment(base, (s) => { status.textContent = s; });
-    if (maskBox(m)) { mask = m; status.textContent = "Done. Rotate or adjust if needed, then save."; }
-    else status.textContent = "Couldn't pick out the product, so it's a plain centre crop. Rotate if needed, then save.";
-    redraw();
-  } catch (e) {
-    console.warn("segmentation failed", e);
-    status.textContent = "The background tool couldn't run on this device, so it's a plain centre crop. Rotate if needed, then save.";
-  }
-}
-
-/* ─────────────── App mock-up ─────────────── */
-
-const BAND = (score) => {
-  if (score === null || score === undefined) return { label: "No score yet", color: "#B8AFA3", text: "var(--muted)" };
-  const n = Number(score);
-  return n <= 3 ? { label: "Minimally processed", color: "var(--low)", text: "var(--low)" }
-    : n < 7 ? { label: "Processed", color: "var(--mod)", text: "var(--mod)" }
-    : { label: "Ultra-processed", color: "var(--high)", text: "var(--high)" };
-};
-
-// A rough copy of the app's scan result screen, so an edit can be checked by eye.
-function phoneMock(v, compareTo) {
-  const band = BAND(v.score);
-  const diff = (a, b) => compareTo && a !== b ? " changed" : "";
-  const flagged = v.ingredients.filter((i) => i.marker).length;
-  const beforeSet = compareTo ? new Set(compareTo.ingredients.map((i) => i.text)) : null;
-  return `<div class="phone">
-    <div class="top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.9l7.6-4.3M8.2 13.1l7.6 4.3"/></svg></div>
-    ${v.image_url ? `<img class="photo" src="${esc(v.image_url)}" alt="">` : ""}
-    <div class="circle${diff(v.score, compareTo?.score)}" style="background:${band.color}">${v.score === null || v.score === undefined ? "–" : Number(v.score).toFixed(1)}</div>
-    <div class="band" style="color:${band.text}">${band.label}</div>
-    ${v.nova_group === 4 ? `<div class="nova">NOVA group 4 ⓘ</div>` : ""}
-    <div class="pname${diff(v.name, compareTo?.name)}">${esc(v.name || "Unnamed product")}</div>
-    <div class="pbrand${diff(v.brand || "", compareTo?.brand || "")}">${esc(v.brand || "")}</div>
-    <div class="ihead">Ingredients <span class="pill-n">${v.ingredients.length}</span>${flagged ? `<span class="flagged">${flagged} flagged</span>` : ""}</div>
-    ${v.ingredients.length ? `<div class="chips">${v.ingredients.map((i) =>
-      `<span class="chip ${i.marker ? "marker" : ""} ${beforeSet && !beforeSet.has(i.text) ? "changed" : ""}">${esc(i.text)}</span>`).join("")}</div>
-      <div class="fine">Highlighted ingredients are often used as markers of ultra-processing.</div>`
-      : `<div class="empty-ing">No ingredients. The app will ask people to add them.</div>`}
-  </div>`;
-}
-
-/* ─────────────── Score review ───────────────
-   The score only ever comes from the ingredient list and the rules, so every
-   product is scored the same way. There's deliberately no manual override:
-   to change a score, fix the ingredients or question a rule. */
-
-const TIER_NAMES = (tiers) => Object.fromEntries(Object.entries(tiers || {}).map(([k, v]) => [String(Number(v)), k]));
-
-async function openScoreReview(slot, barcode, opts = {}) {
-  slot.innerHTML = `<div class="panel"><p class="progress">Working out the score…</p></div>`;
-  let b;
-  try { b = (await api("score_breakdown", { barcode })).breakdown; }
-  catch (e) { slot.innerHTML = `<div class="panel"><p class="err">${esc(e.message)}</p></div>`; return; }
-  if (!b) { slot.innerHTML = `<div class="panel"><p class="hint">This barcode isn't in Unwrap.</p></div>`; return; }
-  const resolve = typeof opts.resolve === "function" ? opts.resolve : null;
-  const tierName = TIER_NAMES(b.tiers);
-  const panel = el("div", { class: "panel" });
-  panel.innerHTML = `
-    <div class="row-head">${scoreBadge(b.stored_score)}<h4>Score review: ${esc(b.name)}</h4>
-      ${b.nova_group ? `<span class="tag ${b.nova_group === 4 ? "warn" : ""}">NOVA ${b.nova_group}</span>` : ""}</div>
-    ${b.suppressed ? `<div class="warnbox">No score shown in the app on purpose: ${esc(b.suppression_reason || "suppressed")}.</div>` : ""}
-    ${b.stale ? `<div class="warnbox">The saved score (${esc(b.stored_score ?? "none")}) is out of date: the ingredients now work out at <strong>${esc(b.computed_score ?? "no score")}</strong>. <span data-slot="rescore"></span></div>` : ""}
-    <p class="hint">${b.counts.ingredients || 0} ingredients counted · ${b.counts.markers || 0} processing markers · ${b.counts.transforms || 0} broken down and rebuilt. The score starts at 1.0 and each part below adds points.</p>
-    <div class="bars">${(b.components || []).map((c) => `
-      <div class="bar"><span>${esc(c.label)}</span><span class="track"><span class="fill" style="width:${Math.round(Math.min(1, c.value) * 100)}%"></span></span><span class="pts">+${Number(c.points).toFixed(1)}</span></div>`).join("")}
-    </div>
-    <div class="section-title">Ingredients</div>
-    <p class="hint">If an ingredient is being counted wrongly, choose what it should be and send it to scoring review. Rules change for every product at once, so that's a separate, deliberate job.</p>`;
-  const table = el("table", { class: "ing-table" });
-  const picks = [];
-  for (const i of b.ingredients) {
-    const tr = el("tr");
-    const kind = !i.counted ? `<span class="tag">not counted${i.ignored ? " (ignored)" : ""}</span>`
-      : i.marker ? `<span class="tag warn">${esc(tierName[String(Number(i.tier))] || "marker")}</span>` : `<span class="tag good">no marker</span>`;
-    const extras = [
-      i.transform ? `<span class="tag">broken down / rebuilt</span>` : "",
-      i.nova4 ? `<span class="tag warn">NOVA 4 sign</span>` : "",
-      i.alias_to ? `<span class="meta">read as “${esc(i.alias_to)}”</span>` : "",
-      (i.rules || []).length ? `<span class="meta">matched: ${i.rules.map((r) => esc(r.pattern)).join(", ")}</span>` : "",
-    ].join(" ");
-    tr.innerHTML = `<td style="${i.ignored ? "text-decoration:line-through;opacity:.6" : ""}">${esc(i.text)}<div>${extras}</div></td><td>${kind}</td><td></td>`;
-    if (i.counted) {
-      const sel = el("select", { "aria-label": `Question ${i.text}` });
-      sel.innerHTML = `<option value="">Looks right</option>` + (i.marker ? `<option value="should_not_count">Shouldn't count</option>` : `<option value="should_count">Should count</option>`);
-      picks.push({ text: i.text, sel });
-      tr.lastChild.appendChild(sel);
-    }
-    table.appendChild(tr);
-  }
-  panel.appendChild(table);
-  const out = el("div");
-  const actions = el("div", { class: "actions" });
-  if (b.stale) {
-    panel.querySelector('[data-slot="rescore"]').appendChild(button("Rescore now", "primary small", async (e) => {
-      e.target.disabled = true;
-      try { const r = await api("rescore", { barcode, resolve: resolve ? resolve() : undefined }); toast(r.summary); openScoreReview(slot, barcode, opts); if (resolve) setTimeout(refreshAll, 1200); }
-      catch (err) { toast("Failed: " + err.message); e.target.disabled = false; }
-    }));
-  }
-  actions.appendChild(button("Send questions to scoring review", "primary", async (e) => {
-    const items = picks.filter((p) => p.sel.value).map((p) => ({ text: p.text, direction: p.sel.value }));
-    if (!items.length) { toast("Choose at least one ingredient to question"); return; }
-    e.target.disabled = true;
-    try {
-      const r = await api("question_ingredients", { barcode, items, resolve: resolve ? resolve() : undefined });
-      out.innerHTML = `<div class="result">${esc(r.summary)}</div>`; toast("Sent to scoring review");
-      setTimeout(refreshAll, 1600);
-    } catch (err) { toast("Failed: " + err.message); e.target.disabled = false; }
-  }));
-  if (resolve) actions.appendChild(button("Score is right", "", async (e) => {
-    const r = resolve();
-    await run(e.target, () => api(r.queue === "product_flags" ? "set_product_flag" : "set_ingredient_flag",
-      { id: r.id, status: "dismissed", notes: [r.notes, `Score checked: ${b.stored_score} is correct for these ingredients`].filter(Boolean).join(" · ") }), "Closed: score is right");
-  }));
-  actions.appendChild(button("Fix ingredients", "quiet", () => openEditor(slot, barcode, opts)));
-  actions.appendChild(button("Close", "quiet", () => { slot.innerHTML = ""; }));
-  panel.append(actions, out);
-  slot.innerHTML = ""; slot.appendChild(panel);
-}
-
-/* ─────────────── Look up ─────────────── */
-
-function renderLookup() {
-  const list = $("list"); list.innerHTML = "";
-  list.appendChild(el("p", { class: "hint" }, "Find any product by barcode or name, see everything we know about it, and fix it from one place."));
-  const form = el("form", { class: "search" });
-  const q = el("input", { type: "search", placeholder: "Barcode or product name", autocomplete: "off", inputmode: "search" });
-  q.value = lookupState.q;
-  form.append(q, el("button", { class: "btn primary", type: "submit" }, "Search"));
-  const results = el("div"); const detail = el("div");
-  list.append(form, results, detail);
-  const search = async () => {
-    const term = q.value.trim(); lookupState.q = term; lookupState.barcode = null;
-    detail.innerHTML = "";
-    if (term.length < 2) { results.innerHTML = ""; return; }
-    results.innerHTML = `<p class="progress">Searching…</p>`;
-    try {
-      const { rows } = await api("lookup", { q: term });
-      results.innerHTML = "";
-      if (isBarcode(term) && !rows.some((r) => r.barcode === term)) {
-        const c = card(`<div class="row-head"><h3>${esc(term)} isn't in Unwrap</h3></div><p class="hint">${offLink(term)}</p>`);
-        const slot = el("div");
-        const act = el("div", { class: "actions" });
-        act.appendChild(button("Add product", "primary", () => openEditor(slot, term, { create: true })));
-        c.append(act, slot); results.appendChild(c);
-      }
-      if (!rows.length && !isBarcode(term)) { results.appendChild(el("div", { class: "empty" }, "No products match.")); return; }
-      if (rows.length === 1 && rows[0].barcode === term) return openProduct(term, results, detail);
-      for (const r of rows) {
-        const c = el("div", { class: "card result-row" });
-        c.innerHTML = `${r.image_url ? `<img src="${esc(r.image_url)}" alt="">` : `<span class="thumb"></span>`}
-          <div class="grow"><h3>${esc(r.name || "Unnamed")}</h3><div class="meta">${esc(r.brand || "")} · ${esc(r.barcode)} · ${esc(nice(r.category_l1 || "no category"))}</div></div>
-          ${r.is_deleted ? `<span class="tag bad">hidden</span>` : ""}${scoreBadge(r.score)}`;
-        c.addEventListener("click", () => openProduct(r.barcode, results, detail));
-        results.appendChild(c);
-      }
-    } catch (e) { results.innerHTML = `<p class="err">${esc(e.message)}</p>`; }
-  };
-  form.addEventListener("submit", (e) => { e.preventDefault(); search(); });
-  if (lookupState.barcode) openProduct(lookupState.barcode, results, detail);
-  else if (lookupState.q) search();
-  q.focus();
-}
-
-// Jump to a product from anywhere (change log, history links).
-function goLookup(barcode) {
-  lookupState = { q: barcode, barcode };
-  select("lookup");
-}
-
-const STATUS_TAG = (s) => `<span class="tag ${s === "pending" || s === "needs_review" || s === "open" ? "warn" : s === "resolved" || s === "accepted" || s === "approved" || s === "restored" ? "good" : ""}">${esc(nice(s))}</span>`;
-
-async function openProduct(barcode, results, detail) {
-  lookupState.barcode = barcode;
-  results.innerHTML = "";
-  detail.innerHTML = `<div class="empty">Loading…</div>`;
-  let h;
-  try { h = await api("history", { barcode }); }
-  catch (e) { detail.innerHTML = `<p class="err">${esc(e.message)}</p>`; return; }
-  const p = h.product;
-  detail.innerHTML = "";
-  if (!p) { detail.appendChild(el("div", { class: "empty" }, "Not in Unwrap.")); return; }
-  const c = card(`
-    <div class="hero">
-      ${p.image_url ? `<img src="${esc(p.image_url)}" alt="Product photo">` : ""}
-      <div style="flex:1;min-width:220px">
-        <div class="row-head">${scoreBadge(p.score)}<h3>${esc(p.name)}</h3>${p.is_deleted ? `<span class="tag bad">hidden from the app</span>` : ""}</div>
-        <div class="meta" style="margin-top:6px">${esc(p.brand || "")} · ${esc(p.barcode)} · ${esc(nice(p.category_l1 || "no category"))}${p.category_l2 ? " › " + esc(nice(p.category_l2)) : ""} · source: ${esc(p.source || "?")} · ${offLink(p.barcode)}</div>
-        <div class="chips">${p.ingredients.map((i) => `<span class="chip ${i.marker ? "marker" : ""} ${i.ignored ? "ignored" : ""}">${esc(i.text)}</span>`).join("") || `<span class="hint">No ingredients.</span>`}</div>
-        ${(p.allergens || []).length ? `<div class="hint">Allergen tags: ${esc(p.allergens.join(", "))}</div>` : ""}
-      </div>
-    </div>`);
-  const slot = el("div");
-  const act = el("div", { class: "actions" });
-  act.appendChild(button("Edit product", "primary", () => openEditor(slot, barcode, {})));
-  act.appendChild(button("Review score", "", () => openScoreReview(slot, barcode, {})));
-  const openQ = (h.quarantine || []).find((q) => q.status === "open");
-  if (openQ && isAdmin()) act.appendChild(button("Restore to the app", "", (e) => run(e.target, () => api("decide_quarantine", { id: openQ.id, decision: "restore" }), "Restored")));
-  else if (!p.is_deleted) act.appendChild(button("Quarantine", "danger", (e) => hideProduct(e.target, barcode, "Quarantined from Look up", null)));
-  c.append(act, slot);
-  detail.appendChild(c);
-
-  const section = (title, items, line) => {
-    if (!items || !items.length) return;
-    const box = card(`<div class="section-title" style="margin-top:0">${esc(title)}</div>`);
-    for (const it of items) box.appendChild(el("div", { class: "mini" }, line(it)));
-    detail.appendChild(box);
-  };
-  const who = (r) => r.reporter ? ` · ${esc(r.reporter)}` : "";
-  section("Reports about this product", [
-    ...h.product_flags.map((r) => ({ at: r.created_at, html: `${STATUS_TAG(r.status)} <strong>${esc(nice(r.reason_type))}</strong> ${esc(r.reason || "")}${who(r)}${r.admin_notes ? `<span class="meta"> · ${esc(r.admin_notes)}</span>` : ""}` })),
-    ...h.ingredient_flags.map((r) => ({ at: r.created_at, html: `${STATUS_TAG(r.status)} <strong>${esc(r.ingredient_name)}</strong>: ${esc(nice(r.reason))}${who(r)}${r.admin_notes ? `<span class="meta"> · ${esc(r.admin_notes)}</span>` : ""}` })),
-    ...h.allergens.map((r) => ({ at: r.created_at, html: `${STATUS_TAG(r.status)} <strong>${esc(ALLERGEN_NAMES[r.allergen_key] || r.allergen_key)}</strong>: ${esc(nice(r.answer))}${who(r)}` })),
-    ...h.submissions.map((r) => ({ at: r.created_at, html: `${STATUS_TAG(r.status)} <strong>Submission</strong> (${esc(nice(r.kind))})${who(r)}` })),
-    ...h.photos.map((r) => ({ at: r.created_at, html: `${STATUS_TAG(r.status)} <strong>Photo sent in</strong>${who(r)}` })),
-  ].sort((a, b) => String(b.at).localeCompare(String(a.at))), (it) => `<span class="when">${when(it.at)}</span><span>${it.html}</span>`);
-  if (h.missed) section("Missed scans", [h.missed], (m) => `<span><strong>${m.misses}</strong> missed scans · ${esc(m.reasons)} · ${STATUS_TAG(m.state)} · last ${when(m.last_seen)}</span>`);
-  section("Quarantine", h.quarantine, (q) => `<span class="when">${when(q.quarantined_at)}</span><span>${STATUS_TAG(q.status)} ${esc(Q_SOURCE[q.source] || q.source)}${q.reason ? ` · ${esc(q.reason)}` : ""}${q.decision_note ? ` · ${esc(q.decision_note)}` : ""}</span>`);
-  if (h.log.length) {
-    const box = card(`<div class="section-title" style="margin-top:0">Changes made here</div>`);
-    for (const e of h.log) box.appendChild(logEntry(e, { compact: true }));
-    detail.appendChild(box);
-  }
-}
-
-/* ─────────────── Change log ─────────────── */
-
-const ACTION_LABELS = {
-  edit_product: "Edited product", create_product: "Added product", undo_edit: "Undid an edit", recategorise: "Recategorised", rescore: "Rescored",
-  allergen: "Allergen tags", photo: "Product photo", explanation: "Explanation", quarantine: "Quarantined",
-  quarantine_decision: "Quarantine decision", submission_approve: "Submission approved", submission_reject: "Submission rejected",
-  scoring_question: "Scoring review", missed_scan: "Missed scan", team: "Team",
-  "status:product_flags": "Product flag", "status:ingredient_flags": "Ingredient flag",
-  "status:allergen_reports": "Allergen report", "status:product_image_submissions": "Photo",
-};
-
-async function renderLog() {
-  const list = $("list");
-  list.innerHTML = "";
-  list.appendChild(el("p", { class: "hint" }, INTROS.log));
-  const { rows } = await api("audit_log", { status: $("statusFilter").value });
-  if (!rows.length) { list.appendChild(el("div", { class: "empty" }, "Nothing logged yet.")); return; }
-  const box = card("");
-  for (const e of rows) box.appendChild(logEntry(e, {}));
-  list.appendChild(box);
-}
-
-function diffHtml(before, after) {
-  if (!before || !after) return "";
-  const out = [];
-  for (const [k, label] of [["name", "Name"], ["brand", "Brand"], ["category_l1", "Category"], ["category", "Category"]]) {
-    if ((before[k] ?? "") !== (after[k] ?? "")) out.push(`${label}: <span class="del">${esc(before[k] ?? "–")}</span> → <span class="add">${esc(after[k] ?? "–")}</span>`);
-  }
-  if (Array.isArray(before.ingredients) && Array.isArray(after.ingredients)) {
-    const b = new Set(before.ingredients), a = new Set(after.ingredients);
-    const removed = before.ingredients.filter((x) => !a.has(x)), added = after.ingredients.filter((x) => !b.has(x));
-    if (removed.length) out.push(`Removed: ${removed.map((x) => `<span class="del">${esc(x)}</span>`).join(", ")}`);
-    if (added.length) out.push(`Added: ${added.map((x) => `<span class="add">${esc(x)}</span>`).join(", ")}`);
-  }
-  if ("score" in before && "score" in after && before.score !== after.score) out.push(`Score: ${esc(before.score ?? "none")} → ${esc(after.score ?? "none")}`);
-  if (before.description !== undefined && after.description !== undefined) out.push(`<span class="del">${esc(before.description)}</span><br><span class="add">${esc(after.description)}</span>`);
-  if (before.image_url !== undefined || after.image_url !== undefined) out.push(`${before.image_url ? `<img class="thumb" src="${esc(before.image_url)}" alt="Before">` : "none"} → ${after.image_url ? `<img class="thumb" src="${esc(after.image_url)}" alt="After">` : "none"}`);
-  return out.length ? `<div class="diff">${out.join("<br>")}</div>` : "";
-}
-
-function logEntry(e, { compact }) {
-  const row = el("div", { class: "mini" });
-  const product = !compact && e.barcode ? ` · <button type="button" class="linkbtn" data-go>${esc(e.product_name || e.barcode)}</button>` : "";
-  row.innerHTML = `<span class="when">${when(e.at)}</span>
-    <span style="flex:1;min-width:200px"><strong>${esc(ACTION_LABELS[e.action] || nice(e.action))}</strong>${product}
-      <div>${esc(e.summary || "")}</div>
-      <div class="meta">${esc(e.actor_email || "")}${e.undone_at ? ` · <span class="tag">undone</span>` : ""}</div>
-      <div data-diff></div></span>`;
-  row.querySelector("[data-go]")?.addEventListener("click", () => goLookup(e.barcode));
-  const d = diffHtml(e.before, e.after);
-  const holder = row.querySelector("[data-diff]");
-  if (d) {
-    const show = el("button", { type: "button", class: "linkbtn" }, "Show changes");
-    show.addEventListener("click", () => { holder.innerHTML = d; });
-    holder.appendChild(show);
-  }
-  if (isAdmin() && ["edit_product", "recategorise"].includes(e.action) && !e.undo_of && !e.undone_at && e.before) {
-    const undo = el("button", { type: "button", class: "btn quiet small", style: "margin-left:8px" }, "Undo");
-    undo.addEventListener("click", async () => {
-      if (!confirm("Put this product back how it was before this edit?")) return;
-      await run(undo, () => api("undo_edit", { id: e.id }), "Edit undone");
-    });
-    holder.appendChild(undo);
-  }
-  return row;
-}
-
-/* ─────────────── Team ─────────────── */
-
-function renderTeam(team) {
-  const list = $("list");
-  list.innerHTML = "";
-  const c = card(`
-    <h3 style="margin-top:0">Admin team</h3>
-    <p class="hint">Moderators can work every queue but never see who sent a report, and a live product they reject goes to Quarantine rather than being removed. Admins can also manage this list and decide Quarantine.
-    Helpers need an Unwrap account with a password first (created in the app).</p>
-    <div class="table-wrap"><table><thead><tr><th>Email</th><th>Role</th><th>Added</th><th></th></tr></thead><tbody id="teamBody"></tbody></table></div>
-    <form id="addForm" class="actions">
-      <input type="email" id="newEmail" placeholder="their Unwrap email" required style="flex:1 1 220px">
-      <select id="newRole" style="width:auto"><option value="moderator">moderator</option><option value="admin">admin</option></select>
-      <button class="btn primary" type="submit">Add</button>
-    </form>`);
-  list.appendChild(c);
-  const body = $("teamBody");
-  for (const m of team) {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${esc(m.email)}</td><td>${esc(m.role)}</td><td>${new Date(m.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</td><td></td>`;
-    if (m.email !== me.email) {
-      tr.lastChild.appendChild(button("Remove", "danger small", async () => {
-        if (!confirm(`Remove ${m.email} from the admin team?`)) return;
-        try { renderTeam((await api("remove_member", { user_id: m.user_id })).team); toast("Removed"); }
-        catch (e) { toast("Failed: " + e.message); }
-      }));
-    }
-    body.appendChild(tr);
-  }
-  $("addForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    try {
-      renderTeam((await api("add_member", { email: $("newEmail").value.trim(), role: $("newRole").value })).team);
-      toast("Added");
-    } catch (err) { toast(err.message); }
-  });
-}
-
-start();
 </script>
 </body>
 </html>
