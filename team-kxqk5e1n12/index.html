@@ -562,6 +562,7 @@ function renderProductFlag(r) {
     <div class="row-head"><h3>${esc(r.product_name || "Unnamed product")}</h3><span class="meta">${esc(r.barcode)} · ${offLink(r.barcode)}</span></div>
     <div class="meta">${when(r.created_at)}${reporterLine(r)}</div>
     <div class="reason"><span class="tag warn">${esc(nice(r.reason_type))}</span>${esc(r.reason)}</div>
+    ${r.photo_url ? `<div class="photos"><figure><a href="${esc(r.photo_url)}" target="_blank" rel="noopener"><img src="${esc(r.photo_url)}" alt="Ingredients photo sent with the report"></a><figcaption>Photo from reporter</figcaption></figure></div>` : ""}
     ${r.admin_notes ? `<div class="hint">Notes: ${esc(r.admin_notes)}</div>` : ""}`);
   const notes = notesBox(r.admin_notes);
   const wrap = el("div", { class: "actions" }); wrap.appendChild(notes);
@@ -1478,7 +1479,7 @@ async function openProduct(barcode, results, detail) {
   };
   const who = (r) => r.reporter ? ` · ${esc(r.reporter)}` : "";
   section("Reports about this product", [
-    ...h.product_flags.map((r) => ({ at: r.created_at, html: `${STATUS_TAG(r.status)} <strong>${esc(nice(r.reason_type))}</strong> ${esc(r.reason || "")}${who(r)}${r.admin_notes ? `<span class="meta"> · ${esc(r.admin_notes)}</span>` : ""}` })),
+    ...h.product_flags.map((r) => ({ at: r.created_at, html: `${STATUS_TAG(r.status)} <strong>${esc(nice(r.reason_type))}</strong> ${esc(r.reason || "")}${who(r)}${r.photo_url ? ` · <a href="${esc(r.photo_url)}" target="_blank" rel="noopener">photo</a>` : ""}${r.admin_notes ? `<span class="meta"> · ${esc(r.admin_notes)}</span>` : ""}` })),
     ...h.ingredient_flags.map((r) => ({ at: r.created_at, html: `${STATUS_TAG(r.status)} <strong>${esc(r.ingredient_name)}</strong>: ${esc(nice(r.reason))}${who(r)}${r.admin_notes ? `<span class="meta"> · ${esc(r.admin_notes)}</span>` : ""}` })),
     ...h.allergens.map((r) => ({ at: r.created_at, html: `${STATUS_TAG(r.status)} <strong>${esc(ALLERGEN_NAMES[r.allergen_key] || r.allergen_key)}</strong>: ${esc(nice(r.answer))}${who(r)}` })),
     ...h.submissions.map((r) => ({ at: r.created_at, html: `${STATUS_TAG(r.status)} <strong>Submission</strong> (${esc(nice(r.kind))})${who(r)}` })),
