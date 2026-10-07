@@ -213,6 +213,26 @@
   .phone .circle.changed { border-radius: 50%; outline-offset: 4px; }
   .phone .empty-ing { font-size: 13px; color: var(--muted); }
   @media (max-width: 560px) { .bar { grid-template-columns: 1fr 56px; } .bar .track { grid-column: 1 / -1; order: 3; } }
+
+  /* Numbers tab (admins only) */
+  .num-head { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 12px; }
+  .num-head .hint { flex: 1 1 320px; }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 12px; }
+  .stat { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow); border: 1px solid rgba(225, 216, 200, .6); padding: 12px 14px; display: grid; gap: 2px; min-width: 0; }
+  .stat .k { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  .stat .n { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--primary); line-height: 1.2; }
+  .stat .s { font-size: 12.5px; color: var(--muted); }
+  .seg { display: inline-flex; margin-left: auto; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--surface); }
+  .seg button { border: 0; background: transparent; padding: 5px 12px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text); white-space: nowrap; }
+  .seg button[aria-pressed=true] { background: var(--primary); color: #fff; }
+  .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 4px 18px; }
+  .bars-svg { width: 100%; height: auto; display: block; }
+  .bars-svg text { fill: var(--muted); font-size: 12px; }
+  .num-cols { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 18px; }
+  @media (max-width: 720px) { .num-cols { grid-template-columns: 1fr; } }
+  .num-table td:first-child { word-break: normal; }
+  .num-table th { font-size: 12px; font-weight: 600; color: var(--muted); }
+  .num-table .r { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -297,6 +317,7 @@ const QUEUES = {
                       statusLabels: { pending: "waiting", high: "waiting · high confidence", skipped: "skipped for later" } },
   log:              { label: "Change log",       statuses: ["all", "edits", "resolutions", "quarantine"],
                       statusLabels: { all: "everything", edits: "product changes", resolutions: "reports closed", quarantine: "quarantine and submissions" } },
+  numbers:          { label: "Numbers",          statuses: [], adminOnly: true, custom: true },
   team:             { label: "Team",             statuses: [], adminOnly: true },
 };
 const STATUS_LABELS = { scoring_review: "scoring review", needs_review: "needs review" };
@@ -478,7 +499,7 @@ function select(key) {
   for (const s of QUEUES[key].statuses) {
     sel.appendChild(el("option", { value: s }, esc(QUEUES[key].statusLabels?.[s] || nice(s))));
   }
-  $("toolbar").classList.toggle("hidden", key === "team" || key === "lookup");
+  $("toolbar").classList.toggle("hidden", key === "team" || key === "lookup" || key === "numbers");
   load();
 }
 
@@ -500,6 +521,7 @@ async function load() {
   try {
     if (current === "team") return renderTeam((await api("team")).team);
     if (current === "lookup") return renderLookup();
+    if (current === "numbers") return isAdmin() ? await renderNumbers() : (list.innerHTML = `<div class="empty">Numbers are for admins.</div>`);
     if (current === "log") return await renderLog();
     const { rows } = await api("list", { queue: current, status: $("statusFilter").value, batch: current === "imports" ? importBatch : undefined });
     list.innerHTML = "";
@@ -1536,6 +1558,211 @@ function logEntry(e, { compact }) {
     holder.appendChild(undo);
   }
   return row;
+}
+
+/* ─────────────── Numbers (admins only) ─────────────── */
+// Live figures from the admin-stats function: Supabase counts, most-scanned
+// products and, once a RevenueCat key is set, subscriptions. Read-only.
+
+let numbersData = null;
+let numbersPeriod = "month";   // most-scanned window: week | month | year
+let numbersSeries = "weekly";  // chart grouping: weekly | monthly
+
+const CAT_LABELS = { sauces_condiments: "Sauces & condiments", dairy_desserts: "Dairy & desserts", bread_bakery: "Bread & bakery",
+  crisps: "Crisps", drinks: "Drinks", biscuits: "Biscuits", grains_rice_pasta: "Grains, rice & pasta", meat_poultry: "Meat & poultry",
+  fruit_vegetables: "Fruit & veg", confectionery: "Confectionery", snacks: "Snacks", spreads: "Spreads", ready_meals: "Ready meals",
+  breakfast_cereal: "Breakfast cereal", herbs_spices_seasoning: "Herbs, spices & seasoning", oils_vinegar: "Oils & vinegar",
+  home_baking: "Home baking", infant: "Infant", pizza: "Pizza", eggs: "Eggs", soup: "Soup", fish_seafood: "Fish & seafood" };
+const catLabel = (k) => CAT_LABELS[k] || String(k).replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
+const nfmt = (v) => v == null ? "—" : new Intl.NumberFormat("en-GB").format(v);
+const gbp = (v) => v == null ? "—" : "£" + (Number.isInteger(v) ? v : Number(v).toFixed(2));
+const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const monthLabel = (k) => MONTH_NAMES[Number(k.slice(5, 7)) - 1] + (k.slice(5, 7) === "01" ? " " + k.slice(2, 4) : "");
+const weekLabel = (k) => new Date(k + "T12:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+
+async function statsApi() {
+  const { data, error } = await sb.functions.invoke("admin-stats", { body: {} });
+  if (error) {
+    let body = null;
+    try { body = await error.context.json(); } catch (_) { /* not JSON */ }
+    if ((body?.error || error.message) === "not_signed_in") await showLogin();
+    throw new Error(body?.message || body?.error || error.message);
+  }
+  return data;
+}
+
+async function renderNumbers(force = false) {
+  const list = $("list");
+  if (!numbersData || force) {
+    list.innerHTML = `<div class="empty">Counting…</div>`;
+    try { numbersData = await statsApi(); }
+    catch (e) { list.innerHTML = `<div class="empty">Couldn't load the numbers: ${esc(e.message)}</div>`; return; }
+  }
+  const d = numbersData, u = d.usage, c = d.catalogue, rc = d.revenuecat || {};
+  list.innerHTML = "";
+
+  const head = el("div", { class: "num-head" });
+  head.appendChild(el("p", { class: "hint", style: "margin:0" },
+    `Live figures, worked out ${esc(when(d.generated_at))}. <strong>Signed-in activity only</strong>: guests scan without an account and nothing is stored for them, so usage here is a floor.`));
+  const btns = el("div", { class: "actions", style: "margin:0" });
+  btns.appendChild(button("Refresh", "quiet small", () => renderNumbers(true)));
+  btns.appendChild(button("Download Excel", "small", (e) => downloadNumbers(e.target)));
+  head.appendChild(btns);
+  list.appendChild(head);
+
+  // Headline figures
+  const tiles = [
+    ["Accounts", nfmt(u.accounts), `+${nfmt(u.new_accounts_30d)} in 30 days`],
+    ["Signed in · 7 days", nfmt(u.active_7d), `${nfmt(u.active_30d)} in 30 days`],
+    ["Logged scans · 7 days", nfmt(u.scans_7d), `${nfmt(u.scans_30d)} in 30 days`],
+    ["Products live", nfmt(c.products_live), `+${nfmt(c.products_added_30d)} in 30 days`],
+    ["MRR · real users", rc.connected ? gbp(rc.mrr_real) : "—", rc.connected ? (rc.test_sub_active ? `excludes your ${gbp(2.99)} test sub` : "") : "RevenueCat not connected"],
+    ["App users · 28 days", rc.connected ? nfmt(rc.active_users_28d) : "—", rc.connected ? "RevenueCat, guests included" : "RevenueCat not connected"],
+  ];
+  const grid = el("div", { class: "stat-grid" });
+  for (const [label, n, sub] of tiles) grid.appendChild(el("div", { class: "stat" }, `<span class="k">${esc(label)}</span><span class="n">${n}</span><span class="s">${esc(sub)}</span>`));
+  list.appendChild(grid);
+
+  // Trends
+  const series = numbersSeries === "weekly" ? d.weekly : d.monthly;
+  const labels = numbersSeries === "weekly" ? series.weeks.map(weekLabel) : series.months.map(monthLabel);
+  const trend = card(`<div class="row-head"><h3>Activity</h3><span class="grow"></span></div>
+    <p class="hint">${numbersSeries === "weekly" ? "Last 12 weeks, Monday to Sunday. The last bar is this week so far." : "Each month since January. The last bar is this month so far."}</p>
+    <div class="chart-grid">
+      <div><div class="section-title">Logged scans</div>${barChart(series.scans, labels)}</div>
+      <div><div class="section-title">New accounts</div>${barChart(series.signups, labels)}</div>
+      <div><div class="section-title">Accounts scanning</div>${barChart(series.active, labels)}</div>
+      ${numbersSeries === "monthly" && series.revenue_gross ? `<div><div class="section-title">Revenue (£, gross)</div>${barChart(series.revenue_gross, labels, true)}</div>` : ""}
+    </div>`);
+  trend.querySelector(".grow").replaceWith(segmented([["weekly", "Weekly"], ["monthly", "Monthly"]], numbersSeries, (k) => { numbersSeries = k; renderNumbers(); }));
+  list.appendChild(trend);
+
+  // Most scanned
+  const s = d.scanned[numbersPeriod];
+  const PERIOD = { week: "the last 7 days", month: "the last 30 days", year: "the last 12 months" };
+  const named = s.cats.filter((x) => x[0] !== "(none)" && x[0] !== "uncategorised");
+  const shown = named.slice(0, 9), rest = s.scans - shown.reduce((a, x) => a + x[1], 0);
+  const catRows = shown.map((x) => [catLabel(x[0]), x[1]]); if (rest > 0) catRows.push(["Other / not matched", rest]);
+  const sc = card(`<div class="row-head"><h3>What's being scanned</h3><span class="grow"></span></div>
+    <p class="hint">${nfmt(s.scans)} scans of ${nfmt(s.products)} different products by ${nfmt(s.accounts)} account${s.accounts === 1 ? "" : "s"} in ${PERIOD[numbersPeriod]}, matched to the catalogue by barcode.</p>
+    <div class="num-cols">
+      <div class="table-wrap"><table class="num-table"><thead><tr><th>Most scanned</th><th class="r">Accounts / scans</th></tr></thead><tbody>
+        ${s.top.length ? s.top.map((r) => `<tr><td>${esc(r[0])}${r[1] ? ` <span class="meta">· ${esc(r[1])}</span>` : ""}${r[2] != null ? ` <span class="meta">${Number(r[2]).toFixed(1)}</span>` : ""}</td><td class="r">${r[3]} / ${r[4]}</td></tr>`).join("")
+          : `<tr><td class="meta">No scans in this period</td><td></td></tr>`}
+      </tbody></table></div>
+      <div>
+        <table class="num-table"><thead><tr><th>By category</th><th class="r">Scans</th></tr></thead><tbody>
+          ${catRows.map((r) => `<tr><td>${esc(r[0])}</td><td class="r">${nfmt(r[1])}</td></tr>`).join("")}
+        </tbody></table>
+        <table class="num-table" style="margin-top:14px"><thead><tr><th>By score band</th><th class="r">Scans</th></tr></thead><tbody>
+          ${[["Minimally processed (1.0–3.0)", s.bands.min], ["Processed (3.1–6.9)", s.bands.proc], ["Ultra-processed (7.0+)", s.bands.ultra], ["No score / not matched", s.bands.none]]
+            .map((r) => `<tr><td>${r[0]}</td><td class="r">${nfmt(r[1])}</td></tr>`).join("")}
+        </tbody></table>
+      </div>
+    </div>`);
+  sc.querySelector(".grow").replaceWith(segmented([["week", "7 days"], ["month", "30 days"], ["year", "12 months"]], numbersPeriod, (k) => { numbersPeriod = k; renderNumbers(); }));
+  list.appendChild(sc);
+
+  // Catalogue & moderation
+  list.appendChild(card(`<h3 style="margin:0 0 8px">Catalogue &amp; moderation</h3>
+    <table class="num-table"><tbody>
+      <tr><td>Product flags open (pending, reviewed, scoring review)</td><td class="r">${nfmt(c.flags_open)} of ${nfmt(c.flags_total)}</td></tr>
+      <tr><td>Photo submissions waiting</td><td class="r">${nfmt(c.photos_pending)}</td></tr>
+      <tr><td>Product submissions · needing review</td><td class="r">${nfmt(c.submissions_pending)} of ${nfmt(c.submissions_total)}</td></tr>
+      <tr><td>Allergen reports · all time</td><td class="r">${nfmt(c.allergen_reports)}</td></tr>
+      <tr><td>Barcodes missed · times missed</td><td class="r">${nfmt(c.scan_misses)} · ${nfmt(c.scan_miss_total)}</td></tr>
+      <tr><td>Receipts scanned · last 30 days / all time</td><td class="r">${nfmt(u.receipts_30d)} / ${nfmt(u.receipts_all_time)}</td></tr>
+      <tr><td>Logged scans · all time</td><td class="r">${nfmt(u.scans_all_time)}</td></tr>
+    </tbody></table>`));
+
+  // RevenueCat
+  if (rc.connected) {
+    list.appendChild(card(`<h3 style="margin:0 0 8px">Subscriptions &amp; tips</h3>
+      <table class="num-table"><tbody>
+        <tr><td>MRR · real users</td><td class="r">${gbp(rc.mrr_real)}</td></tr>
+        <tr><td>Active subscriptions · real users</td><td class="r">${nfmt(rc.subs_real)}</td></tr>
+        ${rc.test_sub_active ? `<tr><td>Your test subscription (left out above)</td><td class="r">${gbp(2.99)}/mo</td></tr>` : ""}
+        <tr><td>Active trials</td><td class="r">${nfmt(rc.trials)}</td></tr>
+        <tr><td>Revenue · all time (gross, incl. testing)</td><td class="r">${gbp(rc.revenue_all_time)}</td></tr>
+        <tr><td>New app users · last 28 days</td><td class="r">${nfmt(rc.new_customers_28d)}</td></tr>
+        <tr><td>App users · last 28 days</td><td class="r">${nfmt(rc.active_users_28d)}</td></tr>
+        <tr><td>Progress to £10k/month</td><td class="r">${rc.mrr_real == null ? "—" : (rc.mrr_real / 100).toFixed(2) + "%"}</td></tr>
+      </tbody></table>
+      <p class="hint">Gross, before Apple and Google's cut and tax. App users counts every install that opened the app, through the anonymous ID RevenueCat already uses to check premium status.</p>`));
+  } else {
+    list.appendChild(card(`<h3 style="margin:0 0 8px">Subscriptions &amp; tips</h3>
+      <p class="hint">RevenueCat isn't connected to this page yet${rc.reason && !/No REVENUECAT/.test(rc.reason) ? ` (${esc(rc.reason)})` : ""}. To switch it on: in RevenueCat go to Project settings → API keys → <strong>+ New secret API key</strong>, choose API version 2, give it read-only access to <strong>Charts &amp; Metrics</strong> and nothing else, then in Supabase go to Edge Functions → Secrets and add it as <code>REVENUECAT_API_KEY</code>.</p>`));
+  }
+}
+
+function segmented(options, value, onPick) {
+  const wrap = el("div", { class: "seg", role: "group" });
+  for (const [k, label] of options) {
+    const b = el("button", { type: "button", "aria-pressed": String(k === value) }, esc(label));
+    b.addEventListener("click", () => onPick(k));
+    wrap.appendChild(b);
+  }
+  return wrap;
+}
+
+function barChart(vals, labels, money = false) {
+  const W = 420, H = 160, pl = 30, pr = 6, pt = 16, pb = 22;
+  const top = Math.max(...vals, 0);
+  const step = top > 50 ? 50 : top > 20 ? 10 : top > 5 ? 5 : 2;
+  const max = Math.max(step, Math.ceil(top / step) * step);
+  const cw = (W - pl - pr) / vals.length, bw = cw * 0.62, y = (v) => pt + (H - pt - pb) * (1 - v / max);
+  const every = vals.length > 10 ? 2 : 1;
+  let s = `<svg class="bars-svg" viewBox="0 0 ${W} ${H}" role="img">`;
+  for (const t of [0, max / 2, max]) s += `<line x1="${pl}" x2="${W - pr}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)"/><text x="${pl - 5}" y="${y(t) + 3}" text-anchor="end">${money ? Math.round(t) : t}</text>`;
+  vals.forEach((v, i) => {
+    const x = pl + i * cw + (cw - bw) / 2, last = i === vals.length - 1;
+    s += `<rect x="${x}" y="${y(v)}" width="${bw}" height="${Math.max(0, y(0) - y(v))}" rx="3" fill="${last ? "var(--primary-pale)" : "var(--primary)"}"><title>${esc(labels[i])}: ${money ? gbp(v) : v}</title></rect>`;
+    if (v > 0 && vals.length <= 12) s += `<text x="${x + bw / 2}" y="${y(v) - 4}" text-anchor="middle">${money ? Number(v).toFixed(2).replace(/\.00$/, "") : v}</text>`;
+    if (i % every === (vals.length - 1) % every) s += `<text x="${x + bw / 2}" y="${H - 6}" text-anchor="middle">${esc(labels[i])}</text>`;
+  });
+  return s + "</svg>";
+}
+
+function loadScript(src) {
+  return new Promise((ok, fail) => {
+    if (window.XLSX) return ok();
+    const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = () => fail(new Error("Couldn't load the spreadsheet tool"));
+    document.head.appendChild(s);
+  });
+}
+
+async function downloadNumbers(btn) {
+  if (!numbersData) return;
+  btn.disabled = true;
+  try {
+    await loadScript("https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js");
+    const d = numbersData, u = d.usage, c = d.catalogue, rc = d.revenuecat || {};
+    const wb = XLSX.utils.book_new();
+    const add = (name, rows, widths) => { const ws = XLSX.utils.aoa_to_sheet(rows); if (widths) ws["!cols"] = widths.map((w) => ({ wch: w })); XLSX.utils.book_append_sheet(wb, ws, name); };
+    add("Summary", [
+      ["Unwrap numbers", new Date(d.generated_at)],
+      [],
+      ["Accounts", u.accounts], ["New accounts 7d", u.new_accounts_7d], ["New accounts 30d", u.new_accounts_30d],
+      ["Signed in 7d", u.active_7d], ["Signed in 30d", u.active_30d],
+      ["Logged scans 7d", u.scans_7d], ["Logged scans 30d", u.scans_30d], ["Logged scans all time", u.scans_all_time],
+      ["Accounts scanning 30d", u.accounts_scanning_30d], ["Receipts 30d", u.receipts_30d], ["Receipts all time", u.receipts_all_time],
+      ["Products live", c.products_live], ["Products added 30d", c.products_added_30d],
+      ["Product flags open", c.flags_open], ["Photo submissions waiting", c.photos_pending], ["Submissions needing review", c.submissions_pending],
+      ["Barcodes missed", c.scan_misses], ["Times missed", c.scan_miss_total],
+      ["MRR real users (£)", rc.connected ? rc.mrr_real : ""], ["Subscriptions real users", rc.connected ? rc.subs_real : ""],
+      ["Active trials", rc.connected ? rc.trials : ""], ["App users 28d", rc.connected ? rc.active_users_28d : ""],
+      ["New app users 28d", rc.connected ? rc.new_customers_28d : ""], ["Revenue all time gross (£)", rc.connected ? rc.revenue_all_time : ""],
+    ], [28, 22]);
+    add("Weekly", [["Week starting", "Logged scans", "New accounts", "Accounts scanning"],
+      ...d.weekly.weeks.map((w, i) => [new Date(w + "T12:00:00Z"), d.weekly.scans[i], d.weekly.signups[i], d.weekly.active[i]])], [14, 13, 13, 17]);
+    add("Monthly", [["Month", "Logged scans", "New accounts", "Accounts scanning", "Revenue gross (£)"],
+      ...d.monthly.months.map((m, i) => [m, d.monthly.scans[i], d.monthly.signups[i], d.monthly.active[i], d.monthly.revenue_gross ? d.monthly.revenue_gross[i] : ""])], [10, 13, 13, 17, 17]);
+    const top = [["Period", "Product", "Brand", "Score", "Accounts", "Scans"]];
+    for (const [k, l] of [["week", "Last 7 days"], ["month", "Last 30 days"], ["year", "Last 12 months"]]) for (const r of d.scanned[k].top) top.push([l, r[0], r[1], r[2] ?? "", r[3], r[4]]);
+    add("Most scanned", top, [15, 42, 22, 7, 9, 7]);
+    XLSX.writeFile(wb, `unwrap_numbers_${d.generated_at.slice(0, 10)}.xlsx`, { cellDates: true });
+  } catch (e) { toast("Download failed: " + e.message); }
+  btn.disabled = false;
 }
 
 /* ─────────────── Team ─────────────── */
