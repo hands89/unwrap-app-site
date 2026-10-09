@@ -240,6 +240,24 @@
   .num-table th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
   .num-table th.sortable:hover { color: var(--text); }
   .num-table th.sortable[aria-sort] { color: var(--primary); }
+
+  /* Create tab (make-your-own cards and recipes, admins only) */
+  .create-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+  .create-head select { width: auto; min-width: 220px; }
+  .create-head .grow { flex: 1; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 12px; }
+  @media (max-width: 560px) { .grid3 { grid-template-columns: 1fr; } }
+  .ing-rows { display: grid; gap: 6px; margin-top: 4px; }
+  .ing-row { display: grid; grid-template-columns: 110px minmax(0, 1fr) minmax(160px, 220px) 34px; gap: 6px; align-items: center; }
+  @media (max-width: 640px) { .ing-row { grid-template-columns: 1fr 1fr; } }
+  .ing-row .x { border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 20px; line-height: 1; padding: 4px; }
+  .ing-row .x:hover { color: var(--high); }
+  .content-list .mini { align-items: center; }
+  .content-list .mini .grow { flex: 1; min-width: 0; }
+  .content-list .mini.off { opacity: .6; }
+  .pathline { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .pathline code { background: var(--surface-soft); padding: 1px 6px; border-radius: 6px; }
+  .create-form .switch { margin-right: 20px; }
 </style>
 </head>
 <body>
@@ -326,7 +344,8 @@ const QUEUES = {
                       statusLabels: { all: "everything", edits: "product changes", resolutions: "reports closed", quarantine: "quarantine and submissions" } },
   numbers:          { label: "Numbers",          statuses: [], adminOnly: true, custom: true },
   spread:           { label: "Score spread",     statuses: [], adminOnly: true, custom: true },
-  team:            { label: "Team",             statuses: [], adminOnly: true },
+  create:           { label: "Create",           statuses: [], adminOnly: true, custom: true },
+  team:           { label: "Team",             statuses: [], adminOnly: true },
 };
 const STATUS_LABELS = { scoring_review: "scoring review", needs_review: "needs review" };
 
@@ -507,7 +526,7 @@ function select(key) {
   for (const s of QUEUES[key].statuses) {
     sel.appendChild(el("option", { value: s }, esc(QUEUES[key].statusLabels?.[s] || nice(s))));
   }
-  $("toolbar").classList.toggle("hidden", key === "team" || key === "lookup" || key === "numbers" || key === "spread");
+  $("toolbar").classList.toggle("hidden", key === "team" || key === "lookup" || key === "numbers" || key === "spread" || key === "create");
   load();
 }
 
@@ -531,6 +550,7 @@ async function load() {
     if (current === "lookup") return renderLookup();
     if (current === "numbers") return isAdmin() ? await renderNumbers() : (list.innerHTML = `<div class="empty">Numbers are for admins.</div>`);
     if (current === "spread") return isAdmin() ? await renderSpread() : (list.innerHTML = `<div class="empty">Score spread is for admins.</div>`);
+    if (current === "create") return isAdmin() ? await renderCreate() : (list.innerHTML = `<div class="empty">Creating content is for admins.</div>`);
     if (current === "log") return await renderLog();
     const { rows } = await api("list", { queue: current, status: $("statusFilter").value, batch: current === "imports" ? importBatch : undefined });
     list.innerHTML = "";
@@ -1939,6 +1959,276 @@ function categoryTable(rows) {
     th.closest("table").replaceWith(categoryTable(rows));
   }));
   return t;
+}
+
+/* ─────────────── Create (make-your-own cards and recipes, admins only) ─────────────── */
+// Writes go through admin-api (content_list / content_get / content_save /
+// content_toggle), which logs every change. The app shows one MYO card per
+// product: the deepest active card whose category_path matches exactly, lowest
+// display_order first, so the form warns when a path already has a live card.
+
+let createKind = "myo";      // myo | recipe
+let createRows = null;       // list for the current kind
+let createEditing = null;    // row being edited; {} for a new one; null for none
+let myoOptions = null;       // active MYO cards, for linking recipe ingredients
+
+const KIND_LABEL = { myo: "Make-your-own card", recipe: "Recipe" };
+const CREATE_INTRO = {
+  myo: "A make-your-own card is the <strong>one</strong> card shown under a scanned product: the simplest home version of that kind of food. Round one is low-hanging fruit: a few ingredients, few steps, wide buckets. Plain English, no guilt, no wellness waffle.",
+  recipe: "Recipes live in the app's Recipes section. An ingredient can point at a make-your-own card, so \"jam\" links to the jam card. Steps are numbered in the order you write them.",
+};
+const splitPath = (p) => { const [category_l1, category_l2, category_l3, category_l4] = String(p || "").split("/"); return { category_l1, category_l2, category_l3, category_l4 }; };
+const pickerPath = (sel) => [sel.l1.value, sel.l2.value, sel.l3.value, sel.l4.value].filter(Boolean).join("/");
+const pathWords = (p) => String(p || "").split("/").filter(Boolean).map(nice).join(" › ");
+
+async function renderCreate(reload = false) {
+  const list = $("list");
+  if (!createRows || reload) {
+    list.innerHTML = `<div class="empty">Loading…</div>`;
+    try { createRows = (await api("content_list", { kind: createKind })).rows || []; }
+    catch (e) { list.innerHTML = `<div class="empty">Couldn't load: ${esc(e.message)}</div>`; return; }
+  }
+  list.innerHTML = "";
+
+  const head = el("div", { class: "create-head" });
+  head.appendChild(el("label", { style: "margin:0" }, "I'm making a"));
+  const kindSel = el("select");
+  for (const [k, label] of Object.entries(KIND_LABEL)) kindSel.appendChild(el("option", { value: k }, esc(label)));
+  kindSel.value = createKind;
+  kindSel.addEventListener("change", () => { createKind = kindSel.value; createRows = null; createEditing = null; renderCreate(); });
+  head.appendChild(kindSel);
+  head.appendChild(button(`New ${createKind === "myo" ? "card" : "recipe"}`, "primary small", () => { createEditing = {}; renderCreate(); }));
+  head.appendChild(el("span", { class: "grow" }));
+  head.appendChild(button("Refresh", "quiet small", () => renderCreate(true)));
+  list.appendChild(head);
+  list.appendChild(el("p", { class: "hint" }, CREATE_INTRO[createKind]));
+
+  if (createEditing) list.appendChild(createKind === "myo" ? await myoForm(createEditing) : await recipeForm(createEditing));
+  list.appendChild(contentListCard());
+}
+
+function contentListCard() {
+  const rows = createRows || [];
+  const c = card(`<div class="row-head"><h3>${createKind === "myo" ? "Cards" : "Recipes"} <span class="meta">· ${rows.length}</span></h3></div>`);
+  const wrap = el("div", { class: "content-list" });
+  if (!rows.length) wrap.appendChild(el("div", { class: "empty" }, "Nothing yet."));
+  for (const r of rows) {
+    const line = el("div", { class: "mini" + (r.is_active ? "" : " off") });
+    const bits = createKind === "myo"
+      ? [`<code>${esc(r.category_path)}</code>`, r.time_minutes ? `${r.time_minutes} min` : "", r.display_order ? `order ${r.display_order}` : ""]
+      : [`${r.ingredient_count} ingredients`, `${r.step_count} steps`, r.is_povo_food ? "Povo Food" : ""];
+    line.appendChild(el("div", { class: "grow" }, `<strong>${esc(r.title)}</strong>${r.subtitle ? ` <span class="meta">· ${esc(r.subtitle)}</span>` : ""}
+      <div class="meta">${bits.filter(Boolean).join(" · ")}${r.is_active ? "" : ` · <span class="tag warn" style="margin:0">switched off</span>`}</div>`));
+    line.appendChild(button("Edit", "quiet small", async (e) => {
+      e.target.disabled = true;
+      try { createEditing = (await api("content_get", { kind: createKind, id: r.id })).row; renderCreate(); window.scrollTo({ top: 0, behavior: "smooth" }); }
+      catch (err) { toast("Couldn't open it: " + err.message); e.target.disabled = false; }
+    }));
+    line.appendChild(button(r.is_active ? "Switch off" : "Switch on", "quiet small", (e) => run(e.target,
+      () => api("content_toggle", { kind: createKind, id: r.id, is_active: !r.is_active }).then((res) => { createRows = null; return res; }),
+      r.is_active ? "Switched off: hidden in the app" : "Switched on")));
+    wrap.appendChild(line);
+  }
+  c.appendChild(wrap);
+  return c;
+}
+
+// Shared form bits
+function field(label, input, hint) {
+  const w = el("div");
+  w.appendChild(el("label", {}, esc(label)));
+  w.appendChild(input);
+  if (hint) w.appendChild(el("div", { class: "hint", style: "margin:4px 0 0" }, hint));
+  return w;
+}
+const textInput = (value, placeholder = "") => { const i = el("input", { type: "text", placeholder }); i.value = value ?? ""; return i; };
+const numInput = (value, placeholder = "") => { const i = el("input", { type: "text", inputmode: "numeric", placeholder, style: "max-width:120px" }); i.value = value ?? ""; return i; };
+const areaInput = (value, placeholder = "", rows = 3) => { const t = el("textarea", { placeholder, rows }); t.value = value ?? ""; return t; };
+function selectInput(options, value, placeholder) {
+  const s = el("select"); s.appendChild(el("option", { value: "" }, esc(placeholder)));
+  for (const o of options) s.appendChild(el("option", { value: o }, esc(nice(o))));
+  s.value = value ?? ""; return s;
+}
+function checkInput(label, checked) {
+  const l = el("label", { class: "switch", style: "margin-top:12px" });
+  const c = el("input", { type: "checkbox" }); c.checked = !!checked;
+  l.append(c, document.createTextNode(" " + label));
+  return { el: l, input: c };
+}
+const ING_SEP = /\s+[—–|]\s+/;
+const ingLinesToJson = (text) => text.split("\n").map((l) => l.trim()).filter(Boolean).map((l) => { const [item, ...rest] = l.split(ING_SEP); return { item: item.trim(), note: rest.join(" — ").trim() || null }; });
+const ingJsonToLines = (arr) => (arr || []).map((i) => i.note ? `${i.item} — ${i.note}` : i.item).join("\n");
+
+async function myoForm(row) {
+  const isNew = !row.id;
+  const c = card(`<div class="row-head"><h3>${isNew ? "New make-your-own card" : `Editing: ${esc(row.title)}`}</h3></div>`);
+  const f = el("div", { class: "create-form" });
+
+  // Category path
+  f.appendChild(el("label", {}, "Shown under products in"));
+  const { picker, sel } = buildCatPicker(splitPath(row.category_path));
+  f.appendChild(picker);
+  const pathline = el("div", { class: "pathline" });
+  f.appendChild(pathline);
+  const clash = el("div", { class: "warnbox hidden" });
+  f.appendChild(clash);
+  const updatePath = async () => {
+    const p = pickerPath(sel);
+    if (!p) { pathline.innerHTML = "Pick at least the category. A card on a category alone covers every product in it unless a deeper card exists."; clash.classList.add("hidden"); return; }
+    const tax = await loadTaxonomy();
+    const parts = p.split("/");
+    const n = tax.filter((t) => parts.every((v, i) => t[["category_l1", "category_l2", "category_l3", "category_l4"][i]] === v)).reduce((a, t) => a + Number(t.n || 0), 0);
+    pathline.innerHTML = `Path <code>${esc(p)}</code> · ${nfmt(n)} product${n === 1 ? "" : "s"} in the catalogue · a deeper card on the same branch wins over this one.`;
+    const others = (createRows || []).filter((r) => r.category_path === p && r.is_active && r.id !== row.id);
+    clash.classList.toggle("hidden", !others.length);
+    if (others.length) clash.innerHTML = `<strong>Already a live card here:</strong> ${others.map((o) => esc(o.title)).join(", ")}. The app shows only one card per product (lowest display order), so switch the other off or change this path.`;
+  };
+  for (const s of Object.values(sel)) s.addEventListener("change", updatePath);
+  setTimeout(updatePath, 300);
+
+  const title = textInput(row.title, "e.g. Fruit yoghurt");
+  const subtitle = textInput(row.subtitle, "One line under the title, e.g. Natural yoghurt, real fruit, done");
+  const description = areaInput(row.description, "What it is, in a sentence or two. The app shows this first.", 3);
+  const why = areaInput(row.why_it_helps, "What the shop version usually adds, and what this leaves out. Facts, not fear.", 3);
+  const ings = areaInput(ingJsonToLines(row.ingredients), "One per line, quantity included. Add a note after a dash:\n150g natural yoghurt — plain or Greek\nA handful of fruit — whatever is in", 6);
+  ings.className = "ing";
+  const instructions = areaInput(row.instructions, "How to make it, as a short paragraph. Keep the steps few.", 4);
+  const tips = areaInput(row.tips, "Optional: batch, storage, swaps.", 2);
+  const time = numInput(row.time_minutes, "minutes");
+  const cost = selectInput(["cheap", "moderate", "expensive"], row.cost_band, "cost…");
+  const diff = selectInput(["easy", "medium", "hard"], row.difficulty, "difficulty…");
+  const tags = textInput((row.tags || []).join(", "), "comma separated, e.g. myo, breakfast, quick");
+  const order = numInput(row.display_order ?? 1, "1");
+  const active = checkInput("Live in the app", row.is_active !== false);
+
+  const two = el("div", { class: "grid2" });
+  two.append(field("Title", title), field("Subtitle", subtitle));
+  f.appendChild(two);
+  f.appendChild(field("What it is", description));
+  f.appendChild(field("Why it helps", why));
+  f.appendChild(field("Ingredients", ings, "One per line. The app shows the line as written, so put the quantity in it."));
+  f.appendChild(field("How to make it", instructions));
+  f.appendChild(field("Tips", tips));
+  const three = el("div", { class: "grid3" });
+  three.append(field("Time", time), field("Cost", cost), field("Difficulty", diff));
+  f.appendChild(three);
+  const two2 = el("div", { class: "grid2" });
+  two2.append(field("Tags", tags), field("Display order", order, "Lowest wins when two cards share a path."));
+  f.appendChild(two2);
+  f.appendChild(active.el);
+
+  const actions = el("div", { class: "actions" });
+  const result = el("div", { class: "result hidden" });
+  actions.appendChild(button(isNew ? "Create card" : "Save changes", "primary", async (e) => {
+    const path = pickerPath(sel);
+    if (!path) { toast("Pick where the card is shown first."); return; }
+    if (!title.value.trim()) { toast("It needs a title."); return; }
+    e.target.disabled = true;
+    try {
+      const res = await api("content_save", {
+        kind: "myo", id: row.id || null, category_path: path, title: title.value, subtitle: subtitle.value, description: description.value,
+        why_it_helps: why.value, ingredients: ingLinesToJson(ings.value), instructions: instructions.value, tips: tips.value,
+        time_minutes: time.value || null, cost_band: cost.value || null, difficulty: diff.value || null, tags: tags.value,
+        display_order: order.value || 0, is_active: active.input.checked,
+      });
+      toast(isNew ? "Card created" : "Card saved");
+      createRows = null; myoOptions = null; createEditing = res.card;
+      await renderCreate();
+      if (res.clashes?.length) toast(`Saved, but ${res.clashes.map((o) => o.title).join(", ")} is also live on that path`);
+    } catch (err) { toast("Couldn't save: " + err.message); e.target.disabled = false; }
+  }));
+  actions.appendChild(button("Cancel", "quiet", () => { createEditing = null; renderCreate(); }));
+  f.append(actions, result);
+  c.appendChild(f);
+  return c;
+}
+
+async function loadMyoOptions() {
+  if (!myoOptions) {
+    const rows = createKind === "myo" && createRows ? createRows : (await api("content_list", { kind: "myo" })).rows || [];
+    myoOptions = rows.filter((r) => r.is_active).map((r) => ({ id: r.id, title: r.title, path: r.category_path })).sort((a, b) => a.title.localeCompare(b.title));
+  }
+  return myoOptions;
+}
+
+async function recipeForm(row) {
+  const isNew = !row.id;
+  const options = await loadMyoOptions();
+  const c = card(`<div class="row-head"><h3>${isNew ? "New recipe" : `Editing: ${esc(row.title)}`}</h3></div>`);
+  const f = el("div", { class: "create-form" });
+
+  const title = textInput(row.title, "e.g. Raspberry jam");
+  const subtitle = textInput(row.subtitle, "One line under the title");
+  const intro = areaInput(row.intro_text, "A sentence or two before the ingredients.", 2);
+  const time = numInput(row.time_minutes, "minutes");
+  const cost = selectInput(["cheap", "moderate", "expensive"], row.cost_band, "cost…");
+  const diff = selectInput(["easy", "medium", "hard"], row.difficulty, "difficulty…");
+  const tags = textInput((row.tags || []).join(", "), "comma separated, e.g. breakfast, batch_cook");
+  const povo = checkInput("Povo Food recipe", row.is_povo_food === true);
+  const active = checkInput("Live in the app", row.is_active !== false);
+
+  const two = el("div", { class: "grid2" });
+  two.append(field("Title", title), field("Subtitle", subtitle));
+  f.appendChild(two);
+  f.appendChild(field("Intro", intro));
+  const three = el("div", { class: "grid3" });
+  three.append(field("Time", time), field("Cost", cost), field("Difficulty", diff));
+  f.appendChild(three);
+  f.appendChild(field("Tags", tags));
+
+  // Ingredients: quantity · name · optional link to a make-your-own card
+  f.appendChild(el("label", {}, "Ingredients"));
+  const rows = el("div", { class: "ing-rows" });
+  const addIng = (i = {}) => {
+    const r = el("div", { class: "ing-row" });
+    const qty = textInput(i.quantity, "quantity");
+    const name = textInput(i.ingredient_name, "ingredient");
+    const link = el("select");
+    link.appendChild(el("option", { value: "" }, "no card link"));
+    for (const o of options) link.appendChild(el("option", { value: o.id }, esc(o.title)));
+    link.value = i.myo_card_id || "";
+    link.addEventListener("change", () => { if (link.value && !name.value.trim()) name.value = options.find((o) => o.id === link.value)?.title || ""; });
+    const x = el("button", { type: "button", class: "x", title: "Remove" }, "×");
+    x.addEventListener("click", () => r.remove());
+    r.append(qty, name, link, x);
+    rows.appendChild(r);
+  };
+  for (const i of row.recipe_ingredients || []) addIng(i);
+  if (!(row.recipe_ingredients || []).length) { addIng(); addIng(); addIng(); }
+  f.appendChild(rows);
+  const addBtn = el("div", { class: "actions", style: "margin-top:8px" });
+  addBtn.appendChild(button("Add ingredient", "quiet small", () => addIng()));
+  f.appendChild(addBtn);
+
+  const steps = areaInput((row.recipe_steps || []).map((s) => s.instruction).join("\n"), "One step per line. They're numbered in this order.", 6);
+  steps.className = "ing";
+  f.appendChild(field("Steps", steps, "One per line, no numbers needed."));
+  f.append(povo.el, active.el);
+
+  const actions = el("div", { class: "actions" });
+  actions.appendChild(button(isNew ? "Create recipe" : "Save changes", "primary", async (e) => {
+    const ingredients = [...rows.querySelectorAll(".ing-row")].map((r) => { const [q, n, l] = r.querySelectorAll("input, select"); return { quantity: q.value, ingredient_name: n.value, myo_card_id: l.value || null }; })
+      .filter((i) => i.ingredient_name.trim());
+    const stepList = steps.value.split("\n").map((s) => s.trim()).filter(Boolean);
+    if (!title.value.trim()) { toast("It needs a title."); return; }
+    if (!ingredients.length) { toast("Add at least one ingredient."); return; }
+    if (!stepList.length) { toast("Add at least one step."); return; }
+    e.target.disabled = true;
+    try {
+      const res = await api("content_save", {
+        kind: "recipe", id: row.id || null, title: title.value, subtitle: subtitle.value, intro_text: intro.value,
+        time_minutes: time.value || null, cost_band: cost.value || null, difficulty: diff.value || null, tags: tags.value,
+        is_povo_food: povo.input.checked, is_active: active.input.checked, ingredients, steps: stepList,
+      });
+      toast(isNew ? "Recipe created" : "Recipe saved");
+      createRows = null; createEditing = res.recipe;
+      await renderCreate();
+    } catch (err) { toast("Couldn't save: " + err.message); e.target.disabled = false; }
+  }));
+  actions.appendChild(button("Cancel", "quiet", () => { createEditing = null; renderCreate(); }));
+  f.appendChild(actions);
+  c.appendChild(f);
+  return c;
 }
 
 /* ─────────────── Team ─────────────── */
