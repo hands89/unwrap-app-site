@@ -233,6 +233,13 @@
   .num-table td:first-child { word-break: normal; }
   .num-table th { font-size: 12px; font-weight: 600; color: var(--muted); }
   .num-table .r { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* Score spread tab (admins only) */
+  .spread-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); margin-top: 8px; }
+  .spread-legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; background: var(--c); }
+  .num-table th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+  .num-table th.sortable:hover { color: var(--text); }
+  .num-table th.sortable[aria-sort] { color: var(--primary); }
 </style>
 </head>
 <body>
@@ -318,7 +325,8 @@ const QUEUES = {
   log:              { label: "Change log",       statuses: ["all", "edits", "resolutions", "quarantine"],
                       statusLabels: { all: "everything", edits: "product changes", resolutions: "reports closed", quarantine: "quarantine and submissions" } },
   numbers:          { label: "Numbers",          statuses: [], adminOnly: true, custom: true },
-  team:             { label: "Team",             statuses: [], adminOnly: true },
+  spread:           { label: "Score spread",     statuses: [], adminOnly: true, custom: true },
+  team:            { label: "Team",             statuses: [], adminOnly: true },
 };
 const STATUS_LABELS = { scoring_review: "scoring review", needs_review: "needs review" };
 
@@ -499,7 +507,7 @@ function select(key) {
   for (const s of QUEUES[key].statuses) {
     sel.appendChild(el("option", { value: s }, esc(QUEUES[key].statusLabels?.[s] || nice(s))));
   }
-  $("toolbar").classList.toggle("hidden", key === "team" || key === "lookup" || key === "numbers");
+  $("toolbar").classList.toggle("hidden", key === "team" || key === "lookup" || key === "numbers" || key === "spread");
   load();
 }
 
@@ -522,6 +530,7 @@ async function load() {
     if (current === "team") return renderTeam((await api("team")).team);
     if (current === "lookup") return renderLookup();
     if (current === "numbers") return isAdmin() ? await renderNumbers() : (list.innerHTML = `<div class="empty">Numbers are for admins.</div>`);
+    if (current === "spread") return isAdmin() ? await renderSpread() : (list.innerHTML = `<div class="empty">Score spread is for admins.</div>`);
     if (current === "log") return await renderLog();
     const { rows } = await api("list", { queue: current, status: $("statusFilter").value, batch: current === "imports" ? importBatch : undefined });
     list.innerHTML = "";
@@ -1764,6 +1773,172 @@ async function downloadNumbers(btn) {
     XLSX.writeFile(wb, `unwrap_numbers_${d.generated_at.slice(0, 10)}.xlsx`, { cellDates: true });
   } catch (e) { toast("Download failed: " + e.message); }
   btn.disabled = false;
+}
+
+/* ─────────────── Score spread (admins only) ─────────────── */
+// Where the scored catalogue lands on the 1.0–10.0 scale, from the SQL
+// function public.admin_score_spread() (aggregates only, nothing per product).
+// Used to judge the scoring model and the processing-floors work.
+
+let spreadData = null;
+let spreadSort = { key: "p50", dir: -1 };
+
+async function spreadApi() {
+  const { data, error } = await sb.rpc("admin_score_spread");
+  if (error) {
+    if (/JWT|not authenticated|401/i.test(error.message)) await showLogin();
+    throw new Error(error.message);
+  }
+  return data;
+}
+
+const pct = (n, of) => of ? (100 * n / of).toFixed(1) + "%" : "—";
+const fx = (v) => v == null ? "—" : Number(v).toFixed(1);
+
+async function renderSpread(force = false) {
+  const list = $("list");
+  if (!spreadData || force) {
+    list.innerHTML = `<div class="empty">Working out the spread…</div>`;
+    try { spreadData = await spreadApi(); }
+    catch (e) { list.innerHTML = `<div class="empty">Couldn't load the spread: ${esc(e.message)}</div>`; return; }
+  }
+  const d = spreadData, scored = d.scored_products || 0;
+  list.innerHTML = "";
+
+  const head = el("div", { class: "num-head" });
+  head.appendChild(el("p", { class: "hint", style: "margin:0" },
+    `Where the ${nfmt(scored)} scored products land under the live engine. Last product scored <strong>${esc(when(d.last_scored_at))}</strong>; figures worked out ${esc(when(d.generated_at))}.`));
+  const btns = el("div", { class: "actions", style: "margin:0" });
+  btns.appendChild(button("Refresh", "quiet small", () => renderSpread(true)));
+  head.appendChild(btns);
+  list.appendChild(head);
+
+  // Headline figures
+  const nova = d.nova_groups || {}, nova4 = Number(nova["4"] || 0);
+  const mid = (d.by_ingredient_count || []).find((g) => g.group === "7-12");
+  const tiles = [
+    ["Scored products", nfmt(scored), `${nfmt(d.unscored_products)} live without a score`],
+    ["Exactly 1.0", nfmt(d.exact_1_0), `${pct(d.exact_1_0, scored)} of scored`],
+    ["Above 8.0", nfmt(d.above_8), `${pct(d.above_8, scored)} of scored`],
+    ["NOVA 4 found", nfmt(nova4), `${pct(nova4, scored)} of scored`],
+    ["Median · 7–12 ingredients", mid ? fx(mid.p50) : "—", mid ? `the biggest group, ${nfmt(mid.n)} products` : ""],
+  ];
+  const grid = el("div", { class: "stat-grid" });
+  for (const [label, n, sub] of tiles) grid.appendChild(el("div", { class: "stat" }, `<span class="k">${esc(label)}</span><span class="n">${n}</span><span class="s">${esc(sub)}</span>`));
+  list.appendChild(grid);
+
+  // Histogram. The function's first bin covers 1.0–1.4; exact_1_0 splits it so the 1.0 wall stands alone.
+  const bins = [];
+  for (const h of d.histogram || []) {
+    const b = Number(h.bin), n = Number(h.n);
+    if (b === 1) { bins.push(["1.0", d.exact_1_0, true]); bins.push(["1.1–1.4", Math.max(0, n - d.exact_1_0), false]); }
+    else bins.push([b >= 9 ? "9.0+" : `${b.toFixed(1)}–${(b + 0.4).toFixed(1)}`, n, false]);
+  }
+  list.appendChild(card(`<div class="row-head"><h3>The whole spread</h3></div>
+    <p class="hint">Products per half-point of score. 1.0 is shown on its own, so the wall of single-ingredient products is visible next to everything else.</p>
+    ${spreadHistogram(bins)}`));
+
+  // Range charts
+  list.appendChild(card(`<div class="row-head"><h3>Score by number of ingredients</h3></div>
+    <p class="hint">Light bar: 10th to 90th percentile. Dark bar: middle half (25th to 75th). Tick: median. Rows are ingredient-count groups.</p>
+    ${rangeChart(d.by_ingredient_count || [])}`));
+  list.appendChild(card(`<div class="row-head"><h3>Score by flagged ingredients</h3></div>
+    <p class="hint">Same encoding. Rows are how many processing markers the product carries.</p>
+    ${rangeChart(d.by_marker_count || [])}`));
+
+  // Bands
+  const SERIES = [["single_ingredient", "Single ingredient", "var(--primary)"], ["multi_no_markers", "Multi-ingredient, no markers", "var(--primary-pale)"],
+    ["markers_1_4", "1–4 markers", "var(--mod)"], ["markers_5_plus", "5+ markers", "var(--high)"]];
+  const bandCard = card(`<div class="row-head"><h3>What is in each band</h3></div>
+    <p class="hint">The six-band model: 1.0 whole single ingredient · 1.1–2.0 single ingredient, one process · 2.1–4.0 heavily processed single or very clean multi · 4.1–6.0 multi with minimal markers · 6.1–8.0 multi with under five markers · 8.1+ ultra-processed. Bars show who actually lives in each band today.</p>
+    ${bandChart(d.bands || [], SERIES)}
+    <div class="spread-legend">${SERIES.map(([, name, c]) => `<span style="--c:${c}">${esc(name)}</span>`).join("")}</div>`);
+  list.appendChild(bandCard);
+
+  // Categories
+  const catCard = card(`<div class="row-head"><h3>By category</h3></div>
+    <p class="hint">Click a heading to sort. Minimal is 3.0 and under; ultra is 7.0 and over.</p>
+    <div class="table-wrap"></div>`);
+  catCard.querySelector(".table-wrap").appendChild(categoryTable(d.by_category || []));
+  list.appendChild(catCard);
+}
+
+function spreadHistogram(bins) {
+  const W = 940, H = 280, pl = 56, pr = 10, pt = 18, pb = 40;
+  const top = Math.max(...bins.map((b) => b[1]), 1);
+  const step = top > 20000 ? 5000 : top > 8000 ? 2500 : top > 2000 ? 1000 : top > 500 ? 250 : 50;
+  const max = Math.ceil(top / step) * step;
+  const cw = (W - pl - pr) / bins.length, bw = cw * 0.78, y = (v) => pt + (H - pt - pb) * (1 - v / max);
+  let s = `<svg class="bars-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Histogram of scores">`;
+  for (let t = 0; t <= max; t += step) s += `<line x1="${pl}" x2="${W - pr}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)"/><text x="${pl - 6}" y="${y(t) + 4}" text-anchor="end">${nfmt(t)}</text>`;
+  bins.forEach(([label, v, hot], i) => {
+    const x = pl + i * cw + (cw - bw) / 2;
+    s += `<rect x="${x}" y="${y(v)}" width="${bw}" height="${Math.max(0, y(0) - y(v))}" rx="3" fill="${hot ? "var(--primary)" : "var(--primary-pale)"}"><title>${esc(label)}: ${nfmt(v)} products</title></rect>`;
+    if (hot || v >= max * 0.3) s += `<text x="${x + bw / 2}" y="${y(v) - 5}" text-anchor="middle" style="fill:var(--text);font-weight:600">${nfmt(v)}</text>`;
+    s += `<text x="${x + bw / 2}" y="${H - pb + 16}" text-anchor="middle" style="font-size:11px">${esc(label)}</text>`;
+  });
+  s += `<line x1="${pl}" x2="${W - pr}" y1="${y(0)}" y2="${y(0)}" stroke="var(--muted)"/>`;
+  s += `<text x="${pl}" y="${H - 6}" style="font-size:11px">Score</text>`;
+  return s + "</svg>";
+}
+
+function rangeChart(rows) {
+  const W = 940, rowH = 40, pl = 64, pr = 150, pt = 22, pb = 34, pw = W - pl - pr, H = pt + rowH * rows.length + pb;
+  const x = (v) => pl + pw * (Number(v) - 1) / 9;
+  let s = `<svg class="bars-svg" viewBox="0 0 ${W} ${H}" role="img">`;
+  for (let v = 1; v <= 10; v++) s += `<line x1="${x(v)}" x2="${x(v)}" y1="${pt - 8}" y2="${H - pb}" stroke="var(--line)"/><text x="${x(v)}" y="${H - pb + 16}" text-anchor="middle" style="font-size:11px">${v.toFixed(1)}</text>`;
+  rows.forEach((r, i) => {
+    const y = pt + i * rowH + rowH / 2;
+    const tip = `<title>${esc(r.group)}: p10 ${fx(r.p10)} · p25 ${fx(r.p25)} · median ${fx(r.p50)} · p75 ${fx(r.p75)} · p90 ${fx(r.p90)} · n ${nfmt(r.n)}</title>`;
+    s += `<text x="${pl - 10}" y="${y + 4}" text-anchor="end" style="fill:var(--text);font-weight:600">${esc(String(r.group).replace("-", "–"))}</text>`;
+    s += `<rect x="${x(r.p10)}" y="${y - 9}" width="${Math.max(x(r.p90) - x(r.p10), 3)}" height="18" rx="4" fill="var(--primary-wash)">${tip}</rect>`;
+    s += `<rect x="${x(r.p25)}" y="${y - 9}" width="${Math.max(x(r.p75) - x(r.p25), 3)}" height="18" rx="4" fill="var(--primary-pale)">${tip}</rect>`;
+    s += `<rect x="${x(r.p50) - 1.5}" y="${y - 11}" width="3" height="22" rx="1" fill="var(--primary)"/>`;
+    s += `<text x="${x(r.p90) + 10}" y="${y + 4}" style="fill:var(--text)">${fx(r.p50)} <tspan style="fill:var(--muted)">· n ${nfmt(r.n)}</tspan></text>`;
+  });
+  s += `<text x="${pl}" y="${H - 4}" style="font-size:11px">Score</text>`;
+  return s + "</svg>";
+}
+
+function bandChart(bands, series) {
+  const W = 940, rowH = 44, pl = 70, pr = 74, pt = 10, pb = 30, pw = W - pl - pr, H = pt + rowH * bands.length + pb;
+  const max = Math.max(...bands.map((b) => Number(b.n) || 0), 1);
+  const step = max > 10000 ? 5000 : max > 2000 ? 1000 : 250, top = Math.ceil(max / step) * step;
+  const x = (v) => pl + pw * v / top;
+  let s = `<svg class="bars-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="What is in each band">`;
+  for (let t = 0; t <= top; t += step) s += `<line x1="${x(t)}" x2="${x(t)}" y1="${pt}" y2="${H - pb}" stroke="var(--line)"/><text x="${x(t)}" y="${H - pb + 16}" text-anchor="middle" style="font-size:11px">${nfmt(t)}</text>`;
+  bands.forEach((b, i) => {
+    const y = pt + i * rowH + 8;
+    let cx = pl;
+    s += `<text x="${pl - 10}" y="${y + 18}" text-anchor="end" style="fill:var(--text);font-weight:600">${esc(String(b.band).replace("-", "–"))}</text>`;
+    for (const [key, name, col] of series) {
+      const v = Number(b[key]) || 0; if (!v) continue;
+      const w = pw * v / top;
+      s += `<rect x="${cx + 1}" y="${y}" width="${Math.max(w - 2, 1)}" height="26" rx="3" fill="${col}"><title>${esc(b.band)} · ${esc(name)}: ${nfmt(v)}</title></rect>`;
+      cx += w;
+    }
+    s += `<text x="${cx + 8}" y="${y + 18}" style="fill:var(--text)">${nfmt(b.n)}</text>`;
+  });
+  return s + "</svg>";
+}
+
+function categoryTable(rows) {
+  const cols = [["category", "Category", false], ["n", "Products", true], ["p50", "Median", true], ["pct_minimal", "Minimal", true], ["pct_ultra", "Ultra", true]];
+  const sorted = rows.slice().sort((a, b) => {
+    const k = spreadSort.key, av = a[k], bv = b[k];
+    if (k === "category") { if (!av !== !bv) return av ? -1 : 1; return spreadSort.dir * catLabel(av).localeCompare(catLabel(bv)); }
+    return spreadSort.dir * ((Number(av) || 0) - (Number(bv) || 0)) || (Number(b.n) - Number(a.n));
+  });
+  const t = el("table", { class: "num-table" });
+  t.innerHTML = `<thead><tr>${cols.map(([k, label, num]) =>
+    `<th class="sortable${num ? " r" : ""}" data-key="${k}"${spreadSort.key === k ? ` aria-sort="${spreadSort.dir < 0 ? "descending" : "ascending"}"` : ""}>${esc(label)}${spreadSort.key === k ? (spreadSort.dir < 0 ? " ↓" : " ↑") : ""}</th>`).join("")}</tr></thead>
+    <tbody>${sorted.map((r) => `<tr><td>${r.category ? esc(catLabel(r.category)) : `<span class="meta">No category</span>`}</td><td class="r">${nfmt(r.n)}</td><td class="r">${fx(r.p50)}</td><td class="r">${fx(r.pct_minimal)}%</td><td class="r">${fx(r.pct_ultra)}%</td></tr>`).join("")}</tbody>`;
+  t.querySelectorAll("th.sortable").forEach((th) => th.addEventListener("click", () => {
+    const k = th.dataset.key;
+    spreadSort = spreadSort.key === k ? { key: k, dir: -spreadSort.dir } : { key: k, dir: k === "category" ? 1 : -1 };
+    th.closest("table").replaceWith(categoryTable(rows));
+  }));
+  return t;
 }
 
 /* ─────────────── Team ─────────────── */
