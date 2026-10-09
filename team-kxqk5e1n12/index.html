@@ -2180,7 +2180,7 @@ async function recipeForm(row) {
   f.appendChild(el("label", {}, "Ingredients"));
   const rows = el("div", { class: "ing-rows" });
   const addIng = (i = {}) => {
-    const r = el("div", { class: "ing-row" });
+    const r = el("div", { class: "ing-row", "data-id": i.id || "" });
     const qty = textInput(i.quantity, "quantity");
     const name = textInput(i.ingredient_name, "ingredient");
     const link = el("select");
@@ -2207,7 +2207,7 @@ async function recipeForm(row) {
 
   const actions = el("div", { class: "actions" });
   actions.appendChild(button(isNew ? "Create recipe" : "Save changes", "primary", async (e) => {
-    const ingredients = [...rows.querySelectorAll(".ing-row")].map((r) => { const [q, n, l] = r.querySelectorAll("input, select"); return { quantity: q.value, ingredient_name: n.value, myo_card_id: l.value || null }; })
+    const ingredients = [...rows.querySelectorAll(".ing-row")].map((r) => { const [q, n, l] = r.querySelectorAll("input, select"); return { id: r.dataset.id || null, quantity: q.value, ingredient_name: n.value, myo_card_id: l.value || null }; })
       .filter((i) => i.ingredient_name.trim());
     const stepList = steps.value.split("\n").map((s) => s.trim()).filter(Boolean);
     if (!title.value.trim()) { toast("It needs a title."); return; }
