@@ -1815,19 +1815,30 @@ async function spreadApi() {
 const pct = (n, of) => of ? (100 * n / of).toFixed(1) + "%" : "—";
 const fx = (v) => v == null ? "—" : Number(v).toFixed(1);
 
+// The figures are a snapshot (admin_score_spread_snapshots): the full count
+// takes a few seconds, longer than a signed-in query is allowed, so it runs
+// every six hours in the database and on demand from the Refresh button
+// through admin-api.
 async function renderSpread(force = false) {
   const list = $("list");
   if (!spreadData || force) {
-    list.innerHTML = `<div class="empty">Working out the spread…</div>`;
-    try { spreadData = await spreadApi(); }
-    catch (e) { list.innerHTML = `<div class="empty">Couldn't load the spread: ${esc(e.message)}</div>`; return; }
+    list.innerHTML = `<div class="empty">${force ? "Counting every product again, give it a few seconds…" : "Loading…"}</div>`;
+    try {
+      if (force) await api("score_spread_refresh");
+      spreadData = await spreadApi();
+    } catch (e) { list.innerHTML = `<div class="empty">Couldn't load the spread: ${esc(e.message)}</div>`; return; }
+  }
+  if (!spreadData) {
+    list.innerHTML = `<div class="empty">No snapshot yet.</div>`;
+    list.appendChild(el("div", { class: "actions", style: "justify-content:center" })).appendChild(button("Count now", "primary", () => renderSpread(true)));
+    return;
   }
   const d = spreadData, scored = d.scored_products || 0;
   list.innerHTML = "";
 
   const head = el("div", { class: "num-head" });
   head.appendChild(el("p", { class: "hint", style: "margin:0" },
-    `Where the ${nfmt(scored)} scored products land under the live engine. Last product scored <strong>${esc(when(d.last_scored_at))}</strong>; figures worked out ${esc(when(d.generated_at))}.`));
+    `Where the ${nfmt(scored)} scored products land under the live engine. Snapshot from <strong>${esc(when(d.refreshed_at || d.generated_at))}</strong>, refreshed every six hours; last product scored ${esc(when(d.last_scored_at))}.`));
   const btns = el("div", { class: "actions", style: "margin:0" });
   btns.appendChild(button("Refresh", "quiet small", () => renderSpread(true)));
   head.appendChild(btns);
