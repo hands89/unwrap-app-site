@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Press and partner information for Unwrap — a free UK app that helps families read food labels in plain English." />
+  <!-- Unlisted until approved: remove this line and add the footer link to publish -->
+  <meta name="robots" content="noindex" />
+  <title>Unwrap — Press &amp; partners</title>
+
+  <link rel="icon" type="image/png" href="/assets/images/logo.png" />
+  <link rel="apple-touch-icon" href="/assets/images/logo.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/theme.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth.js"></script>
+  <style>
+    .facts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
+    .fact { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; box-shadow: var(--shadow-sm); }
+    .fact-k { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--green-dark); margin-bottom: 4px; }
+    .fact-v { font-size: 14px; color: var(--text); line-height: 1.5; }
+    .section-h { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: var(--green-dark); margin: 30px 0 10px; }
+    .is-isnt { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .is-isnt .card { margin: 0; }
+    .asset-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .asset-row img { width: 72px; height: 72px; object-fit: contain; background: var(--white); border-radius: 18px; box-shadow: var(--shadow-sm); padding: 6px; }
+    a:focus-visible, .btn:focus-visible { outline: 3px solid var(--green-dark); outline-offset: 2px; border-radius: 6px; }
+    @media (max-width: 640px) {
+      .facts, .is-isnt { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap wrap--narrow">
+    <header class="site-header">
+      <a href="/" class="brand">
+        <img src="/assets/images/logo.png" alt="Unwrap" class="brand-logo" width="34" height="34">
+        <span class="brand-name">Unwrap</span>
+      </a>
+
+      <button class="menu-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="nav">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/">Home</a>
+        <a href="/evidence.html">Evidence &amp; approach</a>
+        <a href="/login.html" class="nav-account">Sign in</a>
+      </nav>
+    </header>
+
+    <main>
+      <h1 class="page-title">Press &amp; partners</h1>
+      <p class="page-sub">Most of us were never taught to read a food label. Unwrap is a free app that does it with you, in plain English.</p>
+
+      <div class="facts">
+        <div class="fact"><div class="fact-k">What</div><div class="fact-v">A barcode-scanning app that explains what's in packaged food and how it was made</div></div>
+        <div class="fact"><div class="fact-k">Who</div><div class="fact-v">Built by Eddy, a serving firefighter and dad, in his time off</div></div>
+        <div class="fact"><div class="fact-k">Where</div><div class="fact-v">Macclesfield, Cheshire. Built for UK shoppers</div></div>
+        <div class="fact"><div class="fact-k">Products</div><div class="fact-v">Over 55,000 UK products and growing, added to by users</div></div>
+        <div class="fact"><div class="fact-k">Cost</div><div class="fact-v">Free to scan, no account needed. Optional pay-what-you-can supporter tier</div></div>
+        <div class="fact"><div class="fact-k">Available</div><div class="fact-v">iPhone now. Android in testing</div></div>
+      </div>
+
+      <h2 class="section-h">The story</h2>
+      <div class="card">
+        <p>Eddy is a firefighter and a dad living in Macclesfield. He built Unwrap on his own, around his shifts.</p>
+        <p>You scan a barcode and Unwrap lists every ingredient in plain English. It tells you what each one is, why it's there, and how processed the food is overall. If you want something simpler, it suggests similar products, other ideas, and easy recipes to make it yourself.</p>
+        <p>Unwrap is built by one person. It isn't funded by investors or food companies, it has no adverts, and it doesn't sell anyone's data. People who scan without an account aren't tracked.</p>
+      </div>
+
+      <h2 class="section-h">Food education, not food fear</h2>
+      <div class="card">
+        <p>Unwrap is about understanding food, not about being told off. There's no guilt, no scare stories and no "good" or "bad" foods. It explains what is on the label so people can make their own choices.</p>
+        <p>It goes alongside cooking and nutrition lessons. The skills are the same ones schools are being asked to teach: knowing where food comes from, how it is made, and how to judge the claims on a packet.</p>
+      </div>
+
+      <div class="is-isnt">
+        <div class="card">
+          <h3>What Unwrap is</h3>
+          <ul class="checklist">
+            <li>A guide to what's in a product, ingredient by ingredient</li>
+            <li>A processing score from 1 to 10, with the working shown</li>
+            <li>Simpler swaps and make-your-own ideas</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>What it isn't</h3>
+          <ul class="checklist">
+            <li>A health or diet score</li>
+            <li>Medical or nutrition advice</li>
+            <li>A list of foods to ban</li>
+          </ul>
+        </div>
+      </div>
+      <p class="fine" style="font-size:13px;color:var(--text-muted);margin-top:10px">The score is worked out only from what is printed on the label. How it works, and where the evidence is still debated, is set out on the <a class="email-link" href="/evidence.html">Evidence &amp; approach</a> page.</p>
+
+      <h2 class="section-h">Schools and food educators</h2>
+      <div class="card">
+        <p>We're making a free "read the label" classroom resource that works without the app. If you teach food, run a school kitchen or support schools with food education, we'd like to hear what would help you.</p>
+      </div>
+
+      <h2 class="section-h">Assets</h2>
+      <div class="card">
+        <div class="asset-row">
+          <img src="/assets/images/logo.png" alt="Unwrap logo" width="72" height="72">
+          <div>
+            <p><a class="email-link" href="/assets/images/logo.png" download="unwrap-logo.png">Download the logo (PNG)</a></p>
+            <p>Screenshots, photos and a live demo are available on request.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Get in touch</h3>
+        <p>For interviews, demos, schools or partnerships, email Eddy directly.</p>
+        <p><a class="email-link" href="mailto:eddy.at.unwrap@gmail.com?subject=Press%20enquiry">eddy.at.unwrap@gmail.com</a></p>
+        <p style="margin-top:14px"><a class="btn btn-primary btn-sm" href="mailto:eddy.at.unwrap@gmail.com?subject=Press%20enquiry">Email Eddy</a></p>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-about">
+        <div class="footer-brand"><img src="/assets/images/logo.png" alt="" width="22" height="22"> Unwrap</div>
+        <p>Understand what's really in your food. No guilt, no lectures — just ingredients in plain English.</p>
+      </div>
+
+      <nav class="footer-nav" aria-label="Site">
+        <div class="footer-h">Pages</div>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/evidence.html">Evidence &amp; approach</a></li>
+          <li><a href="/privacy.html">Privacy</a></li>
+          <li><a href="/support.html">Support</a></li>
+        </ul>
+      </nav>
+
+      <div class="footer-contact">
+        <div class="footer-h">Contact</div>
+        <p>A question, a correction, or something broken?</p>
+        <a class="email-link" href="mailto:eddy.at.unwrap@gmail.com">eddy.at.unwrap@gmail.com</a>
+        <p>Usually answered within 24 hours.</p>
+        <div class="footer-social">
+          <a class="chip" href="https://www.instagram.com/unwrap_your_food/" target="_blank" rel="noopener">Instagram</a>
+          <a class="chip" href="https://www.tiktok.com/@unwrappedapp" target="_blank" rel="noopener">TikTok</a>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span>© <span id="year">2026</span> Unwrap · Independent and ad-free</span>
+        <a href="https://apps.apple.com/gb/app/unwrap-app/id6757312100" target="_blank" rel="noopener">Download on iPhone</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
