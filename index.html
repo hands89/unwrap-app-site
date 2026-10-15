@@ -355,6 +355,9 @@
     }
     .trio-list strong { color: var(--text); font-weight: 600; }
 
+    a.edu-link { color: inherit; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    a.edu-link:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
     .tier-tag {
       margin-top: auto;
       align-self: flex-start;
@@ -457,6 +460,7 @@
       </button>
       <nav class="nav" id="nav" aria-label="Main">
         <a href="/" aria-current="page">Home</a>
+        <a href="/education.html">Education</a>
         <a href="/evidence.html">Evidence &amp; approach</a>
         <a href="/login.html" class="nav-account">Sign in</a>
       </nav>
@@ -485,6 +489,7 @@
         </div>
 
         <p class="fine">Free to scan. UK launch. Available on the App Store.</p>
+        <p class="fine" style="margin-top:6px">Teacher or group leader? <a href="/education.html" style="color:var(--green-dark);font-weight:600;text-decoration:underline">Free food-label lessons</a></p>
       </section>
 
       <!-- Tagline -->
@@ -659,6 +664,40 @@
         </div>
       </section>
 
+      <!-- Education -->
+      <section class="section" id="education">
+        <div class="section-label">Unwrapped Education</div>
+        <h2 class="section-title">Free lessons on reading food labels.</h2>
+        <p class="section-intro">
+          Ready-to-teach packs for primary and secondary schools, Cubs and Scouts: slides, teacher notes,
+          printables and games, with every fact sourced. No food, no tasting and no app needed.
+          Create a free account on the website and download the lot.
+        </p>
+        <div class="trio">
+          <a class="trio-card edu-link" href="/education.html">
+            <h3>Read the Label</h3>
+            <div class="trio-q">Primary · KS2 · ages 7–11</div>
+            <p>Find the ingredients list, sort kitchen words from factory words, and work out why some ingredients are added.</p>
+            <span class="tier-tag">60-minute lesson</span>
+          </a>
+          <a class="trio-card edu-link" href="/education.html">
+            <h3>Behind the Label</h3>
+            <div class="trio-q">Secondary · KS3 · ages 11–14</div>
+            <p>Ingredient percentages, what E numbers are for, the processing spectrum, and checking front-of-pack claims.</p>
+            <span class="tier-tag">60 minutes or two lessons</span>
+          </a>
+          <a class="trio-card edu-link" href="/education.html">
+            <h3>Food Detectives</h3>
+            <div class="trio-q">Cubs, Scouts and other groups</div>
+            <p>Two ready-to-run meeting plans with games and teamwork. No projector, no cooking, just printed cards.</p>
+            <span class="tier-tag">60–75-minute meeting</span>
+          </a>
+        </div>
+        <div class="cta-row" style="justify-content:flex-start;margin-top:22px">
+          <a class="btn btn-primary" href="/education.html">See the free lessons</a>
+        </div>
+      </section>
+
       <!-- Ethos -->
       <section class="section">
         <div class="section-label">Our approach</div>
@@ -691,6 +730,7 @@
             <tr><td>Ingredient breakdown &amp; flags</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
             <tr><td>Scan history</td><td>On this phone</td><td>Synced</td><td>Synced</td></tr>
             <tr><td>Swaps &amp; alternatives</td><td>Preview</td><td class="yes">✓</td><td>✓ + full lists</td></tr>
+            <tr><td>Unwrapped Education lessons</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
             <tr><td>Make Your Own &amp; Recipes</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
           </tbody>
         </table>
@@ -708,6 +748,7 @@
         <div class="footer-h">Pages</div>
         <ul>
           <li><a href="/" aria-current="page">Home</a></li>
+          <li><a href="/education.html">Education</a></li>
           <li><a href="/evidence.html">Evidence &amp; approach</a></li>
           <li><a href="/privacy.html">Privacy</a></li>
           <li><a href="/support.html">Support</a></li>

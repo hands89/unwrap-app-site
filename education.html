@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Free lessons and activities on reading food labels, for primary and secondary schools, Cubs and Scouts. From Unwrapped Education, in association with Unwrap." />
+
+  <meta property="og:title" content="Unwrapped Education — free food-label lessons" />
+  <meta property="og:description" content="Ready-to-teach lessons on reading food labels for KS2, KS3, Cubs and Scouts. Free with an Unwrap account." />
+  <meta property="og:image" content="/assets/images/logo.png" />
+  <meta property="og:type" content="website" />
+
+  <title>Unwrapped Education — free food-label lessons</title>
+
+  <link rel="icon" type="image/png" href="/assets/images/logo.png" />
+  <link rel="apple-touch-icon" href="/assets/images/logo.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/theme.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth.js"></script>
+
+  <style>
+    .edu-hero { padding: 40px 0 28px; text-align: center; animation: fadeUp 0.5s ease both; }
+    .edu-kicker {
+      font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.4px;
+      color: var(--green-dark); margin-bottom: 12px;
+    }
+    .edu-hero h1 {
+      font-family: 'Playfair Display', serif; font-weight: 700;
+      font-size: clamp(28px, 5vw, 44px); line-height: 1.14; letter-spacing: -0.4px;
+      margin-bottom: 14px;
+    }
+    .edu-hero h1 .green { color: var(--green-dark); }
+    .edu-sub { font-size: 17px; color: var(--text-muted); max-width: 560px; margin: 0 auto 22px; line-height: 1.65; }
+    .edu-chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    .edu-chips span {
+      font-size: 13px; padding: 7px 14px; border-radius: 999px; background: var(--white);
+      border: 1px solid var(--border); color: var(--text-muted); box-shadow: var(--shadow-sm);
+    }
+
+    /* Account gate */
+    .gate {
+      display: flex; gap: 18px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+      background: var(--green-pale); border: 1px solid rgba(44, 95, 62, 0.15);
+      border-radius: var(--radius); padding: 22px 24px; margin: 8px 0 32px;
+    }
+    .gate h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+    .gate p { font-size: 14px; color: var(--text-muted); line-height: 1.55; max-width: 520px; }
+    .gate-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .gate.is-in { background: var(--white); border-color: var(--border); }
+
+    /* Packs */
+    .section { padding: 36px 0; border-top: 1px solid var(--border); }
+    .section-label {
+      font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.4px;
+      color: var(--green-dark); margin-bottom: 6px;
+    }
+    .section-title {
+      font-family: 'Playfair Display', serif; font-weight: 700;
+      font-size: clamp(22px, 3.5vw, 30px); margin-bottom: 22px; letter-spacing: -0.2px;
+    }
+    .packs { display: grid; gap: 16px; }
+    .pack {
+      background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: var(--shadow-sm); padding: 24px; display: grid; grid-template-columns: 1fr 1.15fr; gap: 24px;
+    }
+    .pack-tag {
+      display: inline-block; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 10px;
+      background: var(--green-pale); color: var(--green-dark); margin-bottom: 10px;
+    }
+    .pack h3 { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+    .pack-desc { font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 14px; }
+    .pack-meta { list-style: none; margin: 0; padding: 0; font-size: 13px; color: var(--text-muted); }
+    .pack-meta li { padding: 4px 0; display: flex; gap: 8px; }
+    .pack-meta strong { color: var(--text); font-weight: 600; min-width: 74px; }
+
+    .files { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; align-content: start; }
+    .file {
+      display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+      border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--cream);
+    }
+    .file-icon {
+      flex: none; width: 34px; height: 34px; border-radius: 10px; background: var(--white);
+      display: grid; place-items: center; color: var(--green-dark);
+    }
+    .file-icon svg { width: 18px; height: 18px; }
+    .file-text { flex: 1; min-width: 0; }
+    .file-name { font-size: 14px; font-weight: 600; }
+    .file-note { font-size: 12px; color: var(--text-muted); line-height: 1.45; }
+    .file-btn {
+      flex: none; font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: 10px;
+      background: var(--green-dark); color: var(--white); white-space: nowrap;
+    }
+    .file-btn:hover { background: #245133; }
+    .file-btn.is-locked { background: transparent; color: var(--text-light); border: 1px solid var(--border); }
+    .file-btn.is-locked:hover { background: var(--white); color: var(--green-dark); }
+    .file-btn.is-missing { background: transparent; color: var(--text-light); border: 1px dashed var(--border); cursor: default; }
+
+    /* About */
+    .about-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .about-grid .card { margin: 0; }
+    .about-grid h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .about-grid p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+
+    /* Admin uploader (admins only) */
+    .admin-box { border: 1px dashed rgba(44, 95, 62, 0.35); border-radius: var(--radius); padding: 20px; margin-top: 8px; background: var(--white); }
+    .admin-box h2 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .admin-box p { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
+    .admin-log { font-family: ui-monospace, Menlo, monospace; font-size: 12px; color: var(--text-muted); white-space: pre-wrap; margin-top: 10px; }
+
+    @media (max-width: 760px) {
+      .pack { grid-template-columns: 1fr; padding: 20px 18px; gap: 18px; }
+      .about-grid { grid-template-columns: 1fr; }
+      .gate { padding: 18px; }
+      .gate-actions { width: 100%; }
+      .gate-actions .btn { flex: 1; }
+    }
+    @media (max-width: 420px) {
+      .file { flex-wrap: wrap; }
+      .file-btn { width: 100%; text-align: center; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header class="site-header">
+      <a href="/" class="brand">
+        <img src="/assets/images/logo.png" alt="Unwrap" class="brand-logo" width="34" height="34">
+        <span class="brand-name">Unwrap</span>
+      </a>
+
+      <button class="menu-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="nav">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/">Home</a>
+        <a href="/education.html" aria-current="page">Education</a>
+        <a href="/evidence.html">Evidence &amp; approach</a>
+        <a href="/login.html" class="nav-account">Sign in</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="edu-hero">
+        <div class="edu-kicker">Unwrapped Education · in association with Unwrap</div>
+        <h1>Free lessons on <span class="green">reading food labels.</span></h1>
+        <p class="edu-sub">
+          Ready-to-teach packs for primary and secondary schools, Cubs and Scouts, or a kitchen table at home.
+          Slides, teacher notes, printables and games. Free to everyone with an account.
+        </p>
+        <div class="edu-chips">
+          <span>Free, always</span>
+          <span>No food or tasting needed</span>
+          <span>No app needed</span>
+          <span>Every fact sourced</span>
+        </div>
+      </section>
+
+      <!-- Account gate: text and buttons are filled in by the script below -->
+      <div class="gate" id="gate">
+        <div>
+          <h2 id="gate-title">Create a free account to download</h2>
+          <p id="gate-text">It takes a minute, right here on the website. No app, no payment, no card. Accounts are for adults: teachers, group leaders and parents. The same account works in the Unwrap app if you ever want it.</p>
+        </div>
+        <div class="gate-actions" id="gate-actions">
+          <a class="btn btn-primary" href="/login.html?signup=1&amp;next=%2Feducation.html">Create free account</a>
+          <a class="btn btn-outline" href="/login.html?next=%2Feducation.html">Sign in</a>
+        </div>
+      </div>
+
+      <section aria-labelledby="packs-title">
+        <div class="section-label">The packs</div>
+        <h2 class="section-title" id="packs-title">Pick your group.</h2>
+        <div class="packs" id="packs"></div>
+      </section>
+
+      <section class="section">
+        <div class="section-label">How the packs are made</div>
+        <h2 class="section-title">Plain English, no scare stories.</h2>
+        <div class="about-grid">
+          <div class="card">
+            <h3>Skills, not rules</h3>
+            <p>The lessons teach how to find and read an ingredients list, what additives are for, and how to check a claim on the front of a pack against the back. Nobody is told what to eat.</p>
+          </div>
+          <div class="card">
+            <h3>Every fact checked</h3>
+            <p>Each pack comes with an evidence and sources sheet. Every claim in the slides, notes and printables is listed with its source and the date it was checked.</p>
+          </div>
+          <div class="card">
+            <h3>Safe for every class</h3>
+            <p>No talk of weight, bodies or calories, and no "good" or "bad" foods. The teacher notes cover sensitive topics, allergies and how to adapt the lesson.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-label">Used a pack?</div>
+        <h2 class="section-title">Tell us how it went.</h2>
+        <div class="card">
+          <p>These are first editions. If something didn't land, a fact looks wrong, or you'd like a pack for another age group, email
+            <a class="email-link" href="mailto:eddy.at.unwrap@gmail.com?subject=Unwrapped%20Education%20feedback">eddy.at.unwrap@gmail.com</a>.
+            Every message is read, and fixes go straight into the next version.</p>
+        </div>
+      </section>
+
+      <!-- Only shown to Unwrap admins -->
+      <section class="admin-box hidden" id="admin-box" aria-label="Upload pack files">
+        <h2>Upload or replace pack files (admins only)</h2>
+        <p>Pick the PDFs straight from the <strong>Unwrapped Education</strong> folder (you can select several at once). Files are matched by their names; a new upload replaces the old copy.</p>
+        <input type="file" id="admin-files" accept="application/pdf" multiple>
+        <div class="admin-log" id="admin-log"></div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-about">
+        <div class="footer-brand"><img src="/assets/images/logo.png" alt="" width="22" height="22"> Unwrap</div>
+        <p>Understand what's really in your food. No guilt, no lectures — just ingredients in plain English.</p>
+      </div>
+
+      <nav class="footer-nav" aria-label="Site">
+        <div class="footer-h">Pages</div>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/education.html" aria-current="page">Education</a></li>
+          <li><a href="/evidence.html">Evidence &amp; approach</a></li>
+          <li><a href="/privacy.html">Privacy</a></li>
+          <li><a href="/support.html">Support</a></li>
+        </ul>
+      </nav>
+
+      <div class="footer-contact">
+        <div class="footer-h">Contact</div>
+        <p>A question, a correction, or something broken?</p>
+        <a class="email-link" href="mailto:eddy.at.unwrap@gmail.com">eddy.at.unwrap@gmail.com</a>
+        <p>Usually answered within 24 hours.</p>
+        <div class="footer-social">
+          <a class="chip" href="https://www.instagram.com/unwrap_your_food/" target="_blank" rel="noopener">Instagram</a>
+          <a class="chip" href="https://www.tiktok.com/@unwrappedapp" target="_blank" rel="noopener">TikTok</a>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span>© <span id="year">2026</span> Unwrap · Independent and ad-free</span>
+        <a href="https://apps.apple.com/gb/app/unwrap-app/id6757312100" target="_blank" rel="noopener">Download on iPhone</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+  <script>
+  (function () {
+    // ── The catalogue ─────────────────────────────────────────────────────────
+    // Files live in the private Supabase Storage bucket "education". Signed-in
+    // accounts get short-lived links; nobody else can fetch them.
+    // `source` is the file's name in Desktop/Unwrap/Unwrapped Education, so the
+    // admin uploader can match files by name.
+    const BUCKET = "education";
+    const PACKS = [
+      {
+        tag: "Primary · KS2",
+        title: "Read the Label",
+        desc: "Pupils learn to find the ingredients list on a packet, sort kitchen words from factory words, and work out why some ingredients are added.",
+        meta: [["Ages", "Years 3–6 (7–11)"], ["Length", "60 minutes, with a 45-minute version"], ["Who", "Class teacher, food teacher or visiting volunteer"]],
+        files: [
+          { name: "Slides", note: "18 slides, print-ready", path: "ks2/read-the-label-ks2-slides.pdf", source: "Read the Label KS2 - slides (print copy).pdf" },
+          { name: "Teacher notes", note: "Lesson plan, timings, curriculum links, answers, adaptations", path: "ks2/read-the-label-ks2-teacher-notes.pdf", source: "Read the Label KS2 - teacher notes.pdf" },
+          { name: "Printables and games", note: "12 A4 pages: sorting cards, Label Lab, Label Hunt for home, five games and answers", path: "ks2/read-the-label-ks2-printables.pdf", source: "Read the Label KS2 - printables.pdf" },
+          { name: "Evidence and sources", note: "Every claim in the pack, with its source", path: "ks2/read-the-label-ks2-evidence-and-sources.pdf", source: "Read the Label KS2 - evidence and sources.pdf" },
+        ],
+      },
+      {
+        tag: "Secondary · KS3",
+        title: "Behind the Label",
+        desc: "Students read ingredient percentages, find out what E numbers are and why they're used, place foods on a processing spectrum, and test front-of-pack claims.",
+        meta: [["Ages", "Years 7–9 (11–14)"], ["Length", "60 minutes, or two lessons with the debate"], ["Who", "Food, D&T, science or PSHE teacher"]],
+        files: [
+          { name: "Slides", note: "18 slides, print-ready", path: "ks3/behind-the-label-ks3-slides.pdf", source: "Behind the Label KS3 - slides (print copy).pdf" },
+          { name: "Teacher notes", note: "Lesson plan, timings, curriculum links, answers, sensitive topics", path: "ks3/behind-the-label-ks3-teacher-notes.pdf", source: "Behind the Label KS3 - teacher notes.pdf" },
+          { name: "Printables and games", note: "12 A4 pages: Label Decoder, Spectrum Sort, Claim Check, debate planner, four games and answers", path: "ks3/behind-the-label-ks3-printables.pdf", source: "Behind the Label KS3 - printables.pdf" },
+          { name: "Evidence and sources", note: "Every claim in the pack, with its source", path: "ks3/behind-the-label-ks3-evidence-and-sources.pdf", source: "Behind the Label KS3 - evidence and sources.pdf" },
+        ],
+      },
+      {
+        tag: "Cubs, Scouts and other groups",
+        title: "Food Detectives",
+        desc: "Two ready-to-run meeting plans with games and teamwork. No projector, no cooking and no tasting, just printed cards. Links to the Cubs Chef badge are in the pack.",
+        meta: [["Ages", "Plan A: Cubs, older Beavers, Brownies (8–10½) · Plan B: Scouts, Guides (10½–14)"], ["Length", "60–75 minutes"], ["Uses", "This plan plus the KS2 or KS3 printables above"]],
+        files: [
+          { name: "Leader pack", note: "Both meeting plans, sort cards and badge links", path: "groups/food-detectives-cubs-and-scouts.pdf", source: "Food Detectives - meeting plans (Cubs and Scouts).pdf" },
+        ],
+      },
+    ];
+    const ALL_FILES = PACKS.flatMap((p) => p.files);
+
+    const A = window.unwrapAuth, sb = A && A.sb, $ = (id) => document.getElementById(id);
+    const NEXT = encodeURIComponent("/education.html");
+    const LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+    const DOC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>';
+    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+    // ── Render the packs (visible to everyone, buttons locked until signed in) ─
+    function render() {
+      $("packs").innerHTML = PACKS.map((p) => `
+        <article class="pack">
+          <div>
+            <span class="pack-tag">${esc(p.tag)}</span>
+            <h3>${esc(p.title)}</h3>
+            <p class="pack-desc">${esc(p.desc)}</p>
+            <ul class="pack-meta">${p.meta.map(([k, v]) => `<li><strong>${esc(k)}</strong><span>${esc(v)}</span></li>`).join("")}</ul>
+          </div>
+          <ul class="files">${p.files.map((f) => `
+            <li class="file">
+              <span class="file-icon">${DOC}</span>
+              <span class="file-text"><span class="file-name">${esc(f.name)}</span><br><span class="file-note">${esc(f.note)}</span></span>
+              <a class="file-btn is-locked" data-path="${esc(f.path)}" href="/login.html?signup=1&amp;next=${NEXT}">Sign in to download</a>
+            </li>`).join("")}
+          </ul>
+        </article>`).join("");
+    }
+
+    // ── Signed-in state: real download links ─────────────────────────────────
+    let signedAt = 0;
+    async function unlock(session) {
+      $("gate").classList.add("is-in");
+      $("gate-title").textContent = "You're in. Everything here is free.";
+      $("gate-text").textContent = "Signed in as " + (session.user.email || "your account") + ". Download as many copies as you need and share the printouts freely.";
+      $("gate-actions").innerHTML = '<a class="btn btn-outline" href="/account.html">Your account</a>';
+
+      const paths = ALL_FILES.map((f) => f.path);
+      const { data, error } = await sb.storage.from(BUCKET).createSignedUrls(paths, 3600, { download: true });
+      if (error) { console.warn("[education] signed urls", error); return; }
+      signedAt = Date.now();
+      const byPath = {};
+      (data || []).forEach((d) => { if (d && d.path) byPath[d.path] = d; });
+      document.querySelectorAll(".file-btn[data-path]").forEach((btn) => {
+        const d = byPath[btn.dataset.path];
+        btn.classList.remove("is-locked", "is-missing");
+        if (d && d.signedUrl && !d.error) {
+          btn.href = d.signedUrl;
+          btn.textContent = "Download PDF";
+          btn.removeAttribute("aria-disabled");
+        } else {
+          btn.removeAttribute("href");
+          btn.classList.add("is-missing");
+          btn.textContent = "Coming soon";
+          btn.setAttribute("aria-disabled", "true");
+        }
+      });
+    }
+
+    // Count downloads (account + file + time only) so we can show reach to
+    // schools and funders. Never blocks the download.
+    document.addEventListener("click", (ev) => {
+      const btn = ev.target.closest(".file-btn[data-path]");
+      if (!btn || btn.classList.contains("is-locked") || btn.classList.contains("is-missing")) return;
+      sb.from("education_downloads").insert({ path: btn.dataset.path }).then(({ error }) => {
+        if (error) console.warn("[education] log", error.message);
+      });
+    });
+
+    // ── Admin uploader ───────────────────────────────────────────────────────
+    async function maybeShowAdmin() {
+      const { data, error } = await sb.rpc("education_is_admin");
+      if (error || data !== true) return;
+      $("admin-box").classList.remove("hidden");
+      $("admin-files").addEventListener("change", async (ev) => {
+        const log = $("admin-log");
+        const files = Array.from(ev.target.files || []);
+        log.textContent = "";
+        for (const file of files) {
+          const match = ALL_FILES.find((f) => f.source.toLowerCase() === file.name.toLowerCase());
+          if (!match) { log.textContent += "Skipped (name not recognised): " + file.name + "\n"; continue; }
+          log.textContent += "Uploading " + file.name + " … ";
+          const { error: upErr } = await sb.storage.from(BUCKET).upload(match.path, file, { upsert: true, contentType: "application/pdf", cacheControl: "300" });
+          log.textContent += upErr ? "failed: " + upErr.message + "\n" : "done\n";
+        }
+        log.textContent += "Finished. Refreshing links.";
+        const session = await A.getSession();
+        if (session) unlock(session);
+        ev.target.value = "";
+      });
+    }
+
+    render();
+    if (!sb) return;
+
+    let started = false;
+    async function start(session) {
+      if (!session || started) return;
+      started = true;
+      await unlock(session);
+      maybeShowAdmin();
+    }
+    A.getSession().then(start);
+    sb.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT") location.reload();
+      else start(session);
+    });
+    // Links last an hour; refresh them if the tab has been left open.
+    document.addEventListener("visibilitychange", async () => {
+      if (document.visibilityState !== "visible" || !signedAt || Date.now() - signedAt < 50 * 60 * 1000) return;
+      const session = await A.getSession();
+      if (session) unlock(session);
+    });
+  })();
+  </script>
+</body>
+</html>
