@@ -1657,10 +1657,11 @@ async function renderNumbers(force = false) {
   const series = numbersSeries === "weekly" ? d.weekly : d.monthly;
   const labels = numbersSeries === "weekly" ? series.weeks.map(weekLabel) : series.months.map(monthLabel);
   const trend = card(`<div class="row-head"><h3>Activity</h3><span class="grow"></span></div>
-    <p class="hint">${numbersSeries === "weekly" ? "Last 12 weeks, Monday to Sunday. The last bar is this week so far." : "Each month since January. The last bar is this month so far."}</p>
+    <p class="hint">${numbersSeries === "weekly" ? "Last 12 weeks, Monday to Sunday. The last bar is this week so far." : "Each month since January. The last bar is this month so far."}${series.new_users ? " <strong>New app users</strong> is every install that opened the app for the first time (from RevenueCat, guests included); <strong>new accounts</strong> is how many of those went on to sign up." : " Connect RevenueCat to see new app users (installs) beside new accounts."}</p>
     <div class="chart-grid">
-      <div><div class="section-title">Logged scans</div>${barChart(series.scans, labels)}</div>
+      ${series.new_users ? `<div><div class="section-title">New app users</div>${barChart(series.new_users, labels)}</div>` : ""}
       <div><div class="section-title">New accounts</div>${barChart(series.signups, labels)}</div>
+      <div><div class="section-title">Logged scans</div>${barChart(series.scans, labels)}</div>
       <div><div class="section-title">Accounts scanning</div>${barChart(series.active, labels)}</div>
       ${numbersSeries === "monthly" && series.revenue_gross ? `<div><div class="section-title">Revenue (£, gross)</div>${barChart(series.revenue_gross, labels, true)}</div>` : ""}
     </div>`);
@@ -1783,10 +1784,10 @@ async function downloadNumbers(btn) {
       ["Active trials", rc.connected ? rc.trials : ""], ["App users 28d", rc.connected ? rc.active_users_28d : ""],
       ["New app users 28d", rc.connected ? rc.new_customers_28d : ""], ["Revenue all time gross (£)", rc.connected ? rc.revenue_all_time : ""],
     ], [28, 22]);
-    add("Weekly", [["Week starting", "Logged scans", "New accounts", "Accounts scanning"],
-      ...d.weekly.weeks.map((w, i) => [new Date(w + "T12:00:00Z"), d.weekly.scans[i], d.weekly.signups[i], d.weekly.active[i]])], [14, 13, 13, 17]);
-    add("Monthly", [["Month", "Logged scans", "New accounts", "Accounts scanning", "Revenue gross (£)"],
-      ...d.monthly.months.map((m, i) => [m, d.monthly.scans[i], d.monthly.signups[i], d.monthly.active[i], d.monthly.revenue_gross ? d.monthly.revenue_gross[i] : ""])], [10, 13, 13, 17, 17]);
+    add("Weekly", [["Week starting", "New app users", "New accounts", "Logged scans", "Accounts scanning"],
+      ...d.weekly.weeks.map((w, i) => [new Date(w + "T12:00:00Z"), d.weekly.new_users ? d.weekly.new_users[i] : "", d.weekly.signups[i], d.weekly.scans[i], d.weekly.active[i]])], [14, 14, 13, 13, 17]);
+    add("Monthly", [["Month", "New app users", "New accounts", "Logged scans", "Accounts scanning", "Revenue gross (£)"],
+      ...d.monthly.months.map((m, i) => [m, d.monthly.new_users ? d.monthly.new_users[i] : "", d.monthly.signups[i], d.monthly.scans[i], d.monthly.active[i], d.monthly.revenue_gross ? d.monthly.revenue_gross[i] : ""])], [10, 14, 13, 13, 17, 17]);
     const top = [["Period", "Product", "Brand", "Score", "Accounts", "Scans"]];
     for (const [k, l] of [["week", "Last 7 days"], ["month", "Last 30 days"], ["year", "Last 12 months"]]) for (const r of d.scanned[k].top) top.push([l, r[0], r[1], r[2] ?? "", r[3], r[4]]);
     add("Most scanned", top, [15, 42, 22, 7, 9, 7]);
