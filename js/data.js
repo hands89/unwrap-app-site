@@ -108,20 +108,39 @@
     if (!sb) throw new Error("Not connected");
     const { data, error } = await sb
       .from("product_history")
-      .select("id, barcode, scanned_at, products(name, brand, score, nova_group, score_suppressed, category_l1)")
+      .select("id, barcode, scanned_at")
       .order("scanned_at", { ascending: false })
       .limit(limit || 200);
     if (error) throw error;
-    return (data || []).map((h) => ({
-      id: h.id,
-      barcode: h.barcode,
-      scanned_at: h.scanned_at,
-      name: h.products ? h.products.name : null,
-      brand: h.products ? h.products.brand : null,
-      score: h.products && !h.products.score_suppressed ? h.products.score : null,
-      nova_group: h.products ? h.products.nova_group : null,
-      category_l1: h.products ? h.products.category_l1 : null,
-    }));
+    const rows = data || [];
+
+    // The app records the barcode, not the product id, so look the
+    // products up by barcode in batches.
+    const byBarcode = new Map();
+    const codes = Array.from(new Set(rows.map((r) => r.barcode).filter(Boolean)));
+    for (let i = 0; i < codes.length; i += 100) {
+      const { data: prods, error: pe } = await sb
+        .from("products")
+        .select("barcode, name, brand, score, nova_group, score_suppressed, category_l1")
+        .in("barcode", codes.slice(i, i + 100))
+        .eq("is_deleted", false);
+      if (pe) throw pe;
+      for (const p of prods || []) if (!byBarcode.has(p.barcode)) byBarcode.set(p.barcode, p);
+    }
+
+    return rows.map((h) => {
+      const p = byBarcode.get(h.barcode);
+      return {
+        id: h.id,
+        barcode: h.barcode,
+        scanned_at: h.scanned_at,
+        name: p ? p.name : null,
+        brand: p ? p.brand : null,
+        score: p && !p.score_suppressed ? p.score : null,
+        nova_group: p ? p.nova_group : null,
+        category_l1: p ? p.category_l1 : null,
+      };
+    });
   }
 
   // Name search over the catalogue. Plain ilike — simple on purpose.
