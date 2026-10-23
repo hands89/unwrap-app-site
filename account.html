@@ -16,6 +16,85 @@
   <link rel="stylesheet" href="/css/theme.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/auth.js"></script>
+  <script src="/js/data.js?v=3"></script>
+
+  <style>
+    .links { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+    .links .card { margin: 0; padding: 18px; }
+    .links .card h3 { font-size: 15px; margin-bottom: 4px; }
+    .links .card p { font-size: 13px; color: var(--text-muted); }
+    .links .card .go { margin-top: 8px; color: var(--green-dark); font-weight: 600; font-size: 13px; }
+
+    .sec-h { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 30px 0 12px; }
+    .sec-h h2 { font-size: 22px; margin: 0; }
+    .sec-h small { font-size: 13px; color: var(--text-light); }
+
+    .search {
+      display: flex; align-items: center; gap: 10px; background: var(--white);
+      border: 1px solid var(--border); border-radius: 999px; padding: 10px 16px; box-shadow: var(--shadow-sm);
+    }
+    .search svg { width: 18px; height: 18px; color: var(--text-light); flex: none; }
+    .search input { flex: 1; border: 0; outline: 0; background: transparent; font: inherit; font-size: 15px; color: var(--text); min-width: 0; }
+    .hint { font-size: 12.5px; color: var(--text-light); margin: 8px 4px 0; }
+
+    .plist { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
+    .prow {
+      display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; font-family: inherit; cursor: pointer;
+      background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px;
+    }
+    .prow:hover { box-shadow: var(--shadow-sm); border-color: rgba(44,95,62,.25); }
+    .score {
+      flex: none; width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
+      color: var(--white); font-weight: 700; font-size: 15px; letter-spacing: -0.3px;
+    }
+    .score.is-none { background: var(--cream-deep); color: var(--text-light); font-size: 12px; }
+    .ptext { flex: 1; min-width: 0; }
+    .pname { font-weight: 600; font-size: 14.5px; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .psub { font-size: 12.5px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pwhen { flex: none; font-size: 12px; color: var(--text-light); }
+    .empty { padding: 26px 16px; text-align: center; color: var(--text-muted); font-size: 14px; background: var(--white); border: 1px dashed var(--border); border-radius: var(--radius-sm); }
+    .more { margin-top: 10px; }
+
+    /* Product panel */
+    dialog.detail {
+      border: 0; border-radius: var(--radius); padding: 0; width: min(760px, calc(100vw - 32px));
+      max-height: calc(100vh - 48px); background: var(--white); box-shadow: var(--shadow-lg); color: var(--text);
+    }
+    dialog.detail::backdrop { background: rgba(44, 44, 44, 0.45); }
+    .d-inner { padding: 26px 28px 30px; }
+    .d-top { display: flex; gap: 16px; align-items: flex-start; }
+    .d-top .score { width: 64px; height: 64px; font-size: 24px; border-radius: 16px; }
+    .d-top h2 { font-size: 24px; font-weight: 700; line-height: 1.15; }
+    .d-sub { color: var(--text-muted); font-size: 14px; margin-top: 3px; }
+    .d-close { flex: none; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border); background: var(--cream); cursor: pointer; display: grid; place-items: center; font-family: inherit; margin-left: auto; }
+    .d-close svg { width: 16px; height: 16px; }
+    .d-h { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.4px; color: var(--green-dark); margin: 22px 0 10px; }
+    .d-line { font-size: 13.5px; color: var(--text-muted); margin-top: 12px; }
+    .ingl { display: flex; flex-wrap: wrap; gap: 6px; }
+    .ing { font-size: 13.5px; padding: 5px 10px; border-radius: 9px; background: var(--cream); color: var(--text); }
+    .ing.is-marker { background: #FBEDEA; color: var(--red-flag-text); font-weight: 600; }
+    .ing.is-marker.t-low { background: #FBF3E2; color: var(--orange-text); }
+    .ing.is-transform { outline: 1px dashed rgba(44,95,62,.35); }
+    .legend { font-size: 12px; color: var(--text-light); margin-top: 8px; }
+    .swaps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .swap { background: var(--cream); border-radius: var(--radius-sm); padding: 12px; cursor: pointer; text-align: left; font-family: inherit; border: 1px solid transparent; }
+    .swap:hover { border-color: rgba(44,95,62,.25); }
+    .swap .lab { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); margin-bottom: 6px; }
+    .swap .pname { white-space: normal; }
+    .swap .score { width: 36px; height: 36px; font-size: 13px; border-radius: 10px; margin-top: 8px; }
+    .tips { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+    .tips li { font-size: 13.5px; }
+    .tips strong { font-weight: 600; }
+    .myo-links a { display: inline-block; font-size: 13.5px; font-weight: 600; color: var(--green-dark); padding: 6px 12px; border: 1px solid rgba(44,95,62,.25); border-radius: 999px; margin: 0 6px 6px 0; }
+    .notice { background: var(--green-pale); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 14px; margin-top: 14px; }
+
+    @media (max-width: 640px) {
+      .links { grid-template-columns: 1fr; }
+      .swaps { grid-template-columns: 1fr; }
+      .d-inner { padding: 20px 18px 24px; }
+      .pwhen { display: none; }
+    }
+  </style>
 </head>
 
 <body>
@@ -59,40 +138,42 @@
         </div>
       </div>
 
-      <a class="card" href="/education.html" style="display:block;margin-top:16px">
-        <h3>Unwrapped Education</h3>
-        <p>Free food-label lessons for KS2, KS3, Cubs and Scouts. Slides, teacher notes, printables and games, all free with your account.</p>
-        <p style="margin-top:8px;color:var(--green-dark);font-weight:600">Open the lessons →</p>
-      </a>
+      <div class="links">
+        <a class="card" href="/education.html">
+          <h3>Unwrapped Education</h3>
+          <p>Free lesson packs for schools, Cubs and Scouts.</p>
+          <div class="go">Open the lessons →</div>
+        </a>
+        <a class="card" href="/myo.html">
+          <h3>Make Your Own</h3>
+          <p>The MYO cards, laid out for the kitchen. Supporters.</p>
+          <div class="go">Open the cards →</div>
+        </a>
+        <a class="card" href="/recipes.html">
+          <h3>Recipes</h3>
+          <p>Meals built from the cards, step by step. Supporters.</p>
+          <div class="go">Open the recipes →</div>
+        </a>
+      </div>
 
-      <a class="card" href="/myo.html" style="display:block;margin-top:16px">
-        <h3>Make Your Own</h3>
-        <p>The MYO cards from the app — sauces, bread, crisps, yoghurts, seasonings — searchable and laid out for the kitchen. For Supporters.</p>
-        <p style="margin-top:8px;color:var(--green-dark);font-weight:600">Open the cards →</p>
-      </a>
+      <div class="sec-h"><h2 class="section-title">Look up a product</h2><small>Same score and swaps as the app</small></div>
+      <form class="search" id="lookup" novalidate>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.5" y2="16.5"/></svg>
+        <input id="q" type="search" placeholder="Barcode or product name" autocomplete="off" aria-label="Barcode or product name" inputmode="search">
+      </form>
+      <p class="hint" id="q-hint">Type a barcode for one product, or a name to search the catalogue.</p>
+      <ul class="plist" id="results"></ul>
 
-      <a class="card" href="/recipes.html" style="display:block;margin-top:16px">
-        <h3>Recipes</h3>
-        <p>Proper meals built from the Make Your Own cards, with the method step by step. For Supporters.</p>
-        <p style="margin-top:8px;color:var(--green-dark);font-weight:600">Open the recipes →</p>
-      </a>
+      <div class="sec-h"><h2 class="section-title">Your scan history</h2><small id="hist-count"></small></div>
+      <ul class="plist" id="history"><li class="empty">Loading…</li></ul>
+      <button type="button" class="btn btn-outline btn-sm more hidden" id="hist-more">Show more</button>
 
-      <h2 class="section-title" style="font-size:22px;margin:26px 0 12px">Coming to the website</h2>
+      <div class="sec-h"><h2 class="section-title">Coming to the website</h2></div>
       <div class="coming-grid">
-        <div class="card">
-          <span class="soon-tag">Coming soon</span>
-          <h3>Scan history</h3>
-          <p>Everything you've scanned in the app, searchable on a bigger screen.</p>
-        </div>
         <div class="card">
           <span class="soon-tag">Coming soon</span>
           <h3>Receipts</h3>
           <p>Your receipt scans and what they showed, shop by shop.</p>
-        </div>
-        <div class="card">
-          <span class="soon-tag">Coming soon</span>
-          <h3>Product lookup</h3>
-          <p>Type a barcode or a name and get the same score and swaps as the app.</p>
         </div>
       </div>
 
@@ -136,6 +217,10 @@
     </footer>
   </div>
 
+  <dialog class="detail" id="detail" aria-labelledby="d-title">
+    <div class="d-inner" id="d-inner"></div>
+  </dialog>
+
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
@@ -164,6 +249,114 @@
       pill.textContent = "Free account";
       pill.title = "Couldn't confirm subscription status just now";
     }
+
+    // ── Products: lookup, history, detail ─────────────────────────────────
+    const D = window.unwrapData;
+    const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const scoreHtml = (score, cls) => score == null
+      ? '<span class="score is-none ' + (cls || "") + '">n/a</span>'
+      : '<span class="score ' + (cls || "") + '" style="background:' + D.scoreColour(score) + '">' + Number(score).toFixed(1) + "</span>";
+    const when = (iso) => {
+      const d = new Date(iso), now = new Date(), days = Math.floor((now - d) / 86400000);
+      if (days === 0) return "Today"; if (days === 1) return "Yesterday"; if (days < 7) return days + " days ago";
+      return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: d.getFullYear() === now.getFullYear() ? undefined : "numeric" });
+    };
+    function rowHtml(p, right) {
+      return '<li><button type="button" class="prow" data-bc="' + esc(p.barcode) + '">' + scoreHtml(p.score) +
+        '<span class="ptext"><span class="pname">' + esc(p.name || "Unknown product") + '</span><span class="psub">' +
+        esc([p.brand, D.l1Label(p.category_l1 || "")].filter(Boolean).join(" · ") || p.barcode) + "</span></span>" +
+        (right ? '<span class="pwhen">' + esc(right) + "</span>" : "") + "</button></li>";
+    }
+
+    // History
+    let hist = [], shown = 0;
+    const PAGE = 25;
+    function renderHistory() {
+      const list = $("history");
+      if (!hist.length) { list.innerHTML = '<li class="empty">Nothing scanned yet. Scans you make in the app will appear here.</li>'; $("hist-more").classList.add("hidden"); return; }
+      shown = Math.min(hist.length, shown + PAGE);
+      list.innerHTML = hist.slice(0, shown).map((h) => rowHtml(h, when(h.scanned_at))).join("");
+      $("hist-more").classList.toggle("hidden", shown >= hist.length);
+    }
+    $("hist-more").addEventListener("click", renderHistory);
+    try {
+      hist = await D.fetchHistory(500);
+      $("hist-count").textContent = hist.length ? hist.length + (hist.length === 500 ? "+" : "") + " scans" : "";
+      renderHistory();
+    } catch (e) {
+      $("history").innerHTML = '<li class="empty">Couldn\'t load your history: ' + esc(e.message || e) + "</li>";
+    }
+
+    // Lookup
+    let timer = null;
+    const q = $("q");
+    $("lookup").addEventListener("submit", (ev) => { ev.preventDefault(); clearTimeout(timer); runLookup(); });
+    q.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(runLookup, 350); });
+    async function runLookup() {
+      const term = q.value.trim();
+      const out = $("results");
+      if (!term) { out.innerHTML = ""; return; }
+      const digits = term.replace(/\D/g, "");
+      if (digits.length >= 8 && digits.length === term.replace(/[\s-]/g, "").length) {
+        out.innerHTML = '<li class="empty">Looking up ' + esc(digits) + "…</li>";
+        try {
+          const p = await D.fetchProduct(digits);
+          out.innerHTML = p ? rowHtml(p) : '<li class="empty">That barcode isn\'t in the catalogue yet. Scanning it in the app adds it.</li>';
+          if (p) open(digits, p);
+        } catch (e) { out.innerHTML = '<li class="empty">' + esc(e.message || e) + "</li>"; }
+        return;
+      }
+      if (term.length < 3) { out.innerHTML = ""; return; }
+      try {
+        const rows = await D.searchProducts(term, 25);
+        out.innerHTML = rows.length ? rows.map((r) => rowHtml(r)).join("") : '<li class="empty">No products called that. Try fewer words.</li>';
+      } catch (e) { out.innerHTML = '<li class="empty">' + esc(e.message || e) + "</li>"; }
+    }
+
+    // Detail
+    const dlg = $("detail");
+    const cache = new Map();
+    document.addEventListener("click", (ev) => { const b = ev.target.closest(".prow, .swap"); if (b && b.dataset.bc) open(b.dataset.bc); });
+    async function open(bc, pre) {
+      let p = pre || cache.get(bc);
+      if (!p) {
+        $("d-inner").innerHTML = '<p class="empty">Loading…</p>'; dlg.open || dlg.showModal();
+        try { p = await D.fetchProduct(bc); } catch (e) { $("d-inner").innerHTML = '<p class="empty">' + esc(e.message || e) + "</p>"; return; }
+        if (!p) { $("d-inner").innerHTML = '<p class="empty">Not in the catalogue.</p>'; return; }
+      }
+      cache.set(bc, p);
+      const markers = p.ingredients.filter((i) => i.marker);
+      const ings = p.ingredients.map((i) =>
+        '<span class="ing' + (i.marker ? " is-marker" + (i.tier < 0.6 ? " t-low" : "") : "") + (i.transform ? " is-transform" : "") + '">' + esc(i.text) + "</span>").join("");
+      const b = p.bundle || {}; const sw = b.swaps || {};
+      const swapCard = (lab, s) => s && s.barcode && s.barcode !== p.barcode
+        ? '<button type="button" class="swap" data-bc="' + esc(s.barcode) + '"><div class="lab">' + lab + '</div><div class="pname">' + esc(s.name) + '</div><div class="psub">' + esc(s.brand || "") + "</div>" + scoreHtml(s.score) + "</button>" : "";
+      const swaps = [swapCard("Simplest", sw.simplest), swapCard("Best score", sw.best_score), swapCard("Best value", sw.best_value)].filter(Boolean);
+      const alts = (b.alternatives || []).slice(0, 4);
+      const myo = (b.myo || []).slice(0, 4);
+      const tips = (b.tips || []).slice(0, 4);
+      let html =
+        '<div class="d-top">' + scoreHtml(p.score) + '<div><h2 id="d-title">' + esc(p.name) + '</h2><div class="d-sub">' +
+        esc([p.brand, D.l1Label(p.category_l1 || ""), p.nova_group === 4 ? "NOVA group 4" : null].filter(Boolean).join(" · ")) + "</div></div>" +
+        '<button type="button" class="d-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg></button></div>';
+      if (p.score_suppressed || p.infant_advisory) html += '<div class="notice">' + esc(p.infant_advisory || p.suppression_reason || "Unwrap doesn\'t score this product.") + "</div>";
+      if (p.ingredients.length) {
+        html += '<div class="d-h">Ingredients · ' + p.ingredients.length + "</div>" + '<div class="ingl">' + ings + "</div>" +
+          '<p class="legend">' + (markers.length ? markers.length + " flagged as processing markers (highlighted; amber is a lighter marker). " : "No processing markers found. ") + (p.floor_label ? "Floor: " + esc(p.floor_label) + "." : "") + "</p>";
+      } else {
+        html += '<p class="d-line">No ingredient list on file for this product yet.</p>';
+      }
+      if (swaps.length) html += '<div class="d-h">Swaps</div><div class="swaps">' + swaps.join("") + "</div>";
+      if (alts.length) html += '<div class="d-h">Alternatives</div><ul class="plist">' + alts.map((a) => rowHtml(a)).join("") + "</ul>";
+      if (myo.length) html += '<div class="d-h">Make your own</div><div class="myo-links">' + myo.map((m) => '<a href="/myo.html#card=' + esc(m.id) + '">' + esc(m.title) + "</a>").join("") + "</div>";
+      if (tips.length) html += '<div class="d-h">Or instead</div><ul class="tips">' + tips.map((t) => "<li><strong>" + esc(t.title) + "</strong> — " + esc(t.description) + "</li>").join("") + "</ul>";
+      html += '<p class="d-line">Barcode ' + esc(p.barcode) + "</p>";
+      $("d-inner").innerHTML = html;
+      $("d-inner").querySelector(".d-close").onclick = () => dlg.close();
+      dlg.open || dlg.showModal();
+      $("d-inner").scrollTop = 0;
+    }
+    dlg.addEventListener("click", (ev) => { if (ev.target === dlg) dlg.close(); });
   })();
   </script>
 </body>

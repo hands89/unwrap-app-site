@@ -100,5 +100,70 @@
     return recipes;
   }
 
-  window.unwrapData = { fetchMyoCards, fetchRecipes, l1Label };
+  // ── Scan history & product lookup (signed-in, any tier) ──────────────────
+
+  // The signed-in user's scans, newest first, with the product's name and
+  // score. RLS limits product_history to the user's own rows.
+  async function fetchHistory(limit) {
+    if (!sb) throw new Error("Not connected");
+    const { data, error } = await sb
+      .from("product_history")
+      .select("id, barcode, scanned_at, products(name, brand, score, nova_group, score_suppressed, category_l1)")
+      .order("scanned_at", { ascending: false })
+      .limit(limit || 200);
+    if (error) throw error;
+    return (data || []).map((h) => ({
+      id: h.id,
+      barcode: h.barcode,
+      scanned_at: h.scanned_at,
+      name: h.products ? h.products.name : null,
+      brand: h.products ? h.products.brand : null,
+      score: h.products && !h.products.score_suppressed ? h.products.score : null,
+      nova_group: h.products ? h.products.nova_group : null,
+      category_l1: h.products ? h.products.category_l1 : null,
+    }));
+  }
+
+  // Name search over the catalogue. Plain ilike — simple on purpose.
+  async function searchProducts(term, limit) {
+    if (!sb) throw new Error("Not connected");
+    const t = String(term || "").trim();
+    if (!t) return [];
+    const words = t.split(/\s+/).filter(Boolean).slice(0, 4);
+    let q = sb.from("products").select("barcode, name, brand, score, nova_group, score_suppressed, category_l1")
+      .eq("is_deleted", false)
+      .order("score", { ascending: true, nullsFirst: false })
+      .limit(limit || 25);
+    for (const w of words) q = q.ilike("name", "%" + w.replace(/[%_]/g, "") + "%");
+    const { data, error } = await q;
+    if (error) throw error;
+    return data || [];
+  }
+
+  // The score with the ingredients behind it (get_product_detail RPC —
+  // signed-in only) and the same swaps as the app (get_swap_bundle).
+  async function fetchProduct(barcode) {
+    if (!sb) throw new Error("Not connected");
+    const bc = String(barcode || "").replace(/\D/g, "");
+    if (!bc) return null;
+    const [d, s] = await Promise.all([
+      sb.rpc("get_product_detail", { p_barcode: bc }),
+      sb.rpc("get_swap_bundle", { p_barcode: bc }),
+    ]);
+    if (d.error) throw d.error;
+    if (!d.data) return null;
+    return Object.assign({}, d.data, { bundle: s.error ? null : s.data });
+  }
+
+  // Colour for a 1.0–10.0 score: the app's continuous gradient, green → amber → red.
+  function scoreColour(score) {
+    if (score == null) return "#9B9384";
+    const t = Math.min(1, Math.max(0, (Number(score) - 1) / 9));
+    const stops = [[45, 95, 62], [124, 179, 66], [229, 162, 48], [212, 101, 75]];
+    const seg = Math.min(2, Math.floor(t * 3)), f = t * 3 - seg;
+    const c = stops[seg].map((v, i) => Math.round(v + (stops[seg + 1][i] - v) * f));
+    return "rgb(" + c.join(",") + ")";
+  }
+
+  window.unwrapData = { fetchMyoCards, fetchRecipes, fetchHistory, searchProducts, fetchProduct, scoreColour, l1Label };
 })();
