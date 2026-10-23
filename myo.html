@@ -148,6 +148,8 @@
         <a href="/">Home</a>
         <a href="/education.html">Education</a>
         <a href="/evidence.html">Evidence &amp; approach</a>
+        <a href="/recipes.html">Recipes</a>
+        <a href="/myo.html" aria-current="page">Make Your Own</a>
         <a href="/login.html" class="nav-account">Sign in</a>
       </nav>
     </header>
@@ -326,7 +328,8 @@
       return text.match(/[^.!?]+[.!?]+(?:\s|$)|[^.!?]+$/g).map((s) => s.trim()).filter(Boolean);
     }
     function open(id) {
-      const c = cards.find((x) => x.id === id); if (!c) return;
+      const c = cards.find((x) => x.ids.includes(id)); if (!c) return;
+      id = c.id;
       const ings = (c.ingredients || []).map((i) => "<li>" + esc(i.item) + (i.note ? "<small>" + esc(i.note) + "</small>" : "") + "</li>").join("");
       const st = steps(c.instructions).map((s) => "<li>" + esc(s) + "</li>").join("");
       $("d-inner").innerHTML =

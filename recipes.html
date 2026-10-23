@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Unwrap recipes: proper meals built from the Make Your Own cards, laid out for the kitchen." />
+  <title>Unwrap — Recipes</title>
+
+  <link rel="icon" type="image/png" href="/assets/images/logo.png" />
+  <link rel="apple-touch-icon" href="/assets/images/logo.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/theme.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/data.js"></script>
+
+  <style>
+    .myo-hero { padding: 28px 0 18px; }
+    .myo-kicker {
+      font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.4px;
+      color: var(--green-dark); margin-bottom: 10px;
+    }
+    .myo-hero h1 {
+      font-family: 'Playfair Display', serif; font-weight: 700; letter-spacing: -0.5px;
+      font-size: clamp(30px, 5vw, 44px); line-height: 1.12; margin-bottom: 12px;
+    }
+    .myo-hero h1 .green { color: var(--green-dark); }
+    .myo-sub { font-size: 16px; color: var(--text-muted); line-height: 1.6; max-width: 58ch; }
+
+    /* Gate */
+    .gate {
+      display: flex; gap: 18px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+      background: var(--green-pale); border: 1px solid rgba(44, 95, 62, 0.15);
+      border-radius: var(--radius); padding: 22px 24px; margin: 8px 0 28px;
+    }
+    .gate h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+    .gate p { font-size: 14px; color: var(--text-muted); line-height: 1.55; max-width: 560px; }
+    .gate-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .gate.is-in { display: none; }
+
+    /* Toolbar */
+    .toolbar { display: grid; gap: 12px; margin-bottom: 18px; }
+    .search {
+      display: flex; align-items: center; gap: 10px; background: var(--white);
+      border: 1px solid var(--border); border-radius: 999px; padding: 10px 16px; box-shadow: var(--shadow-sm);
+    }
+    .search svg { width: 18px; height: 18px; color: var(--text-light); flex: none; }
+    .search input {
+      flex: 1; border: 0; outline: 0; background: transparent; font: inherit; font-size: 15px; color: var(--text); min-width: 0;
+    }
+    .cats { display: flex; gap: 8px; flex-wrap: wrap; }
+    .cat {
+      font-size: 13px; font-weight: 500; padding: 7px 13px; border-radius: 999px; cursor: pointer;
+      background: var(--white); border: 1px solid var(--border); color: var(--text-muted); font-family: inherit;
+    }
+    .cat:hover { color: var(--green-dark); }
+    .cat[aria-pressed="true"] { background: var(--green-dark); border-color: var(--green-dark); color: var(--white); }
+    .cat small { opacity: 0.7; margin-left: 4px; }
+
+    .count { font-size: 13px; color: var(--text-light); margin: 0 0 12px 4px; }
+
+    /* Grid */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+    .mcard {
+      text-align: left; font-family: inherit; cursor: pointer;
+      background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: var(--shadow-sm); padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 6px;
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+    .mcard:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .mcard h3 { font-size: 17px; font-weight: 700; line-height: 1.25; }
+    .mcard .sub { font-size: 13.5px; color: var(--text-muted); line-height: 1.45; flex: 1; }
+    .meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .meta span {
+      font-size: 11.5px; font-weight: 600; padding: 3px 9px; border-radius: 8px;
+      background: var(--green-pale); color: var(--green-dark);
+    }
+    .meta span.muted { background: var(--cream); color: var(--text-muted); }
+    .empty { padding: 40px 20px; text-align: center; color: var(--text-muted); font-size: 15px; }
+
+    /* Detail */
+    dialog.detail {
+      border: 0; border-radius: var(--radius); padding: 0; width: min(720px, calc(100vw - 32px));
+      max-height: calc(100vh - 48px); background: var(--white); box-shadow: var(--shadow-lg); color: var(--text);
+    }
+    dialog.detail::backdrop { background: rgba(44, 44, 44, 0.45); }
+    .d-inner { padding: 28px 28px 30px; }
+    .d-top { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+    .d-top h2 { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; line-height: 1.15; }
+    .d-sub { color: var(--text-muted); font-size: 15px; margin-top: 4px; }
+    .d-close {
+      flex: none; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border);
+      background: var(--cream); cursor: pointer; display: grid; place-items: center; font-family: inherit;
+    }
+    .d-close svg { width: 16px; height: 16px; }
+    .d-meta { margin: 14px 0 18px; }
+    .d-desc { font-size: 15px; line-height: 1.65; margin-bottom: 16px; }
+    .d-why {
+      background: var(--green-pale); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 22px;
+      font-size: 14px; line-height: 1.6; color: var(--text);
+    }
+    .d-why strong { color: var(--green-dark); display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 4px; }
+    .d-cols { display: grid; grid-template-columns: 1fr 1.4fr; gap: 26px; }
+    .d-h { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.4px; color: var(--green-dark); margin-bottom: 10px; }
+    .ings { list-style: none; margin: 0; padding: 0; }
+    .ings li { padding: 8px 0; border-top: 1px solid var(--border); font-size: 14.5px; line-height: 1.4; }
+    .ings li:first-child { border-top: 0; padding-top: 0; }
+    .ings small { display: block; color: var(--text-muted); font-size: 12.5px; }
+    .steps { margin: 0; padding-left: 22px; }
+    .steps li { font-size: 14.5px; line-height: 1.6; margin-bottom: 10px; }
+    .d-tips { margin-top: 20px; font-size: 14px; line-height: 1.6; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 14px; }
+    .d-tips strong { color: var(--text); }
+    .d-foot { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .d-paths { font-size: 12px; color: var(--text-light); flex: 1; }
+
+    .ings a { color: var(--green-dark); font-weight: 600; border-bottom: 1px dashed rgba(44,95,62,.4); }
+    .ings a:hover { border-bottom-style: solid; }
+    .ings .qty { color: var(--text-muted); }
+    .myo-note { font-size: 12.5px; color: var(--text-light); margin-top: 10px; }
+    .gated-blur { position: relative; }
+    .gated-blur .grid { filter: blur(3px); pointer-events: none; user-select: none; opacity: 0.6; }
+
+    @media (max-width: 640px) {
+      .d-cols { grid-template-columns: 1fr; gap: 18px; }
+      .d-inner { padding: 22px 18px 24px; }
+      .gate-actions { width: 100%; }
+      .gate-actions .btn { flex: 1; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header class="site-header">
+      <a href="/" class="brand">
+        <img src="/assets/images/logo.png" alt="Unwrap" class="brand-logo" width="34" height="34">
+        <span class="brand-name">Unwrap</span>
+      </a>
+
+      <button class="menu-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="nav">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/">Home</a>
+        <a href="/education.html">Education</a>
+        <a href="/evidence.html">Evidence &amp; approach</a>
+        <a href="/recipes.html" aria-current="page">Recipes</a>
+        <a href="/myo.html">Make Your Own</a>
+        <a href="/login.html" class="nav-account">Sign in</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="myo-hero">
+        <div class="myo-kicker">Recipes</div>
+        <h1>Proper meals, <span class="green">from scratch.</span></h1>
+        <p class="myo-sub">
+          Dishes built from the Make Your Own cards: the sauce, the bread or the base is a card, and the recipe
+          puts it on a plate. Cheap ingredients, short methods, nothing that needs a packet.
+        </p>
+      </section>
+
+      <!-- Gate: filled in by the script below -->
+      <div class="gate" id="gate">
+        <div>
+          <h2 id="gate-title">Sign in to open the recipes</h2>
+          <p id="gate-text">Recipes are part of Supporter membership. Sign in with the same account as the app, or create one here.</p>
+        </div>
+        <div class="gate-actions" id="gate-actions">
+          <a class="btn btn-primary" href="/login.html?next=%2Frecipes.html">Sign in</a>
+          <a class="btn btn-outline" href="/login.html?signup=1&amp;next=%2Frecipes.html">Create account</a>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <label class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.5" y2="16.5"/></svg>
+          <input id="q" type="search" placeholder="Search recipes — pasta, breakfast, baking…" autocomplete="off" aria-label="Search recipes">
+        </label>
+        <div class="cats" id="cats" role="group" aria-label="Tag"></div>
+      </div>
+
+      <div id="area" class="gated-blur">
+        <p class="count" id="count"></p>
+        <div class="grid" id="grid"></div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-about">
+        <div class="footer-brand"><img src="/assets/images/logo.png" alt="" width="22" height="22"> Unwrap</div>
+        <p>Understand what's really in your food. No guilt, no lectures — just ingredients in plain English.</p>
+      </div>
+
+      <nav class="footer-nav" aria-label="Site">
+        <div class="footer-h">Pages</div>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/education.html">Education</a></li>
+          <li><a href="/evidence.html">Evidence &amp; approach</a></li>
+          <li><a href="/privacy.html">Privacy</a></li>
+          <li><a href="/support.html">Support</a></li>
+        </ul>
+      </nav>
+
+      <div class="footer-contact">
+        <div class="footer-h">Contact</div>
+        <p>A question, a correction, or something broken?</p>
+        <a class="email-link" href="mailto:eddy.at.unwrap@gmail.com">eddy.at.unwrap@gmail.com</a>
+        <p>Usually answered within 24 hours.</p>
+        <div class="footer-social">
+          <a class="chip" href="https://www.instagram.com/unwrap_your_food/" target="_blank" rel="noopener">Instagram</a>
+          <a class="chip" href="https://www.tiktok.com/@unwrappedapp" target="_blank" rel="noopener">TikTok</a>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span>© <span id="year">2026</span> Unwrap · Independent and ad-free</span>
+        <a href="https://apps.apple.com/gb/app/unwrap-app/id6757312100" target="_blank" rel="noopener">Download on iPhone</a>
+      </div>
+    </footer>
+  </div>
+
+  <dialog class="detail" id="detail" aria-labelledby="d-title">
+    <div class="d-inner" id="d-inner"></div>
+  </dialog>
+
+  <script>
+  (async () => {
+    const A = window.unwrapAuth, D = window.unwrapData, $ = A.$;
+    $("year").textContent = new Date().getFullYear();
+
+    const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const costLabel = { cheap: "Cheap", mid: "Mid-price", pricey: "Pricier" };
+    const diffLabel = { easy: "Easy", medium: "A bit of effort", hard: "Takes practice" };
+    const tagLabel = (t) => ({ batch_cook: "Batch cook", quick: "Quick", vegetarian: "Vegetarian", breakfast: "Breakfast", baking: "Baking", sweet: "Sweet", bread: "Bread", pasta: "Pasta", eggs: "Eggs" })[t] || t.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
+
+    // ── Gate (soft; see js/data.js for the hard-gate path) ─────────────────
+    function showGate(title, text, actionsHtml) {
+      $("gate").classList.remove("is-in");
+      $("gate-title").textContent = title;
+      $("gate-text").textContent = text;
+      $("gate-actions").innerHTML = actionsHtml;
+    }
+
+    const session = await A.getSession();
+    if (!session) { renderPlaceholder(); return; }
+    const tier = await A.getTier(session);
+    if (tier.tier !== "subscriber") {
+      showGate(
+        "Recipes are for Supporters",
+        tier.verified
+          ? "You're signed in, but this account isn't a Supporter yet. Supporter membership is in the app, priced on a sliding scale from £0.99 a month — pay what feels fair, every tier unlocks the same things."
+          : "We couldn't confirm your membership just now. If you are a Supporter, refresh in a moment; if it keeps happening, email eddy.at.unwrap@gmail.com.",
+        '<a class="btn btn-primary" href="https://apps.apple.com/gb/app/unwrap-app/id6757312100" target="_blank" rel="noopener">Get the app</a><a class="btn btn-outline" href="/account.html">Your account</a>'
+      );
+      renderPlaceholder();
+      return;
+    }
+    $("gate").classList.add("is-in");
+    $("area").classList.remove("gated-blur");
+
+    // ── Data ───────────────────────────────────────────────────────────────
+    let recipes = [];
+    try {
+      recipes = await D.fetchRecipes();
+    } catch (e) {
+      $("grid").innerHTML = '<p class="empty">Couldn\'t load the recipes: ' + esc(e.message || e) + '</p>';
+      return;
+    }
+
+    const counts = {};
+    for (const r of recipes) for (const t of r.tags) counts[t] = (counts[t] || 0) + 1;
+    const tags = Object.keys(counts).sort((a, b) => counts[b] - counts[a] || a.localeCompare(b));
+    let activeTag = "";
+    const catsEl = $("cats");
+    catsEl.innerHTML = '<button type="button" class="cat" data-cat="" aria-pressed="true">All <small>' + recipes.length + '</small></button>' +
+      tags.map((t) => '<button type="button" class="cat" data-cat="' + esc(t) + '" aria-pressed="false">' + esc(tagLabel(t)) + ' <small>' + counts[t] + '</small></button>').join("");
+    catsEl.addEventListener("click", (ev) => {
+      const b = ev.target.closest(".cat"); if (!b) return;
+      activeTag = b.dataset.cat;
+      catsEl.querySelectorAll(".cat").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      render();
+    });
+
+    const q = $("q");
+    q.addEventListener("input", render);
+
+    function matches(r, term) {
+      if (!term) return true;
+      const hay = [r.title, r.subtitle, r.intro, ...r.tags, ...r.ingredients.map((i) => i.ingredient_name)].join(" ").toLowerCase();
+      return term.split(/\s+/).every((w) => hay.includes(w));
+    }
+
+    function metaHtml(r) {
+      const bits = [];
+      if (r.time_minutes) bits.push("<span>" + (r.time_minutes >= 90 ? (Math.round(r.time_minutes / 30) / 2) + " hrs" : r.time_minutes + " min") + "</span>");
+      if (r.difficulty) bits.push('<span class="muted">' + esc(diffLabel[r.difficulty] || r.difficulty) + "</span>");
+      if (r.cost_band) bits.push('<span class="muted">' + esc(costLabel[r.cost_band] || r.cost_band) + "</span>");
+      return '<div class="meta">' + bits.join("") + "</div>";
+    }
+
+    function render() {
+      const term = q.value.trim().toLowerCase();
+      const list = recipes.filter((r) => (!activeTag || r.tags.includes(activeTag)) && matches(r, term));
+      $("count").textContent = list.length === recipes.length ? recipes.length + " recipes" : list.length + " of " + recipes.length + " recipes";
+      $("grid").innerHTML = list.length
+        ? list.map((r) => '<button type="button" class="mcard" data-id="' + r.id + '"><h3>' + esc(r.title) + '</h3><div class="sub">' + esc(r.subtitle || "") + "</div>" + metaHtml(r) + "</button>").join("")
+        : '<p class="empty">Nothing matches that. Try a shorter word, or clear the tag.</p>';
+    }
+
+    // ── Detail ─────────────────────────────────────────────────────────────
+    const dlg = $("detail");
+    function open(id) {
+      const r = recipes.find((x) => x.id === id); if (!r) return;
+      const hasMyo = r.ingredients.some((i) => i.myo_card_id);
+      const ings = r.ingredients.map((i) => {
+        const name = i.myo_card_id
+          ? '<a href="/myo.html#card=' + i.myo_card_id + '" title="Open the Make Your Own card">' + esc(i.ingredient_name) + "</a>"
+          : esc(i.ingredient_name);
+        return "<li>" + name + (i.quantity ? ' <span class="qty">· ' + esc(i.quantity) + "</span>" : "") + "</li>";
+      }).join("");
+      const st = r.steps.map((s) => "<li>" + esc(s) + "</li>").join("");
+      $("d-inner").innerHTML =
+        '<div class="d-top"><div><h2 id="d-title">' + esc(r.title) + '</h2><div class="d-sub">' + esc(r.subtitle || "") + '</div></div>' +
+        '<button type="button" class="d-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg></button></div>' +
+        '<div class="d-meta">' + metaHtml(r) + "</div>" +
+        (r.intro ? '<p class="d-desc">' + esc(r.intro) + "</p>" : "") +
+        '<div class="d-cols"><div><div class="d-h">Ingredients</div><ul class="ings">' + ings + "</ul>" +
+        (hasMyo ? '<p class="myo-note">Underlined ingredients are Make Your Own cards — make those first.</p>' : "") + "</div>" +
+        '<div><div class="d-h">Method</div><ol class="steps">' + st + "</ol></div></div>" +
+        '<div class="d-foot"><span class="d-paths">' + esc(r.tags.map(tagLabel).join(" · ")) + '</span>' +
+        '<button type="button" class="btn btn-outline btn-sm" id="d-print">Print</button></div>';
+      $("d-inner").querySelector(".d-close").onclick = () => dlg.close();
+      $("d-print").onclick = () => window.print();
+      history.replaceState(null, "", "#recipe=" + id);
+      dlg.showModal();
+    }
+    dlg.addEventListener("close", () => history.replaceState(null, "", location.pathname));
+    dlg.addEventListener("click", (ev) => { if (ev.target === dlg) dlg.close(); });
+    $("grid").addEventListener("click", (ev) => { const b = ev.target.closest(".mcard"); if (b) open(b.dataset.id); });
+
+    render();
+    const m = location.hash.match(/^#recipe=([0-9a-f-]{36})$/i);
+    if (m) open(m[1]);
+
+    function renderPlaceholder() {
+      $("count").textContent = "";
+      $("grid").innerHTML = Array.from({ length: 6 }, (_, i) =>
+        '<div class="mcard" aria-hidden="true"><h3>' + ["Simple tomato pasta", "Shakshuka", "Homemade granola", "Simple white loaf", "Hummus with warm pitta", "Shortbread fingers"][i] +
+        '</h3><div class="sub">Built from a Make Your Own card.</div><div class="meta"><span>30 min</span><span class="muted">Easy</span></div></div>').join("");
+      $("q").disabled = true;
+    }
+  })();
+  </script>
+  <style media="print">
+    .site-header, .site-footer, .toolbar, #area, .gate, .d-close, .d-foot { display: none !important; }
+    dialog.detail { position: static; box-shadow: none; width: auto; max-height: none; }
+    dialog.detail::backdrop { display: none; }
+  </style>
+</body>
+</html>
