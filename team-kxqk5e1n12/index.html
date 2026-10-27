@@ -895,8 +895,25 @@ async function importBatchBar() {
   } catch (_) { /* no batches yet */ }
   s.addEventListener("change", () => { importBatch = s.value; load(); });
   bar.append(el("span", { class: "meta" }, "Batch:"), s);
-  if ($("statusFilter").value === "high") {
-    bar.appendChild(button("Approve everything shown, as shown", "danger", async (e) => {
+  if ($("statusFilter").value === "high" && isAdmin()) {
+    const label = importBatch ? `Approve ALL high-confidence in ${importBatch}` : "Approve ALL high-confidence (every batch)";
+    bar.appendChild(button(label, "danger", async (e) => {
+      const what = importBatch ? `every high-confidence product in the ${importBatch} batch` : "every high-confidence product in every batch";
+      if (!confirm(`Approve ${what}, exactly as the parser read them? Runs 50 at a time until the batch is empty. Products with no predicted sub-category go to the Categories queue. Each one can be undone from the change log.`)) return;
+      e.target.disabled = true; let total = 0, flagged = 0, failed = 0, remaining = null;
+      try {
+        for (let guard = 0; guard < 200; guard++) {
+          const r = await api("approve_high_batch", { batch: importBatch || undefined, limit: 50 });
+          total += r.approved; flagged += r.flagged_for_category; failed += r.failed.length; remaining = r.remaining;
+          e.target.textContent = `Approving… ${total} done, ${remaining} to go`;
+          if (r.failed.length) console.warn("batch approve failures", r.failed);
+          if (r.approved === 0 || remaining === 0) break;
+        }
+      } catch (err) { toast("Stopped: " + err.message); }
+      toast(`Approved ${total}` + (flagged ? `, ${flagged} sent to Categories` : "") + (failed ? `, ${failed} failed (see console)` : "") + (remaining ? `, ${remaining} left` : ""));
+      refreshAll();
+    }));
+    bar.appendChild(button("Approve everything shown, as shown", "", async (e) => {
       const cards = [...document.querySelectorAll("[data-candidate]")];
       if (!cards.length) return;
       if (!confirm(`Approve all ${cards.length} high-confidence products on this page exactly as they appear? You can undo each one from the change log.`)) return;
