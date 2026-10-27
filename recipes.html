@@ -15,6 +15,7 @@
 
   <link rel="stylesheet" href="/css/theme.css?v=2" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/store.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/data.js?v=2"></script>
 
@@ -224,7 +225,7 @@
 
       <div class="footer-bottom">
         <span>© <span id="year">2026</span> Unwrap · Independent and ad-free</span>
-        <a href="https://apps.apple.com/gb/app/unwrap-app/id6757312100" target="_blank" rel="noopener">Download on iPhone</a>
+        <span class="store-links">Get the app: <a href="https://apps.apple.com/gb/app/unwrap-app/id6757312100" data-store="ios" target="_blank" rel="noopener">iPhone</a> · <a href="https://play.google.com/store/apps/details?id=com.edward.unwrap" data-store="android" target="_blank" rel="noopener">Android</a></span>
       </div>
     </footer>
   </div>
@@ -260,7 +261,7 @@
         tier.verified
           ? "You're signed in, but this account isn't a Supporter yet. Supporter membership is in the app, priced on a sliding scale from £0.99 a month — pay what feels fair, every tier unlocks the same things."
           : "We couldn't confirm your membership just now. If you are a Supporter, refresh in a moment; if it keeps happening, email eddy.at.unwrap@gmail.com.",
-        '<a class="btn btn-primary" href="https://apps.apple.com/gb/app/unwrap-app/id6757312100" target="_blank" rel="noopener">Get the app</a><a class="btn btn-outline" href="/account.html">Your account</a>'
+        '<a class="btn btn-primary" href="' + UNWRAP_STORE.best + '" target="_blank" rel="noopener">Get the app</a><a class="btn btn-outline" href="/account.html">Your account</a>'
       );
       renderPlaceholder();
       return;

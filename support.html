@@ -15,6 +15,7 @@
 
   <link rel="stylesheet" href="/css/theme.css?v=2" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/store.js"></script>
   <script src="/js/auth.js"></script>
   <style>
     .faq { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 8px; box-shadow: var(--shadow-sm); }
@@ -181,7 +182,7 @@
 
       <div class="footer-bottom">
         <span>© <span id="year">2026</span> Unwrap · Independent and ad-free</span>
-        <a href="https://apps.apple.com/gb/app/unwrap-app/id6757312100" target="_blank" rel="noopener">Download on iPhone</a>
+        <span class="store-links">Get the app: <a href="https://apps.apple.com/gb/app/unwrap-app/id6757312100" data-store="ios" target="_blank" rel="noopener">iPhone</a> · <a href="https://play.google.com/store/apps/details?id=com.edward.unwrap" data-store="android" target="_blank" rel="noopener">Android</a></span>
       </div>
     </footer>
   </div>
