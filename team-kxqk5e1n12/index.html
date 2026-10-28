@@ -1103,7 +1103,8 @@ async function openEditor(slot, barcode, opts = {}) {
     e.target.disabled = true;
     out.innerHTML = `<p class="progress">Working out the new score…</p>`;
     try {
-      const pv = changed ? (await api("preview_score", { ingredients: newList })).preview : null;
+      const pv = changed ? (await api("preview_score", { ingredients: newList, category_l1: cat.value || product?.category_l1 || null,
+        category_l2: product?.category_l2 || null, name: name.value.trim() })).preview : null;
       const now = product ? { score: product.score, nova_group: product.nova_group, name: product.name, brand: product.brand,
         image_url: product.image_url, ingredients: product.ingredients.filter((i) => !i.ignored) } : null;
       const after = {
