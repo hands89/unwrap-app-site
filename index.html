@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Unwrap helps you understand what's in your food. Scan a barcode, see the ingredients, find simpler swaps. No guilt, no lectures." />
+  <meta name="description" content="Unwrap reads the back of the packet for you: an app that scans barcodes, plus make-your-own cards, recipes and free food-label lessons. Built by Eddy in Macclesfield." />
 
   <!-- Open Graph -->
-  <meta property="og:title" content="Unwrap — Understand what's in your food" />
-  <meta property="og:description" content="Scan a barcode. See every ingredient in plain English. Find simpler swaps — without guilt, hype, or scare tactics." />
+  <meta property="og:title" content="Unwrap: food labels in plain English" />
+  <meta property="og:description" content="Unwrap reads the back of the packet for you: an app that scans barcodes, plus make-your-own cards, recipes and free food-label lessons. Built by Eddy in Macclesfield." />
   <meta property="og:image" content="/assets/images/logo.png" />
   <meta property="og:type" content="website" />
 
-  <title>Unwrap — Understand what's in your food</title>
+  <title>Unwrap: food labels in plain English</title>
 
   <link rel="icon" type="image/png" sizes="64x64" href="/assets/images/favicon.png?v=2" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png?v=2" />
@@ -20,427 +20,73 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="/css/theme.css?v=2" />
+  <link rel="stylesheet" href="/css/theme.css?v=3" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/store.js"></script>
   <script src="/js/auth.js"></script>
 
   <style>
-    /* ── Hero ── */
-    .hero {
-      padding: 48px 0 32px;
-      text-align: center;
+    .section { padding: 48px 0; border-top: 1px solid var(--border); }
+    .section-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.4px; color: var(--green-dark); margin-bottom: 6px; }
+    .section-title { font-weight: 700; font-size: clamp(24px, 3.6vw, 34px); line-height: 1.15; margin-bottom: 22px; letter-spacing: -0.2px; text-wrap: balance; }
+    .section-intro { font-size: 16px; color: var(--text-muted); max-width: 60ch; margin: -8px 0 24px; line-height: 1.65; }
+    .cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .hero h1, .home-hero h1 { font-family: var(--font-display); }
+    .section-title { font-family: var(--font-display); }
+    .text-link { color: var(--green-dark); font-weight: 600; font-size: 15px; text-decoration: underline; text-underline-offset: 3px; }
+
+    /* Hero */
+    .home-hero { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 44px; align-items: center; padding: 44px 0 52px; }
+    .home-hero h1 { font-weight: 700; font-size: clamp(34px, 6vw, 58px); line-height: 1.05; letter-spacing: -0.6px; margin-bottom: 18px; text-wrap: balance; }
+    .home-hero h1 .green { color: var(--green-dark); }
+    .hero-sub { font-size: 18px; color: var(--text-muted); line-height: 1.65; max-width: 52ch; margin-bottom: 28px; }
+    .home-hero-media { max-width: 330px; justify-self: center; border-radius: var(--radius); }
+
+    /* Doors */
+    .doors { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .door { display: grid; grid-template-columns: 42% 1fr; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: transform .2s ease, box-shadow .2s ease; }
+    .door:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .door .photo, .door .pending { aspect-ratio: auto; height: 100%; min-height: 180px; border-radius: 0; }
+    .door-body { padding: 20px 20px 18px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .door h3 { font-size: 18px; font-weight: 700; }
+    .door p { font-size: 14px; color: var(--text-muted); line-height: 1.55; flex: 1; }
+    .door-link { font-size: 14px; font-weight: 600; color: var(--green-dark); margin-top: 6px; }
+
+    /* About */
+    .about { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 40px; align-items: center; }
+    .about-media { border-radius: var(--radius); }
+    .about-text p { font-size: 16px; color: var(--text-muted); line-height: 1.7; margin-bottom: 14px; max-width: 58ch; }
+    .about-text .section-title { margin-bottom: 16px; }
+
+    /* Aisle */
+    .aisle { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .aisle figure { display: flex; flex-direction: column; gap: 8px; }
+    .aisle .photo { border-radius: var(--radius-sm); }
+    .aisle figcaption { font-size: 13px; color: var(--text-muted); }
+
+    .closing { text-align: left; }
+
+    .home-hero { animation: fadeUp 0.5s ease both; }
+
+    @media (max-width: 860px) {
+      .doors { grid-template-columns: 1fr; }
+      .aisle { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
-
-    .hero-logo {
-      width: 82px;
-      height: 82px;
-      margin: 0 auto 26px;
-      background: var(--white);
-      border-radius: 22px;
-      box-shadow: var(--shadow-md);
-      display: grid;
-      place-items: center;
-    }
-
-    .hero-logo img { width: 54px; height: 54px; object-fit: contain; }
-
-    h1 {
-      font-family: 'Playfair Display', serif;
-      font-weight: 700;
-      font-size: clamp(28px, 5.2vw, 48px);
-      line-height: 1.12;
-      letter-spacing: -0.4px;
-      color: var(--text);
-      margin-bottom: 16px;
-    }
-
-    h1 .green { color: var(--green-dark); }
-
-    .hero-sub {
-      font-size: 17px;
-      color: var(--text-muted);
-      max-width: 490px;
-      margin: 0 auto 30px;
-      line-height: 1.65;
-    }
-
-    .cta-row {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-bottom: 12px;
-    }
-
-    .fine {
-      font-size: 13px;
-      color: var(--text-light);
-    }
-
-    /* ── Tagline ── */
-    .tagline-strip {
-      text-align: center;
-      padding: 24px 0 32px;
-    }
-
-    .tagline-text {
-      display: inline-block;
-      font-size: 15px;
-      color: var(--text-muted);
-      padding: 10px 22px;
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      box-shadow: var(--shadow-sm);
-      letter-spacing: 0.2px;
-    }
-
-    /* ── Features ── */
-    .features {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      padding-bottom: 48px;
-    }
-
-    .feature {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 22px 20px;
-      box-shadow: var(--shadow-sm);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .feature:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-    }
-
-    .feature-icon {
-      width: 38px;
-      height: 38px;
-      background: var(--green-pale);
-      border-radius: 11px;
-      display: grid;
-      place-items: center;
-      margin-bottom: 14px;
-    }
-
-    .feature-icon svg {
-      width: 19px;
-      height: 19px;
-      color: var(--green-dark);
-    }
-
-    .feature h3 {
-      font-size: 15px;
-      font-weight: 600;
-      margin-bottom: 5px;
-    }
-
-    .feature p {
-      font-size: 14px;
-      color: var(--text-muted);
-      line-height: 1.55;
-    }
-
-    /* ── Sections ── */
-    .section {
-      padding: 48px 0;
-      border-top: 1px solid var(--border);
-    }
-
-    .section-label {
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1.4px;
-      color: var(--green-dark);
-      margin-bottom: 6px;
-    }
-
-    .section-title {
-      font-family: 'Playfair Display', serif;
-      font-weight: 700;
-      font-size: clamp(22px, 3.5vw, 32px);
-      margin-bottom: 28px;
-      letter-spacing: -0.2px;
-    }
-
-    /* ── Steps ── */
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-    }
-
-    .step {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 22px 20px;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .step-num {
-      width: 30px;
-      height: 30px;
-      background: var(--green-dark);
-      color: var(--white);
-      border-radius: 50%;
-      display: grid;
-      place-items: center;
-      font-weight: 700;
-      font-size: 13px;
-      margin-bottom: 14px;
-    }
-
-    .step h3 { font-size: 15px; font-weight: 600; margin-bottom: 5px; }
-    .step p  { font-size: 14px; color: var(--text-muted); line-height: 1.55; }
-
-    /* ── Ethos ── */
-    .ethos-card {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 32px 28px;
-      box-shadow: var(--shadow-sm);
-      max-width: 640px;
-    }
-
-    .ethos-card p {
-      font-size: 15px;
-      color: var(--text-muted);
-      line-height: 1.7;
-      margin-bottom: 14px;
-    }
-
-    .ethos-card p:last-child { margin-bottom: 0; }
-    .ethos-card strong { color: var(--text); }
-
-    /* ── Score demo ── */
-    .demo-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-
-    .demo-product {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 24px 22px;
-      box-shadow: var(--shadow-sm);
-      text-align: center;
-    }
-
-    .score-circle {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      display: inline-grid;
-      place-items: center;
-      font-weight: 700;
-      font-size: 22px;
-      color: var(--white);
-      margin-bottom: 10px;
-    }
-
-    .score-high { background: var(--orange-score); color: var(--text); }
-    .score-low  { background: var(--green-mid); }
-
-    .demo-label {
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      margin-bottom: 4px;
-    }
-
-    .demo-label.moderate { color: var(--orange-text); }
-    .demo-label.low      { color: var(--green-dark); }
-
-    .demo-product h4 { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
-    .demo-brand      { font-size: 13px; color: var(--text-light); margin-bottom: 10px; }
-
-    .demo-pills {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-      justify-content: center;
-    }
-
-    .pill {
-      font-size: 11px;
-      padding: 4px 9px;
-      border-radius: 999px;
-      font-weight: 500;
-    }
-
-    .pill-flag {
-      background: #FCE8E4;
-      color: var(--red-flag-text);
-      border: 1px solid rgba(212, 101, 75, 0.15);
-    }
-
-    .pill-ok {
-      background: #F6F3EE;
-      color: var(--text-muted);
-      border: 1px solid var(--border);
-    }
-
-    .demo-note { text-align: center; margin: 14px auto 0; max-width: 560px; }
-    .demo-flags { font-size: 12px; color: var(--text-muted); margin: -2px 0 8px; }
-
-    .demo-arrow {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--green-dark);
-      font-size: 13px;
-      font-weight: 600;
-      gap: 6px;
-      padding: 14px 0;
-    }
-
-    .demo-arrow svg { width: 18px; height: 18px; }
-
-
-    /* ── Beyond the score: swaps / alternatives / MYO ── */
-    .section-intro {
-      font-size: 15px;
-      color: var(--text-muted);
-      max-width: 620px;
-      margin: -14px 0 26px;
-      line-height: 1.65;
-    }
-
-    .trio {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-    }
-
-    .trio-card {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 22px 20px;
-      box-shadow: var(--shadow-sm);
-      display: flex;
-      flex-direction: column;
-    }
-
-    .trio-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
-    .trio-q { font-size: 13px; font-weight: 600; color: var(--green-dark); margin-bottom: 10px; }
-    .trio-card p { font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 12px; }
-
-    .trio-list {
-      list-style: none;
-      margin: 0 0 14px;
-      padding: 0;
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-
-    .trio-list li { padding: 5px 0 5px 18px; position: relative; line-height: 1.5; }
-    .trio-list li::before {
-      content: '';
-      position: absolute;
-      left: 0; top: 12px;
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: var(--green-mid);
-    }
-    .trio-list strong { color: var(--text); font-weight: 600; }
-
-    a.edu-link { color: inherit; transition: transform 0.2s ease, box-shadow 0.2s ease; }
-    a.edu-link:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
-
-    .tier-tag {
-      margin-top: auto;
-      align-self: flex-start;
-      font-size: 12px;
-      font-weight: 600;
-      padding: 5px 10px;
-      border-radius: 10px;
-      background: var(--green-pale);
-      color: var(--green-dark);
-    }
-
-    /* ── Tiers ── */
-    .tier-table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-sm);
-      overflow: hidden;
-      font-size: 14px;
-    }
-
-    .tier-table th, .tier-table td {
-      padding: 12px 14px;
-      text-align: center;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .tier-table tr:last-child td { border-bottom: none; }
-    .tier-table th { font-size: 13px; font-weight: 700; background: var(--cream-deep); }
-    .tier-table th span { display: block; font-size: 12px; font-weight: 500; color: var(--text-muted); }
-    .tier-table td:first-child, .tier-table th:first-child { text-align: left; color: var(--text); }
-    .tier-table td { color: var(--text-muted); }
-    .yes { color: var(--green-dark); font-weight: 700; }
-    .no  { color: var(--text-light); }
-    .tier-note { margin-top: 12px; }
-
-    /* ── Animations ── */
-    .hero           { animation: fadeUp 0.5s ease both; }
-    .tagline-strip  { animation: fadeUp 0.5s ease 0.05s both; }
-    .features       { animation: fadeUp 0.5s ease 0.1s both; }
-
-    /* ── Responsive ── */
-    @media (max-width: 640px) {
-      .hero { padding: 32px 0 20px; }
-
-      .hero-sub { font-size: 16px; }
-
-      .cta-row {
-        flex-direction: column;
-        align-items: stretch;
-        padding: 0 8px;
-      }
-
-      .features { grid-template-columns: 1fr; }
-      .steps    { grid-template-columns: 1fr; }
-      .trio     { grid-template-columns: 1fr; }
-      .tier-table th, .tier-table td { padding: 10px 8px; font-size: 13px; }
-
-      .demo-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .demo-arrow { flex-direction: column; }
-
-      .ethos-card { padding: 22px 18px; }
-
+    @media (max-width: 760px) {
+      .home-hero { grid-template-columns: 1fr; gap: 28px; padding: 28px 0 36px; }
+      .home-hero-media { max-width: 260px; }
+      .about { grid-template-columns: 1fr; gap: 24px; }
+      .about-media { max-width: 320px; }
       .section { padding: 36px 0; }
-
-      .tagline-text { font-size: 14px; padding: 9px 18px; }
     }
-
-    @media (min-width: 641px) and (max-width: 860px) {
-      .trio     { grid-template-columns: 1fr; }
+    @media (max-width: 480px) {
+      .door { grid-template-columns: 1fr; }
+      .door .photo, .door .pending { aspect-ratio: 16 / 9; height: auto; min-height: 0; }
+      .cta-row .btn { flex: 1; }
+      .hero-sub { font-size: 16px; }
     }
-
-    @media (min-width: 641px) and (max-width: 768px) {
-      .features { grid-template-columns: 1fr 1fr; }
-      .steps    { grid-template-columns: 1fr 1fr; }
-    }
+    @media (prefers-reduced-motion: reduce) { .home-hero { animation: none; } }
   </style>
 </head>
 
@@ -461,299 +107,142 @@
       </button>
       <nav class="nav" id="nav" aria-label="Main">
         <a href="/" aria-current="page">Home</a>
+        <a href="/app.html">The app</a>
+        <a href="/myo.html">Make Your Own</a>
+        <a href="/recipes.html">Recipes</a>
         <a href="/education.html">Education</a>
         <a href="/evidence.html">Evidence &amp; approach</a>
-        <a href="/recipes.html">Recipes</a>
-        <a href="/myo.html">Make Your Own</a>
         <a href="/login.html" class="nav-account">Sign in</a>
       </nav>
     </header>
 
     <main>
       <!-- Hero -->
-      <section class="hero">
-        <div class="hero-logo" aria-hidden="true">
-          <img src="/assets/images/logo.png" alt="" width="54" height="54">
+      <section class="home-hero">
+        <div class="home-hero-text">
+          <div class="section-label">Unwrap · made in Macclesfield</div>
+          <h1>Food labels, in <span class="green">plain English.</span></h1>
+          <p class="hero-sub">
+            I'm Eddy: a firefighter, a dad of two, and the only person behind Unwrap.
+            It started as an app that reads the back of the packet for you. Now it's also a library of
+            make-your-own cards, proper recipes and free lessons for schools.
+          </p>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="/app.html">Get the app</a>
+            <a class="btn btn-outline" href="/myo.html">Make your own</a>
+          </div>
         </div>
-
-        <h1>Understand what's<br><span class="green">really</span> in your food.</h1>
-
-        <p class="hero-sub">
-          Scan a barcode. See every ingredient in plain English.
-          Find simpler swaps — without guilt, hype, or scare tactics.
-        </p>
-
-        <div class="cta-row">
-          <a class="btn btn-primary" href="https://apps.apple.com/gb/app/unwrap-app/id6757312100" data-store="ios" target="_blank" rel="noopener">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-            Download on iPhone
-          </a>
-          <a class="btn btn-outline" href="https://play.google.com/store/apps/details?id=com.edward.unwrap" data-store="android" target="_blank" rel="noopener">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 3.5v17a1 1 0 0 0 1.5.86l14-8.5a1 1 0 0 0 0-1.72l-14-8.5A1 1 0 0 0 6 3.5z"/></svg>
-            Download on Android
-          </a>
-        </div>
-
-        <p class="fine">Free to scan. UK launch. On the App Store and Google Play.</p>
-        <p class="fine" style="margin-top:6px">Teacher or group leader? <a href="/education.html" style="color:var(--green-dark);font-weight:600;text-decoration:underline">Free food-label lessons</a></p>
+        <!-- Shot needed: short reel, hands only, scanning something in the aisle or cooking at home (portrait, 4:5) -->
+        <div class="pending is-reel ratio-portrait home-hero-media" role="img" aria-label="Video coming soon"></div>
       </section>
 
-      <!-- Tagline -->
-      <div class="tagline-strip">
-        <span class="tagline-text">No guilt. No lectures. Just ingredients in plain English.</span>
-      </div>
-
-      <!-- Features -->
-      <section class="features" aria-label="What Unwrap does">
-        <div class="feature">
-          <div class="feature-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-              <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/>
-              <path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
-              <line x1="7" y1="12" x2="17" y2="12"/>
-            </svg>
-          </div>
-          <h3>Scan any product</h3>
-          <p>Point at a barcode. See every ingredient, with clear explanations of the ones worth knowing about.</p>
-        </div>
-
-        <div class="feature">
-          <div class="feature-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-              <polyline points="17 1 21 5 17 9"/>
-              <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
-              <polyline points="7 23 3 19 7 15"/>
-              <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
-            </svg>
-          </div>
-          <h3>Find simpler swaps</h3>
-          <p>Browse products with fewer processed ingredients in the same category, ranked by score and value.</p>
-        </div>
-
-        <div class="feature">
-          <div class="feature-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="9" y1="15" x2="15" y2="15"/>
-            </svg>
-          </div>
-          <h3>Unwrap receipts</h3>
-          <p>Snap a supermarket receipt to get a quick overview of your whole shop — no barcode needed.</p>
-        </div>
-      </section>
-
-      <!-- Score demo -->
+      <!-- What's here -->
       <section class="section">
-        <div class="section-label">How scoring works</div>
-        <h2 class="section-title">A score with the working shown.</h2>
-
-        <div class="demo-grid">
-          <div class="demo-product">
-            <div class="score-circle score-high">6</div>
-            <div class="demo-label moderate">Moderate UPF</div>
-            <div class="demo-flags">5 flagged ingredients</div>
-            <h4>Real Mayo</h4>
-            <div class="demo-brand">Bramwells</div>
-            <div class="demo-pills">
-              <span class="pill pill-flag">Rapeseed Oil</span>
-              <span class="pill pill-flag">Spirit Vinegar</span>
-              <span class="pill pill-flag">Stabiliser</span>
-              <span class="pill pill-flag">Natural Mustard Flavouring</span>
-              <span class="pill pill-flag">Xanthan Gum</span>
-              <span class="pill pill-ok">Free Range Egg Yolk</span>
-              <span class="pill pill-ok">Water</span>
-              <span class="pill pill-ok">Sugar</span>
-              <span class="pill pill-ok">Salt</span>
-              <span class="pill pill-ok">+ 5 more</span>
+        <div class="section-label">What's here</div>
+        <h2 class="section-title">Four ways in.</h2>
+        <div class="doors">
+          <a class="door" href="/app.html">
+            <div class="photo"><img src="/assets/images/aisle/guacamole.jpg" alt="A tub of guacamole held up in a supermarket aisle" loading="lazy" width="900" height="1200"></div>
+            <div class="door-body">
+              <h3>The app</h3>
+              <p>Scan a barcode, see a score with the flagged ingredients behind it, and find a simpler swap.</p>
+              <span class="door-link">See the app →</span>
             </div>
-          </div>
-
-          <div class="demo-product">
-            <div class="score-circle score-high">4</div>
-            <div class="demo-label moderate">Moderate UPF</div>
-            <div class="demo-flags">1 flagged ingredient</div>
-            <h4>All Natural Avocado Oil Mayo</h4>
-            <div class="demo-brand">Dr Will's</div>
-            <div class="demo-pills">
-              <span class="pill pill-flag">Concentrated Lemon Juice</span>
-              <span class="pill pill-ok">Avocado Oil</span>
-              <span class="pill pill-ok">Free Range Egg Yolk</span>
-              <span class="pill pill-ok">Water</span>
-              <span class="pill pill-ok">Apple Vinegar</span>
-              <span class="pill pill-ok">Salt</span>
-              <span class="pill pill-ok">+ 3 more</span>
+          </a>
+          <a class="door" href="/myo.html">
+            <!-- Shot needed: something from a MYO card on the worktop, e.g. a jar of homemade ketchup or a tray of crisps -->
+            <div class="pending" role="img" aria-label="Photo coming soon"></div>
+            <div class="door-body">
+              <h3>Make Your Own</h3>
+              <p>Short cards for the shop-bought things that are easy at home: sauces, bread, crisps, yoghurts, seasonings.</p>
+              <span class="door-link">Browse the cards →</span>
             </div>
-          </div>
-        </div>
-
-        <p class="fine demo-note">Real products, scored exactly as the app scores them. Each highlighted ingredient is a flag. The score out of 10 weighs how many flags there are and how strongly each ingredient is tied to industrial processing.</p>
-
-        <div class="demo-arrow" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/></svg>
-          Unwrap finds the swap
+          </a>
+          <a class="door" href="/recipes.html">
+            <!-- Shot needed: a finished recipe on a plate, from above -->
+            <div class="pending" role="img" aria-label="Photo coming soon"></div>
+            <div class="door-body">
+              <h3>Recipes</h3>
+              <p>Proper meals built from the Make Your Own cards. Cheap ingredients, short methods, nothing that needs a packet.</p>
+              <span class="door-link">Find a recipe →</span>
+            </div>
+          </a>
+          <a class="door" href="/education.html">
+            <!-- Shot needed: the printed lesson pack laid out on a table -->
+            <div class="pending" role="img" aria-label="Photo coming soon"></div>
+            <div class="door-body">
+              <h3>Free lessons</h3>
+              <p>Ready-to-teach packs on reading food labels, for primary, secondary, Cubs and Scouts. Free with an account.</p>
+              <span class="door-link">See the lessons →</span>
+            </div>
+          </a>
         </div>
       </section>
 
-      <!-- Beyond the score -->
-      <section class="section" id="swaps">
-        <div class="section-label">Beyond the score</div>
-        <h2 class="section-title">Swaps, alternatives and Make Your Own.</h2>
-        <p class="section-intro">
-          Under every scan, Unwrap offers three different next steps. Use one, all of them, or none.
-          They're there when you want options, not to tell you what to buy.
-        </p>
-
-        <div class="trio">
-          <div class="trio-card">
-            <h3>Swaps</h3>
-            <div class="trio-q">Same thing, fewer flags</div>
-            <p>Other products from the same category, like another mayo for your mayo, starting with the closest match.</p>
-            <ul class="trio-list">
-              <li><strong>Best score:</strong> the lowest UPF score</li>
-              <li><strong>Best value:</strong> the lowest price point</li>
-              <li><strong>Simplest:</strong> the shortest ingredient list</li>
-              <li>Already holding the best one? Unwrap tells you</li>
-            </ul>
-            <span class="tier-tag">Free account · full list: Supporters</span>
-          </div>
-
-          <div class="trio-card">
-            <h3>Alternatives</h3>
-            <div class="trio-q">Something different that does the same job</div>
-            <p>Options from a different category that could fill the same gap, with fewer flagged ingredients than what you scanned.</p>
-            <ul class="trio-list">
-              <li><strong>Simplest:</strong> the shortest ingredient list</li>
-              <li><strong>Fewest flags:</strong> a second pick with as few flagged ingredients as possible</li>
-              <li><strong>Whole food idea:</strong> a grab-and-go suggestion, no cooking needed</li>
-            </ul>
-            <span class="tier-tag">Free account · full list: Supporters</span>
-          </div>
-
-          <div class="trio-card">
-            <h3>Make Your Own</h3>
-            <div class="trio-q">The simple version, made at home</div>
-            <p>For products that are easy to make yourself, a short card with the few ingredients you need and the steps.</p>
-            <ul class="trio-list">
-              <li><strong>Short and cheap:</strong> time, cost and difficulty shown up front</li>
-              <li>No fancy kit, no hard-to-find ingredients</li>
-              <li>Plus full recipes in the Recipes tab</li>
-            </ul>
-            <span class="tier-tag">Supporters</span>
-          </div>
+      <!-- About -->
+      <section class="section about">
+        <!-- Shot needed: you in the kitchen, or your hands cooking (the boys: hands only, no faces) -->
+        <div class="pending ratio-square about-media" role="img" aria-label="Photo coming soon"></div>
+        <div class="about-text">
+          <div class="section-label">Who's behind it</div>
+          <h2 class="section-title">One person, around the shifts.</h2>
+          <p>
+            I'm a serving firefighter and a dad of two boys, and I build Unwrap at home in Macclesfield, around shifts and school runs.
+          </p>
+          <p>
+            Unwrap isn't here to tell you what to eat. It shows what's on the label, explains it in plain English,
+            and points to simpler options if you want them. What you do with that is up to you.
+          </p>
+          <p>
+            There are no ads and no money from food companies, and I don't sell anyone's data.
+            It's paid for by the people who choose to support it.
+          </p>
+          <a class="text-link" href="/evidence.html">How I score food, and the evidence behind it →</a>
         </div>
       </section>
 
-      <!-- How it works -->
+      <!-- From the aisle -->
       <section class="section">
-        <div class="section-label">How it works</div>
-        <h2 class="section-title">Three taps, total clarity.</h2>
-
-        <div class="steps">
-          <div class="step">
-            <div class="step-num">1</div>
-            <h3>Scan</h3>
-            <p>Open the app and point your camera at any food barcode. Unwrap looks up the product instantly.</p>
-          </div>
-
-          <div class="step">
-            <div class="step-num">2</div>
-            <h3>Understand</h3>
-            <p>See every ingredient laid out clearly. Flagged items are highlighted with plain-English explanations.</p>
-          </div>
-
-          <div class="step">
-            <div class="step-num">3</div>
-            <h3>Decide</h3>
-            <p>Browse swaps, alternatives, and whole-food ideas. Or do nothing — it's your choice, always.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Education -->
-      <section class="section" id="education">
-        <div class="section-label">Unwrapped Education</div>
-        <h2 class="section-title">Free lessons on reading food labels.</h2>
+        <div class="section-label">From the aisle</div>
+        <h2 class="section-title">What I've been scanning.</h2>
         <p class="section-intro">
-          Ready-to-teach packs for primary and secondary schools, Cubs and Scouts: slides, teacher notes,
-          printables and games, with every fact sourced. No food, no tasting and no app needed.
-          Create a free account on the website and download the lot.
+          Every week I pick up a few everyday products, turn them over and post what's on the back.
         </p>
-        <div class="trio">
-          <a class="trio-card edu-link" href="/education.html">
-            <h3>Read the Label</h3>
-            <div class="trio-q">Primary · KS2 · ages 7–11</div>
-            <p>Find the ingredients list, sort kitchen words from factory words, and work out why some ingredients are added.</p>
-            <span class="tier-tag">60-minute lesson</span>
-          </a>
-          <a class="trio-card edu-link" href="/education.html">
-            <h3>Behind the Label</h3>
-            <div class="trio-q">Secondary · KS3 · ages 11–14</div>
-            <p>Ingredient percentages, what E numbers are for, the processing spectrum, and checking front-of-pack claims.</p>
-            <span class="tier-tag">60 minutes or two lessons</span>
-          </a>
-          <a class="trio-card edu-link" href="/education.html">
-            <h3>Food Detectives</h3>
-            <div class="trio-q">Cubs, Scouts and other groups</div>
-            <p>Two ready-to-run meeting plans with games and teamwork. No projector, no cooking, just printed cards.</p>
-            <span class="tier-tag">60–75-minute meeting</span>
-          </a>
+        <div class="aisle">
+          <figure><div class="photo ratio-portrait"><img src="/assets/images/aisle/french-fancies.jpg" alt="A box of Mr Kipling French Fancies held up in the cake aisle" loading="lazy" width="900" height="1200"></div><figcaption>Mr Kipling French Fancies</figcaption></figure>
+          <figure><div class="photo ratio-portrait"><img src="/assets/images/aisle/muller-rice.jpg" alt="A pot of Müller Rice Strawberry held up in the chiller aisle" loading="lazy" width="900" height="1200"></div><figcaption>Müller Rice Strawberry</figcaption></figure>
+          <figure><div class="photo ratio-portrait"><img src="/assets/images/aisle/horseradish.jpg" alt="A jar of Sainsbury's horseradish sauce held up in a shop" loading="lazy" width="900" height="1200"></div><figcaption>Sainsbury's horseradish sauce</figcaption></figure>
+          <figure><div class="photo ratio-portrait"><img src="/assets/images/aisle/high-juice.jpg" alt="A bottle of Tesco High Juice apple and mango held up in the drinks aisle" loading="lazy" width="900" height="1200"></div><figcaption>Tesco High Juice apple &amp; mango</figcaption></figure>
         </div>
         <div class="cta-row" style="justify-content:flex-start;margin-top:22px">
-          <a class="btn btn-primary" href="/education.html">See the free lessons</a>
+          <a class="btn btn-outline btn-sm" href="https://www.instagram.com/unwrap_your_food/" target="_blank" rel="noopener">More on Instagram @unwrap_your_food</a>
         </div>
       </section>
 
-      <!-- Ethos -->
-      <section class="section">
-        <div class="section-label">Our approach</div>
-        <h2 class="section-title">Built different, on purpose.</h2>
-
-        <div class="ethos-card">
-          <p>
-            Unwrap is <strong>ad-free and independent</strong>. We don't take money from food companies, we don't sell your data, and we don't use scare tactics to keep you hooked.
-          </p>
-          <p>
-            We use a <strong>sliding-scale subscription</strong> — every tier unlocks the same features. You pick what works for you. That's it.
-          </p>
-          <p>
-            The goal is simple: <strong>better information, not better marketing</strong>. We show what's in your food and let you decide what to do with that.
-          </p>
+      <!-- Closing CTA -->
+      <section class="section closing">
+        <h2 class="section-title">Got a packet handy?</h2>
+        <p class="section-intro">Scan it. It's free, and you don't need an account.</p>
+        <div class="cta-row" style="justify-content:flex-start">
+          <a class="btn btn-primary" href="/app.html">Get the app</a>
+          <a class="btn btn-outline" href="/login.html">Create a free account</a>
         </div>
-
-        <h3 class="section-label" style="margin-top:40px">What you get</h3>
-        <table class="tier-table">
-          <thead>
-            <tr>
-              <th scope="col">Feature</th>
-              <th scope="col">Guest<span>no account</span></th>
-              <th scope="col">Free<span>account</span></th>
-              <th scope="col">Supporter<span>£0.99–£4.99/mo</span></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td>Scan barcodes &amp; receipts</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-            <tr><td>Ingredient breakdown &amp; flags</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-            <tr><td>Scan history</td><td>On this phone</td><td>Synced</td><td>Synced</td></tr>
-            <tr><td>Swaps &amp; alternatives</td><td>Preview</td><td class="yes">✓</td><td>✓ + full lists</td></tr>
-            <tr><td>Unwrapped Education lessons</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-            <tr><td>Make Your Own &amp; Recipes</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
-          </tbody>
-        </table>
-        <p class="fine tier-note">Every Supporter price unlocks exactly the same features. Pick what works for you.</p>
       </section>
     </main>
 
     <footer class="site-footer">
       <div class="footer-about">
         <div class="footer-brand"><img src="/assets/images/logo.png" alt="" width="22" height="22"> Unwrap</div>
-        <p>Understand what's really in your food. No guilt, no lectures — just ingredients in plain English.</p>
+        <p>Food labels in plain English. Built by Eddy in Macclesfield. No guilt, no lectures.</p>
       </div>
 
       <nav class="footer-nav" aria-label="Site">
         <div class="footer-h">Pages</div>
         <ul>
           <li><a href="/" aria-current="page">Home</a></li>
+          <li><a href="/app.html">The app</a></li>
+          <li><a href="/myo.html">Make Your Own</a></li>
+          <li><a href="/recipes.html">Recipes</a></li>
           <li><a href="/education.html">Education</a></li>
           <li><a href="/evidence.html">Evidence &amp; approach</a></li>
           <li><a href="/privacy.html">Privacy</a></li>
@@ -768,7 +257,7 @@
         <p>Usually answered within 24 hours.</p>
         <div class="footer-social">
           <a class="chip" href="https://www.instagram.com/unwrap_your_food/" target="_blank" rel="noopener">Instagram</a>
-          <a class="chip" href="https://www.tiktok.com/@unwrappedapp" target="_blank" rel="noopener">TikTok</a>
+          <a class="chip" href="https://www.tiktok.com/@unwrap_your_food" target="_blank" rel="noopener">TikTok</a>
         </div>
       </div>
 

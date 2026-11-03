@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="/css/theme.css?v=2" />
+  <link rel="stylesheet" href="/css/theme.css?v=3" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/store.js"></script>
   <script src="/js/auth.js"></script>
@@ -31,7 +31,7 @@
       color: var(--green-dark); margin-bottom: 12px;
     }
     .edu-hero h1 {
-      font-family: 'Playfair Display', serif; font-weight: 700;
+      font-family: var(--font-display); font-weight: 700;
       font-size: clamp(28px, 5vw, 44px); line-height: 1.14; letter-spacing: -0.4px;
       margin-bottom: 14px;
     }
@@ -61,7 +61,7 @@
       color: var(--green-dark); margin-bottom: 6px;
     }
     .section-title {
-      font-family: 'Playfair Display', serif; font-weight: 700;
+      font-family: var(--font-display); font-weight: 700;
       font-size: clamp(22px, 3.5vw, 30px); margin-bottom: 22px; letter-spacing: -0.2px;
     }
     .packs { display: grid; gap: 16px; }
@@ -73,7 +73,7 @@
       display: inline-block; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 10px;
       background: var(--green-pale); color: var(--green-dark); margin-bottom: 10px;
     }
-    .pack h3 { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+    .pack h3 { font-family: var(--font-display); font-size: 24px; font-weight: 700; margin-bottom: 6px; }
     .pack-desc { font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 14px; }
     .pack-meta { list-style: none; margin: 0; padding: 0; font-size: 13px; color: var(--text-muted); }
     .pack-meta li { padding: 4px 0; display: flex; gap: 8px; }
@@ -144,10 +144,11 @@
       </button>
       <nav class="nav" id="nav" aria-label="Main">
         <a href="/">Home</a>
+        <a href="/app.html">The app</a>
+        <a href="/myo.html">Make Your Own</a>
+        <a href="/recipes.html">Recipes</a>
         <a href="/education.html" aria-current="page">Education</a>
         <a href="/evidence.html">Evidence &amp; approach</a>
-        <a href="/recipes.html">Recipes</a>
-        <a href="/myo.html">Make Your Own</a>
         <a href="/login.html" class="nav-account">Sign in</a>
       </nav>
     </header>
@@ -227,13 +228,16 @@
     <footer class="site-footer">
       <div class="footer-about">
         <div class="footer-brand"><img src="/assets/images/logo.png" alt="" width="22" height="22"> Unwrap</div>
-        <p>Understand what's really in your food. No guilt, no lectures — just ingredients in plain English.</p>
+        <p>Food labels in plain English. Built by Eddy in Macclesfield. No guilt, no lectures.</p>
       </div>
 
       <nav class="footer-nav" aria-label="Site">
         <div class="footer-h">Pages</div>
         <ul>
           <li><a href="/">Home</a></li>
+          <li><a href="/app.html">The app</a></li>
+          <li><a href="/myo.html">Make Your Own</a></li>
+          <li><a href="/recipes.html">Recipes</a></li>
           <li><a href="/education.html" aria-current="page">Education</a></li>
           <li><a href="/evidence.html">Evidence &amp; approach</a></li>
           <li><a href="/privacy.html">Privacy</a></li>
@@ -248,7 +252,7 @@
         <p>Usually answered within 24 hours.</p>
         <div class="footer-social">
           <a class="chip" href="https://www.instagram.com/unwrap_your_food/" target="_blank" rel="noopener">Instagram</a>
-          <a class="chip" href="https://www.tiktok.com/@unwrappedapp" target="_blank" rel="noopener">TikTok</a>
+          <a class="chip" href="https://www.tiktok.com/@unwrap_your_food" target="_blank" rel="noopener">TikTok</a>
         </div>
       </div>
 
