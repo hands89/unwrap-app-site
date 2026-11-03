@@ -44,7 +44,7 @@
 
     .accordion-icon {
       width: 36px; height: 36px; min-width: 36px;
-      background: var(--green-pale);
+      background: var(--accent-tint);
       border-radius: 10px;
       display: grid; place-items: center;
     }
@@ -92,7 +92,7 @@
 
     .ref-icon {
       width: 36px; height: 36px; min-width: 36px;
-      background: var(--green-pale); border-radius: 8px;
+      background: var(--accent-tint); border-radius: 8px;
       display: grid; place-items: center;
     }
     .ref-icon svg { width: 18px; height: 18px; color: var(--green-dark); }
@@ -124,7 +124,7 @@
     /* Ingredient Index CTA */
     .index-cta {
       display: flex; align-items: center; gap: 12px;
-      background: var(--green-pale);
+      background: var(--accent-tint);
       border: 1px solid rgba(44, 95, 62, 0.2);
       border-radius: var(--radius-sm);
       padding: 16px 18px; margin-top: 16px;
@@ -132,7 +132,7 @@
     }
     .index-cta:hover { box-shadow: var(--shadow-md); }
     .index-cta-icon { width: 36px; height: 36px; min-width: 36px; display: grid; place-items: center; }
-    .index-cta-icon svg { width: 22px; height: 22px; color: var(--green-mid); }
+    .index-cta-icon svg { width: 22px; height: 22px; color: var(--accent-deep); }
     .index-cta-text { flex: 1; }
     .index-cta-title { display: block; font-size: 14px; font-weight: 600; color: var(--green-dark); margin-bottom: 2px; }
     .index-cta-desc { display: block; font-size: 13px; color: var(--text-muted); line-height: 1.4; }
@@ -150,7 +150,7 @@
 
     /* Tip jar */
     .tip-jar {
-      background: #FFF9E6;
+      background: #FFF8E1;
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 24px 22px;
@@ -251,7 +251,7 @@
     .modal-close:hover { color: var(--text); }
   </style>
 </head>
-<body>
+<body data-accent="chestnut">
   <div class="wrap wrap--narrow">
     <header class="site-header">
       <a href="/" class="brand">
@@ -407,31 +407,31 @@
         <p>There are lots of great tools that help people understand food in different ways. Unwrap is designed to complement them, not compete with them. Here are some we think are worth knowing about:</p>
 
         <a class="app-link" href="https://yuka.io" target="_blank" rel="noopener">
-          <span class="app-icon" style="background:rgba(76,175,80,0.12)"><svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/></svg></span>
+          <span class="app-icon" style="background:var(--accent-tint)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-deep)" stroke-width="2" stroke-linecap="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/></svg></span>
           <span class="ref-text"><span class="app-name">Yuka</span><span class="app-desc">Scans food and cosmetics. Rates products on nutrition, additives, and organic status.</span></span>
           <svg class="ref-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
         </a>
 
         <a class="app-link" href="https://world.openfoodfacts.org" target="_blank" rel="noopener">
-          <span class="app-icon" style="background:rgba(33,150,243,0.12)"><svg viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></span>
+          <span class="app-icon" style="background:var(--accent-tint)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-deep)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></span>
           <span class="ref-text"><span class="app-name">Open Food Facts</span><span class="app-desc">Free, open-source food database built by volunteers worldwide. The backbone of many food apps.</span></span>
           <svg class="ref-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
         </a>
 
         <a class="app-link" href="https://www.myfitnesspal.com" target="_blank" rel="noopener">
-          <span class="app-icon" style="background:rgba(25,118,210,0.12)"><svg viewBox="0 0 24 24" fill="none" stroke="#1976D2" stroke-width="2" stroke-linecap="round"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></span>
+          <span class="app-icon" style="background:var(--accent-tint)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-deep)" stroke-width="2" stroke-linecap="round"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></span>
           <span class="ref-text"><span class="app-name">MyFitnessPal</span><span class="app-desc">Calorie and macro tracking. Useful if detailed nutritional logging is what you need.</span></span>
           <svg class="ref-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
         </a>
 
         <a class="app-link" href="https://www.fooducate.com" target="_blank" rel="noopener">
-          <span class="app-icon" style="background:rgba(255,152,0,0.12)"><svg viewBox="0 0 24 24" fill="none" stroke="#FF9800" stroke-width="2" stroke-linecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 3 3 6 3s6-1 6-3v-5"/></svg></span>
+          <span class="app-icon" style="background:var(--accent-tint)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-deep)" stroke-width="2" stroke-linecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 3 3 6 3s6-1 6-3v-5"/></svg></span>
           <span class="ref-text"><span class="app-name">Fooducate</span><span class="app-desc">Nutrition grading with a focus on ingredient quality and personalised recommendations.</span></span>
           <svg class="ref-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
         </a>
 
         <a class="app-link" href="https://www.noom.com" target="_blank" rel="noopener">
-          <span class="app-icon" style="background:rgba(0,188,212,0.12)"><svg viewBox="0 0 24 24" fill="none" stroke="#00BCD4" stroke-width="2" stroke-linecap="round"><path d="M12 2a9 9 0 019 9c0 3.9-2.5 7.2-6 8.5M12 2a9 9 0 00-9 9c0 3.9 2.5 7.2 6 8.5M12 2v20"/></svg></span>
+          <span class="app-icon" style="background:var(--accent-tint)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-deep)" stroke-width="2" stroke-linecap="round"><path d="M12 2a9 9 0 019 9c0 3.9-2.5 7.2-6 8.5M12 2a9 9 0 00-9 9c0 3.9 2.5 7.2 6 8.5M12 2v20"/></svg></span>
           <span class="ref-text"><span class="app-name">Noom</span><span class="app-desc">Behaviour-change approach to healthy eating. Coaching-led rather than scanning-led.</span></span>
           <svg class="ref-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
         </a>

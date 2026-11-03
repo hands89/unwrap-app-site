@@ -6,22 +6,23 @@
 /* ── Brand tokens ── */
 :root {
   /* Surfaces */
-  --cream:        #F5F0E8;
-  --cream-deep:   #EDE7DB;
+  --cream:        #F8F4EC;  /* app background (was #F5F0E8) */
+  --cream-deep:   #F0E7D9;  /* app surfaceSoft */
   --white:        #FFFFFF;
 
   /* Greens */
   --green-dark:   #2D5F3E;
-  --green-mid:    #3A7D44;
-  --green-light:  #7CB342;
-  --green-leaf:   #8BC34A;
+  --green-mid:    #4A8B41;  /* logo inner leaf (leafDeep) */
+  --green-light:  #6AA155;  /* logo mid leaf (primarySoft) */
+  --green-leaf:   #8FB468;  /* logo light leaf (primaryPale) */
   --green-pale:   #EBF2E7;
 
   /* Accents */
-  --orange-score: #E5A230;
-  --orange-text:  #9A6410;  /* orange for text on white — #E5A230 is only 2.2:1 */
-  --red-flag:     #D4654B;
-  --red-flag-text:#9E4530;  /* flag text on pale red pill (5.3:1) */
+  --orange-score: #B46915;  /* app upfModerate */
+  --orange-text:  #94540F;  /* upfModerateText: small amber text on amber tint */
+  --red-flag:     #B3261E;  /* app upfHigh */
+  --red-flag-text:#B3261E;  /* on --red-flag-tint, 5.21:1 */
+  --red-flag-tint:#F9E0DE;  /* app upfHighBackground */
 
   /* Autumn accents (saved 3 Nov 2026). For section highlights only:
      eyebrows, effect words, tags, tinted panels. Never scores, flags or buttons.
@@ -30,13 +31,19 @@
   --mustard:       #C4932A;  --mustard-deep:  #7A5A14;  --mustard-tint:  #F5EACB;
   --chestnut:      #8B5A3C;  --chestnut-deep: #5C3A26;  --chestnut-tint: #F0E3D6;
 
+  /* Section accent: green by default; a page or card sets data-accent to switch. */
+  --accent:      var(--green-dark);
+  --accent-deep: var(--green-dark);
+  --accent-tint: var(--green-pale);
+  --accent-fx:   var(--green-dark);   /* colour for Caveat Brush words */
+
   /* Text */
-  --text:         #2C2C2C;
-  --text-muted:   #6B6558;
-  --text-light:   #736C5E;  /* darkened from #9B9384 to pass WCAG AA on cream (4.6:1) */
+  --text:         #1E1B18;  /* app textPrimary */
+  --text-muted:   #6B6560;  /* app textSecondary */
+  --text-light:   #6F6A64;  /* solid textMuted, 4.88:1 on cream */
 
   /* Borders & Shadows */
-  --border:       rgba(44, 95, 62, 0.10);
+  --border:       #E1D8C8;  /* app borderSubtle */
   --shadow-sm:    0 2px 8px rgba(44, 44, 44, 0.05);
   --shadow-md:    0 8px 30px rgba(44, 44, 44, 0.07);
   --shadow-lg:    0 20px 60px rgba(44, 44, 44, 0.09);
@@ -756,3 +763,15 @@ h1 .green {
 @media (max-width: 640px) {
   :root { --display-width: 112%; }
 }
+
+/* ══════════════════════════════════════════════
+   Section accents (proposal, 3 Nov 2026)
+   Green: the app, home · Plum: Make Your Own · Mustard: Recipes
+   Chestnut: Education, Evidence & approach. Buttons and links stay green.
+   ══════════════════════════════════════════════ */
+[data-accent="plum"]     { --accent: var(--plum);     --accent-deep: var(--plum-deep);     --accent-tint: var(--plum-tint);     --accent-fx: var(--plum); }
+[data-accent="mustard"]  { --accent: var(--mustard);  --accent-deep: var(--mustard-deep);  --accent-tint: var(--mustard-tint);  --accent-fx: var(--mustard-deep); }
+[data-accent="chestnut"] { --accent: var(--chestnut); --accent-deep: var(--chestnut-deep); --accent-tint: var(--chestnut-tint); --accent-fx: var(--chestnut); }
+
+.section-label, .myo-kicker, .edu-kicker, .eyebrow { color: var(--accent-deep); }
+h1 .green { color: var(--accent-fx); }

@@ -51,7 +51,8 @@
     .door-body { padding: 20px 20px 18px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
     .door h3 { font-size: 18px; font-weight: 700; }
     .door p { font-size: 14px; color: var(--text-muted); line-height: 1.55; flex: 1; }
-    .door-link { font-size: 14px; font-weight: 600; color: var(--green-dark); margin-top: 6px; }
+    .door-link { font-size: 14px; font-weight: 600; color: var(--accent-deep); margin-top: 6px; }
+    .door-kicker { align-self: flex-start; font-family: var(--font-sub); font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent-deep); background: var(--accent-tint); padding: 4px 10px; border-radius: 999px; margin-bottom: 4px; }
 
     /* About */
     .about { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 40px; align-items: center; }
@@ -141,36 +142,40 @@
         <div class="section-label">What's here</div>
         <h2 class="section-title">Four ways in.</h2>
         <div class="doors">
-          <a class="door" href="/app.html">
+          <a class="door" href="/app.html" data-accent="green">
             <div class="photo"><img src="/assets/images/aisle/guacamole.jpg" alt="A tub of guacamole held up in a supermarket aisle" loading="lazy" width="900" height="1200"></div>
             <div class="door-body">
+              <span class="door-kicker">Scan</span>
               <h3>The app</h3>
               <p>Scan a barcode, see a score with the flagged ingredients behind it, and find a simpler swap.</p>
               <span class="door-link">See the app →</span>
             </div>
           </a>
-          <a class="door" href="/myo.html">
+          <a class="door" href="/myo.html" data-accent="plum">
             <!-- Shot needed: something from a MYO card on the worktop, e.g. a jar of homemade ketchup or a tray of crisps -->
             <div class="pending" role="img" aria-label="Photo coming soon"></div>
             <div class="door-body">
+              <span class="door-kicker">Make</span>
               <h3>Make Your Own</h3>
               <p>Short cards for the shop-bought things that are easy at home: sauces, bread, crisps, yoghurts, seasonings.</p>
               <span class="door-link">Browse the cards →</span>
             </div>
           </a>
-          <a class="door" href="/recipes.html">
+          <a class="door" href="/recipes.html" data-accent="mustard">
             <!-- Shot needed: a finished recipe on a plate, from above -->
             <div class="pending" role="img" aria-label="Photo coming soon"></div>
             <div class="door-body">
+              <span class="door-kicker">Cook</span>
               <h3>Recipes</h3>
               <p>Proper meals built from the Make Your Own cards. Cheap ingredients, short methods, nothing that needs a packet.</p>
               <span class="door-link">Find a recipe →</span>
             </div>
           </a>
-          <a class="door" href="/education.html">
+          <a class="door" href="/education.html" data-accent="chestnut">
             <!-- Shot needed: the printed lesson pack laid out on a table -->
             <div class="pending" role="img" aria-label="Photo coming soon"></div>
             <div class="door-body">
+              <span class="door-kicker">Learn</span>
               <h3>Free lessons</h3>
               <p>Ready-to-teach packs on reading food labels, for primary, secondary, Cubs and Scouts. Free with an account.</p>
               <span class="door-link">See the lessons →</span>

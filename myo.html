@@ -23,19 +23,19 @@
     .myo-hero { padding: 28px 0 18px; }
     .myo-kicker {
       font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.4px;
-      color: var(--green-dark); margin-bottom: 10px;
+      color: var(--accent-deep); margin-bottom: 10px;
     }
     .myo-hero h1 {
       font-family: var(--font-display); font-weight: 800; letter-spacing: -0.5px;
       font-size: clamp(30px, 5vw, 44px); line-height: 1.12; margin-bottom: 12px;
     }
-    .myo-hero h1 .green { color: var(--green-dark); }
+    .myo-hero h1 .green { color: var(--accent-fx); }
     .myo-sub { font-size: 16px; color: var(--text-muted); line-height: 1.6; max-width: 58ch; }
 
     /* Gate */
     .gate {
       display: flex; gap: 18px; align-items: center; justify-content: space-between; flex-wrap: wrap;
-      background: var(--green-pale); border: 1px solid rgba(44, 95, 62, 0.15);
+      background: var(--accent-tint); border: 1px solid var(--border);
       border-radius: var(--radius); padding: 22px 24px; margin: 8px 0 28px;
     }
     .gate h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
@@ -78,7 +78,7 @@
     .meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
     .meta span {
       font-size: 11.5px; font-weight: 600; padding: 3px 9px; border-radius: 8px;
-      background: var(--green-pale); color: var(--green-dark);
+      background: var(--accent-tint); color: var(--accent-deep);
     }
     .meta span.muted { background: var(--cream); color: var(--text-muted); }
     .empty { padding: 40px 20px; text-align: center; color: var(--text-muted); font-size: 15px; }
@@ -101,7 +101,7 @@
     .d-meta { margin: 14px 0 18px; }
     .d-desc { font-size: 15px; line-height: 1.65; margin-bottom: 16px; }
     .d-why {
-      background: var(--green-pale); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 22px;
+      background: var(--accent-tint); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 22px;
       font-size: 14px; line-height: 1.6; color: var(--text);
     }
     .d-why strong { color: var(--green-dark); display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 4px; }
@@ -130,7 +130,7 @@
   </style>
 </head>
 
-<body>
+<body data-accent="plum">
   <div class="wrap">
     <header class="site-header">
       <a href="/" class="brand">
