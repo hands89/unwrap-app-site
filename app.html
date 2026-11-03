@@ -453,7 +453,7 @@
     .app-hero-media { max-width: 340px; justify-self: center; border-radius: var(--radius); }
     .score-circle { background: var(--green-mid); color: var(--white); width: 62px; height: 62px; font-size: 21px; }
     .score-scale { display: flex; align-items: center; gap: 10px; max-width: 420px; margin: 18px auto 0; font-size: 12px; color: var(--text-light); }
-    .score-scale i { flex: 1; height: 8px; border-radius: 999px; background: linear-gradient(90deg, hsl(150 55% 30%), hsl(80 50% 32%), hsl(35 75% 38%), hsl(5 65% 40%)); }
+    .score-scale i { flex: 1; height: 8px; border-radius: 999px; background: linear-gradient(90deg, #1F7A4D 0%, #6E8E2B 22.2%, #B46915 44.4%, #B24A1C 66.7%, #8E1A14 100%); }
     .table-scroll { overflow-x: auto; }
     @media (max-width: 760px) {
       .app-hero { grid-template-columns: 1fr; gap: 28px; padding: 28px 0 32px; }
@@ -722,12 +722,22 @@
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
   <script>
-    // Score colour: continuous gradient across 1.0–10.0 (green → amber → red), no band labels.
+    // Score colour: the app's continuous ramp (UnwrapColors._scoreFg, built 28 Oct 2026).
+    var STOPS = [1.0, 3.0, 5.0, 7.0, 10.0];
+    var FG = [[0x1F,0x7A,0x4D],[0x6E,0x8E,0x2B],[0xB4,0x69,0x15],[0xB2,0x4A,0x1C],[0x8E,0x1A,0x14]];
+    function scoreColour(score) {
+      var s = Math.min(10, Math.max(1, score));
+      for (var i = 0; i < STOPS.length - 1; i++) {
+        if (s <= STOPS[i + 1]) {
+          var t = (s - STOPS[i]) / (STOPS[i + 1] - STOPS[i]);
+          var c = FG[i].map(function (v, k) { return Math.round(v + (FG[i + 1][k] - v) * t); });
+          return "rgb(" + c.join(",") + ")";
+        }
+      }
+      return "rgb(" + FG[4].join(",") + ")";
+    }
     document.querySelectorAll("[data-score]").forEach(function (el) {
-      var s = Math.min(10, Math.max(1, parseFloat(el.dataset.score)));
-      var t = (s - 1) / 9;
-      var hue = t < 0.5 ? 150 - t * 2 * 115 : 35 - (t - 0.5) * 2 * 30;
-      el.style.background = "hsl(" + hue.toFixed(0) + " 60% 34%)";
+      el.style.background = scoreColour(parseFloat(el.dataset.score));
     });
   </script>
 </body>
