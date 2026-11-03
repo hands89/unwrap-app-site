@@ -38,9 +38,16 @@
   --radius:       20px;
   --radius-sm:    14px;
 
-  /* Type — one place to swap fonts site-wide */
-  --font-display: 'Playfair Display', Georgia, serif;
-  --font-body:    'DM Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  /* Type — Unwrap brand fonts (decided 3 Nov 2026). One place to swap them.
+     Title: Archivo ExtraBold, expanded · Subtitle: Figtree SemiBold
+     Content: Atkinson Hyperlegible Next · Score: Figtree ExtraBold
+     Effect (a few words only): Caveat Brush */
+  --font-display: 'Archivo', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sub:     'Figtree', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-body:    'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-score:   'Figtree', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-effect:  'Caveat Brush', 'Segoe Print', cursive;
+  --display-width: 125%;
 
   /* Layout */
   --max:          940px;
@@ -703,3 +710,42 @@ img { display: block; max-width: 100%; }
 .ratio-square { aspect-ratio: 1; }
 .ratio-portrait { aspect-ratio: 4 / 5; }
 .ratio-wide { aspect-ratio: 16 / 9; }
+
+/* ══════════════════════════════════════════════
+   Brand type roles (V1.1.0, 3 Nov 2026)
+   ══════════════════════════════════════════════ */
+h1, h2, h3, h4, h5, h6,
+.brand-name, .nav a, .btn, .chip, .section-label, .footer-h, .footer-brand,
+.myo-kicker, .tier-tag, .trio-q, .door-link, .text-link, .demo-flags, .demo-label,
+.tier-pill, .soon-tag, .field label, .cat, .meta span, .pill, .label, .eyebrow {
+  font-family: var(--font-sub);
+}
+h3, h4 { font-weight: 600; }
+
+h1, .page-title, .section-title, .d-top h2, .auth-card h1, .pack h3 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: var(--display-width);
+  letter-spacing: -0.4px;
+}
+
+/* Highlighted words in a heading take the effect font. Caveat Brush runs small, so it's sized up. */
+h1 .green {
+  font-family: var(--font-effect);
+  font-weight: 400;
+  font-stretch: normal;
+  font-size: 1.18em;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+/* Scores: Figtree ExtraBold, figures the same width */
+.score-circle, .score, [data-score] {
+  font-family: var(--font-score);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+@media (max-width: 640px) {
+  :root { --display-width: 112%; }
+}
