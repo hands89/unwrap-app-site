@@ -645,27 +645,52 @@ img { display: block; max-width: 100%; }
 }
 
 @media (max-width: 900px) {
-  .menu-toggle { display: block; }
+  /* Menu drops from the burger as a panel, right-aligned under it. */
+  .menu-toggle {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    color: var(--text);
+  }
+  .menu-toggle:hover,
+  .menu-toggle[aria-expanded="true"] { background: rgba(45, 95, 62, 0.08); }
+  .menu-toggle line { transition: transform 0.18s ease, opacity 0.18s ease; transform-box: fill-box; transform-origin: center; }
+  .menu-toggle[aria-expanded="true"] line:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .menu-toggle[aria-expanded="true"] line:nth-child(2) { opacity: 0; }
+  .menu-toggle[aria-expanded="true"] line:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
   .nav {
-    position: fixed;
-    inset: 0;
-    background: var(--cream);
+    position: absolute;
+    top: calc(100% - 6px);
+    right: 0;
+    width: min(300px, calc(100vw - 2 * var(--gutter)));
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    z-index: 10;
+    align-items: stretch;
+    gap: 2px;
+    padding: 8px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lg);
+    z-index: 20;
     opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
+    visibility: hidden;
+    transform: translateY(-6px);
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0.18s;
   }
 
-  .nav.is-open { opacity: 1; pointer-events: auto; }
+  .nav.is-open {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+  }
 
-  .nav a { font-size: 18px; padding: 14px 28px; }
+  .nav a { font-size: 16px; padding: 12px 14px; border-radius: 10px; }
 
-  .nav a.nav-account { margin: 8px 0 0; }
+  .nav a.nav-account { margin: 6px 0 0; text-align: center; }
 
   .coming-grid { grid-template-columns: 1fr; }
 }
@@ -674,10 +699,10 @@ img { display: block; max-width: 100%; }
    but the header spans the normal page width so the brand and menu don't collide. */
 .nav a { white-space: nowrap; }
 .wrap--narrow > .site-header {
-  width: calc(min(var(--max), 100vw) - 2 * var(--gutter));
-  position: relative;
-  left: 50%;
-  transform: translateX(-50%);
+  /* Centred with margins, not a transform: a transform would trap the dropdown menu inside the header. */
+  --hdr: calc(min(var(--max), 100vw) - 2 * var(--gutter));
+  width: var(--hdr);
+  margin-left: calc((100% - var(--hdr)) / 2);
 }
 }
 
@@ -771,3 +796,7 @@ h1 .green {
 
 .section-label, .myo-kicker, .edu-kicker, .eyebrow { color: var(--accent-deep); }
 h1 .green { color: var(--accent-fx); }
+
+@media (prefers-reduced-motion: reduce) {
+  .nav, .nav.is-open, .menu-toggle line { transition: none; }
+}

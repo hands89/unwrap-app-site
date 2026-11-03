@@ -38,14 +38,22 @@
     const toggle = document.querySelector(".menu-toggle");
     const nav = document.querySelector(".nav");
     if (!toggle || !nav) return;
-    toggle.addEventListener("click", () => {
-      const open = nav.classList.toggle("is-open");
+    const setOpen = (open) => {
+      nav.classList.toggle("is-open", open);
       toggle.setAttribute("aria-expanded", String(open));
+    };
+    toggle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      setOpen(!nav.classList.contains("is-open"));
     });
-    nav.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => {
-      nav.classList.remove("is-open");
-      toggle.setAttribute("aria-expanded", "false");
-    }));
+    nav.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => setOpen(false)));
+    // Close on a tap outside the panel, or Escape (focus goes back to the burger).
+    document.addEventListener("click", (e) => {
+      if (nav.classList.contains("is-open") && !nav.contains(e.target)) setOpen(false);
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && nav.classList.contains("is-open")) { setOpen(false); toggle.focus(); }
+    });
   }
 
   // ── Helpers for pages ─────────────────────────────────────────────────────
