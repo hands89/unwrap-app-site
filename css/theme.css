@@ -23,6 +23,13 @@
   --red-flag:     #D4654B;
   --red-flag-text:#9E4530;  /* flag text on pale red pill (5.3:1) */
 
+  /* Autumn accents (saved 3 Nov 2026). For section highlights only:
+     eyebrows, effect words, tags, tinted panels. Never scores, flags or buttons.
+     Pumpkin is social-only (too close to the score's burnt orange), so it's not here. */
+  --plum:          #7B3F61;  --plum-deep:     #4E2440;  --plum-tint:     #F2E4EB;
+  --mustard:       #C4932A;  --mustard-deep:  #7A5A14;  --mustard-tint:  #F5EACB;
+  --chestnut:      #8B5A3C;  --chestnut-deep: #5C3A26;  --chestnut-tint: #F0E3D6;
+
   /* Text */
   --text:         #2C2C2C;
   --text-muted:   #6B6558;
