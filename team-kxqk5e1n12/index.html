@@ -976,7 +976,7 @@ function renderImportCandidate(r) {
 
 /* ─────────────── Quarantine ─────────────── */
 
-const Q_SOURCE = { moderator_reject: "rejected by a moderator", flag: "hidden from a report", manual: "hidden by hand" };
+const Q_SOURCE = { moderator_reject: "rejected by a moderator", flag: "hidden from a report", manual: "hidden by hand", auto_ingest: "failed the checks when first scanned" };
 
 function renderQuarantine(r) {
   const p = r.product || {};
