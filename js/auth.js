@@ -56,6 +56,14 @@
     });
   }
 
+  // Hero videos: respect "reduce motion" by holding on the poster frame.
+  function calmHeroVideos() {
+    if (!window.matchMedia || !matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    document.querySelectorAll("video.hero-video").forEach((v) => { v.removeAttribute("autoplay"); v.pause(); });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", calmHeroVideos);
+  else calmHeroVideos();
+
   // ── Helpers for pages ─────────────────────────────────────────────────────
   async function getSession() {
     if (!sb) return null;

@@ -800,3 +800,14 @@ h1 .green { color: var(--accent-fx); }
 @media (prefers-reduced-motion: reduce) {
   .nav, .nav.is-open, .menu-toggle line { transition: none; }
 }
+
+/* Hero video (V1.2.0): muted loop, same shape and corners as the photo it replaces. */
+.hero-video {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: var(--radius);
+  background: #F0E7D9;
+}

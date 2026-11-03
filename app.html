@@ -20,10 +20,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Figtree:ital,wght@0,300..900;1,300..900&family=Atkinson+Hyperlegible+Next:ital,wght@0,200..800;1,200..800&family=Caveat+Brush&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="/css/theme.css?v=4" />
+  <link rel="stylesheet" href="/css/theme.css?v=5" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/store.js"></script>
-  <script src="/js/auth.js?v=2"></script>
+  <script src="/js/auth.js?v=3"></script>
 
   <style>
     /* ── Hero ── */
@@ -451,6 +451,7 @@
     .app-hero .hero-sub { margin: 0 0 26px; }
     .app-hero .cta-row { justify-content: flex-start; }
     .app-hero-media { max-width: 340px; justify-self: center; border-radius: var(--radius); }
+    .app-hero-video { aspect-ratio: 9 / 16; max-width: 280px; }
     .score-circle { background: var(--green-mid); color: var(--white); width: 62px; height: 62px; font-size: 21px; }
     .score-scale { display: flex; align-items: center; gap: 10px; max-width: 420px; margin: 18px auto 0; font-size: 12px; color: var(--text-light); }
     .score-scale i { flex: 1; height: 8px; border-radius: 999px; background: linear-gradient(90deg, #1F7A4D 0%, #6E8E2B 22.2%, #B46915 44.4%, #B24A1C 66.7%, #8E1A14 100%); }
@@ -512,7 +513,9 @@
           <p class="fine">Free to scan. UK products. On the App Store and Google Play.</p>
         </div>
         <!-- Shot needed: screen recording of a real scan, barcode to score to swap (portrait, 4:5) -->
-        <div class="pending is-reel ratio-portrait app-hero-media" role="img" aria-label="Video of a scan, coming soon"></div>
+        <video class="hero-video app-hero-media app-hero-video" autoplay muted loop playsinline preload="metadata" poster="/assets/media/see-scan-swap-poster.jpg" aria-label="Animated Unwrap logo: see it, scan it, swap it, unwrap it">
+          <source src="/assets/media/see-scan-swap.mp4" type="video/mp4">
+        </video>
       </section>
 
       <!-- How it works -->
