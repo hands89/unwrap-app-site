@@ -150,6 +150,14 @@
   @media (max-width: 560px) { .studio { grid-template-columns: 1fr; } }
   .studio canvas, .studio img { width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--line); background: var(--surface-soft); display: block; }
   .studio .cap { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .cropview { position: relative; overflow: hidden; border-radius: 14px; border: 1px solid var(--line); touch-action: none; user-select: none; -webkit-user-select: none; }
+  .studio .cropview canvas { border: 0; border-radius: 0; cursor: crosshair; }
+  .cropbox { position: absolute; border: 2px solid #fff; outline: 1px solid var(--primary); box-shadow: 0 0 0 9999px rgba(30, 40, 30, 0.45); cursor: move; }
+  .cropbox i { position: absolute; width: 18px; height: 18px; background: var(--primary); border: 2px solid #fff; border-radius: 50%; }
+  .cropbox i[data-h=nw] { left: -2px; top: -2px; cursor: nwse-resize; }
+  .cropbox i[data-h=ne] { right: -2px; top: -2px; cursor: nesw-resize; }
+  .cropbox i[data-h=sw] { left: -2px; bottom: -2px; cursor: nesw-resize; }
+  .cropbox i[data-h=se] { right: -2px; bottom: -2px; cursor: nwse-resize; }
   .progress { font-size: 13px; color: var(--muted); margin: 8px 0; }
   input[type=range] { width: 140px; accent-color: var(--primary); vertical-align: middle; }
   .switch { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; margin: 0; color: var(--text); }
@@ -550,7 +558,7 @@ const INTROS = {
   product_flags: "Reports from people using the app. <strong>Fix product</strong> edits it here, rescores it and closes the report with a note of what changed. <strong>Review score</strong> shows exactly how the score was worked out. <strong>Quarantine</strong> hides it from the app until the weekly review.",
   ingredient_flags: "Reports about a single ingredient. If the text is wrong, fix it on the product. If it's really a question about whether an ingredient should count as a processing marker, send it to <strong>scoring review</strong>: rule changes are a separate, deliberate job.",
   allergens: "People telling us whether a product contains an allergen. Applying the answer updates the product's allergen tags. If the ingredient list mentions the allergen, fix the ingredients too, as the app checks both.",
-  photos: "Photos people took of products. <strong>Tidy up and approve</strong> straightens, crops and blurs the background in your browser, shows you the result, then saves it as the product's photo.",
+  photos: "Photos people took of products. <strong>Tidy up and approve</strong> lets you rotate it, drag a box round the product and blur the background, shows you the result, then saves it as the product's photo. It all runs in your browser with nothing to download.",
   missed_scans: "Barcodes people scanned that Unwrap couldn't answer. Only the barcode is counted, nothing about who scanned it, and each phone counts a barcode once per session. <strong>20+ misses, not picked up</strong> is the add-it-ourselves list. Once a barcode has ingredients in Unwrap it moves to Fixed by itself.",
   log: "Every change made here, newest first: who, what and when. Product edits keep a before and after, and an admin can undo them.",
   quarantine: "Products hidden from the app until an admin reviews them, usually weekly. They land here when a moderator rejects a live product or someone presses Quarantine on a report or in Look up. <strong>Restore</strong> puts it back; <strong>Remove for good</strong> keeps it out.",
@@ -1158,59 +1166,22 @@ async function openEditor(slot, barcode, opts = {}) {
 }
 
 /* ─────────────── Photo studio ───────────────
-   Runs in the admin's browser: the image is read with its camera rotation
-   applied, a background-removal model (BiRefNet lite, MIT licence) finds the
-   product, and the photo is cropped to it on a blurred copy of itself. The
-   model is ~115 MB, downloaded once and then cached by the browser. */
+   Runs in the admin's browser on plain canvases, so nothing is downloaded and
+   it works on any computer or phone. The photo is read with its camera
+   rotation applied; the admin turns it if needed and drags a box round the
+   product. The output is a square centred on that box. "Blur background"
+   keeps the box sharp and softens everything around it with a cheap
+   shrink-and-stretch blur.
+   (Until 4 Nov 2026 a 115 MB background-removal model found the product
+   automatically; it was too heavy for some browsers, so it was dropped in
+   favour of the hand-drawn crop.) */
 
-const TRANSFORMERS_URL = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1/dist/transformers.min.js";
-const MODEL_ID = "onnx-community/BiRefNet_lite-ONNX";
 const OUT_SIZE = 1000;
 const WORK_MAX = 1024;
-let segmenterPromise = null;
-
-function loadSegmenter(onStatus) {
-  if (!segmenterPromise) {
-    segmenterPromise = (async () => {
-      const T = await import(TRANSFORMERS_URL);
-      const device = navigator.gpu ? "webgpu" : "wasm";
-      onStatus?.("Downloading the background model (about 115 MB, first time only)…");
-      let model;
-      try { model = await T.AutoModel.from_pretrained(MODEL_ID, { dtype: "fp16", device }); }
-      catch (e) {
-        if (device === "wasm") throw e;
-        model = await T.AutoModel.from_pretrained(MODEL_ID, { dtype: "fp16", device: "wasm" });
-      }
-      const processor = await T.AutoProcessor.from_pretrained(MODEL_ID);
-      return { T, model, processor };
-    })().catch((e) => { segmenterPromise = null; throw e; });
-  }
-  return segmenterPromise;
-}
+const MIN_BOX = 24;
 
 function canvasOf(w, h) { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; }
-
-// Returns a canvas whose alpha channel is the product (soft edges kept).
-async function segment(workCanvas, onStatus) {
-  const { T, model, processor } = await loadSegmenter(onStatus);
-  onStatus?.("Finding the product…");
-  const blob = await new Promise((res) => workCanvas.toBlob(res, "image/png"));
-  const image = await T.RawImage.fromBlob(blob);
-  const { pixel_values } = await processor(image);
-  const { output_image } = await model({ input_image: pixel_values });
-  const mask = await T.RawImage.fromTensor(output_image[0].sigmoid().mul(255).to("uint8")).resize(workCanvas.width, workCanvas.height);
-  return maskCanvas(mask.data, mask.channels || 1, workCanvas.width, workCanvas.height);
-}
-
-function maskCanvas(data, channels, w, h) {
-  const m = canvasOf(w, h), ctx = m.getContext("2d");
-  const img = ctx.createImageData(w, h);
-  for (let i = 0, j = 0; i < img.data.length; i += 4, j += channels) {
-    img.data[i] = img.data[i + 1] = img.data[i + 2] = 255; img.data[i + 3] = data[j];
-  }
-  ctx.putImageData(img, 0, 0);
-  return m;
-}
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
 function rotated(src, quarterTurns) {
   const q = ((quarterTurns % 4) + 4) % 4;
@@ -1221,16 +1192,28 @@ function rotated(src, quarterTurns) {
   return c;
 }
 
-function maskBox(mask) {
-  const { width: w, height: h } = mask;
-  const d = mask.getContext("2d").getImageData(0, 0, w, h).data;
-  let x0 = w, y0 = h, x1 = -1, y1 = -1, n = 0, total = 0;
-  for (let y = 0; y < h; y += 2) for (let x = 0; x < w; x += 2) {
-    total++;
-    if (d[(y * w + x) * 4 + 3] > 128) { n++; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
-  }
-  if (x1 < 0 || n / total < 0.02) return null; // nothing sensible found
-  return { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+// Move a crop box with the photo when it's turned a quarter. W and H are the
+// photo's size before the turn; dir is +1 (clockwise) or -1.
+function turnBox(b, dir, W, H) {
+  return dir > 0
+    ? { x: H - (b.y + b.h), y: b.x, w: b.h, h: b.w }
+    : { x: b.y, y: W - (b.x + b.w), w: b.h, h: b.w };
+}
+
+function defaultBox(W, H) {
+  const side = Math.round(Math.min(W, H) * 0.8);
+  return { x: Math.round((W - side) / 2), y: Math.round((H - side) / 2), w: side, h: side };
+}
+
+// Resize or move a box by a drag of (dx, dy) on one handle, kept inside the photo.
+function adjustBox(b, handle, dx, dy, W, H) {
+  if (handle === "move") return { x: clamp(b.x + dx, 0, W - b.w), y: clamp(b.y + dy, 0, H - b.h), w: b.w, h: b.h };
+  let x0 = b.x, y0 = b.y, x1 = b.x + b.w, y1 = b.y + b.h;
+  if (handle.includes("w")) x0 = clamp(x0 + dx, 0, x1 - MIN_BOX);
+  if (handle.includes("e")) x1 = clamp(x1 + dx, x0 + MIN_BOX, W);
+  if (handle.includes("n")) y0 = clamp(y0 + dy, 0, y1 - MIN_BOX);
+  if (handle.includes("s")) y1 = clamp(y1 + dy, y0 + MIN_BOX, H);
+  return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
 }
 
 // Cheap blur that works in every browser (canvas filter isn't in all Safaris).
@@ -1245,33 +1228,41 @@ function blurred(src, factor = 24) {
   return out;
 }
 
-// Build the square output from the (rotated) image and mask.
-function compose(base, mask, { blur = true, pad = 0.12 } = {}) {
-  const box = mask ? maskBox(mask) : null;
-  let cx, cy, side;
-  if (box) {
-    cx = box.x + box.w / 2; cy = box.y + box.h / 2;
-    side = Math.max(box.w, box.h) * (1 + pad * 2);
-  } else {
-    cx = base.width / 2; cy = base.height / 2; side = Math.min(base.width, base.height);
-  }
+// The crop box as a mask with soft edges: drawn small and stretched, so the
+// stretching does the feathering. Grown slightly so the fade sits outside it.
+function boxMask(W, H, b) {
+  const s = 12, grow = s / 2;
+  const small = canvasOf(Math.max(2, Math.ceil(W / s)), Math.max(2, Math.ceil(H / s)));
+  const sctx = small.getContext("2d");
+  sctx.fillStyle = "#fff";
+  sctx.fillRect((b.x - grow) / s, (b.y - grow) / s, (b.w + grow * 2) / s, (b.h + grow * 2) / s);
+  const m = canvasOf(W, H), mctx = m.getContext("2d");
+  mctx.imageSmoothingQuality = "high"; mctx.drawImage(small, 0, 0, W, H);
+  return m;
+}
+
+// Build the square output from the (turned) photo and the crop box.
+// soft is the blurred copy of base, made once per turn rather than per frame.
+function compose(base, b, { blur = true, pad = 0.12, soft = null } = {}) {
+  const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+  const side = Math.max(b.w, b.h) * (1 + pad * 2);
   const sx = cx - side / 2, sy = cy - side / 2, k = OUT_SIZE / side;
   const out = canvasOf(OUT_SIZE, OUT_SIZE), ctx = out.getContext("2d");
   ctx.imageSmoothingQuality = "high";
-  if (blur && box) {
-    const b = blurred(base);
+  ctx.fillStyle = "#F8F4EC"; ctx.fillRect(0, 0, OUT_SIZE, OUT_SIZE);
+  if (blur) {
+    const bl = soft || blurred(base);
     // Blurred copy scaled to cover the whole square first, so a crop that runs
     // past the photo's edge never shows empty corners.
-    const cover = Math.max(OUT_SIZE / b.width, OUT_SIZE / b.height);
-    ctx.drawImage(b, (OUT_SIZE - b.width * cover) / 2, (OUT_SIZE - b.height * cover) / 2, b.width * cover, b.height * cover);
-    ctx.drawImage(b, -sx * k, -sy * k, base.width * k, base.height * k);
+    const cover = Math.max(OUT_SIZE / bl.width, OUT_SIZE / bl.height);
+    ctx.drawImage(bl, (OUT_SIZE - bl.width * cover) / 2, (OUT_SIZE - bl.height * cover) / 2, bl.width * cover, bl.height * cover);
+    ctx.drawImage(bl, -sx * k, -sy * k, base.width * k, base.height * k);
     ctx.fillStyle = "rgba(248, 244, 236, 0.18)"; ctx.fillRect(0, 0, OUT_SIZE, OUT_SIZE);
     const fg = canvasOf(base.width, base.height), fctx = fg.getContext("2d");
     fctx.drawImage(base, 0, 0);
-    fctx.globalCompositeOperation = "destination-in"; fctx.drawImage(mask, 0, 0);
+    fctx.globalCompositeOperation = "destination-in"; fctx.drawImage(boxMask(base.width, base.height, b), 0, 0);
     ctx.drawImage(fg, -sx * k, -sy * k, base.width * k, base.height * k);
   } else {
-    ctx.fillStyle = "#F8F4EC"; ctx.fillRect(0, 0, OUT_SIZE, OUT_SIZE);
     ctx.drawImage(base, -sx * k, -sy * k, base.width * k, base.height * k);
   }
   return out;
@@ -1286,6 +1277,7 @@ async function loadImageCanvas(url) {
   const s = Math.min(1, WORK_MAX / Math.max(bmp.width, bmp.height));
   const c = canvasOf(Math.round(bmp.width * s), Math.round(bmp.height * s));
   c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+  bmp.close?.();
   return c;
 }
 
@@ -1301,50 +1293,105 @@ async function openStudio(slot, { barcode, url, submissionId }) {
   panel.append(status, grid, controls, actions);
   slot.appendChild(panel);
 
-  let base, mask = null, turns = 0, blurOn = true, pad = 0.12, outCanvas = null;
-  try { base = await loadImageCanvas(url); }
+  let original;
+  try { original = await loadImageCanvas(url); }
   catch (e) { status.textContent = e.message; return; }
-  const beforeImg = el("img", { alt: "Original photo" }); beforeImg.src = url;
-  before.append(beforeImg, el("div", { class: "cap" }, "Sent in"));
 
-  const redraw = () => {
-    const b = rotated(base, turns), m = mask ? rotated(mask, turns) : null;
-    outCanvas = compose(b, m, { blur: blurOn, pad });
-    after.innerHTML = ""; after.append(outCanvas, el("div", { class: "cap" }, "What the app will show"));
+  let turns = 0, blurOn = true, pad = 0.12, outCanvas = null;
+  let shown = original, soft = null, box = defaultBox(original.width, original.height);
+
+  // Left: the photo with a draggable crop box over it.
+  const view = el("div", { class: "cropview" });
+  const cropEl = el("div", { class: "cropbox" }, `<i data-h="nw"></i><i data-h="ne"></i><i data-h="sw"></i><i data-h="se"></i>`);
+  before.append(view, el("div", { class: "cap" }, "Sent in. Drag a box round the product, or drag the corners."));
+
+  const pxPerCss = () => shown.width / (shown.getBoundingClientRect().width || shown.width);
+  const placeBox = () => {
+    const r = 1 / pxPerCss();
+    Object.assign(cropEl.style, { left: box.x * r + "px", top: box.y * r + "px", width: box.w * r + "px", height: box.h * r + "px" });
   };
-  redraw();
+
+  // Redraws are batched to one per frame so dragging stays smooth.
+  let queued = false;
+  const redraw = () => {
+    if (queued) return; queued = true;
+    requestAnimationFrame(() => {
+      queued = false;
+      if (blurOn && !soft) soft = blurred(shown);
+      outCanvas = compose(shown, box, { blur: blurOn, pad, soft });
+      after.innerHTML = ""; after.append(outCanvas, el("div", { class: "cap" }, "What the app will show"));
+    });
+  };
+
+  const showPhoto = () => {
+    shown = rotated(original, turns); soft = null;
+    view.innerHTML = ""; view.append(shown, cropEl);
+    placeBox(); redraw();
+  };
+
+  // Drag inside the box to move it, a corner to resize, or the photo to draw a new box.
+  const drag = (target, handle, e, startBox) => {
+    e.preventDefault();
+    target.setPointerCapture?.(e.pointerId);
+    const sx = e.clientX, sy = e.clientY, s = pxPerCss();
+    const rect = shown.getBoundingClientRect();
+    const ax = clamp((sx - rect.left) * s, 0, shown.width), ay = clamp((sy - rect.top) * s, 0, shown.height);
+    const prev = box;
+    const move = (ev) => {
+      const dx = (ev.clientX - sx) * s, dy = (ev.clientY - sy) * s;
+      if (handle === "new") {
+        const bx = clamp(ax + dx, 0, shown.width), by = clamp(ay + dy, 0, shown.height);
+        box = { x: Math.min(ax, bx), y: Math.min(ay, by), w: Math.abs(bx - ax), h: Math.abs(by - ay) };
+      } else box = adjustBox(startBox, handle, dx, dy, shown.width, shown.height);
+      placeBox(); if (box.w >= MIN_BOX && box.h >= MIN_BOX) redraw();
+    };
+    const end = () => {
+      target.removeEventListener("pointermove", move);
+      target.removeEventListener("pointerup", end);
+      target.removeEventListener("pointercancel", end);
+      if (box.w < MIN_BOX || box.h < MIN_BOX) { box = prev; placeBox(); } // a click, not a drag
+      redraw();
+    };
+    target.addEventListener("pointermove", move);
+    target.addEventListener("pointerup", end);
+    target.addEventListener("pointercancel", end);
+  };
+  cropEl.addEventListener("pointerdown", (e) => { e.stopPropagation(); drag(cropEl, e.target.dataset.h || "move", e, { ...box }); });
+  view.addEventListener("pointerdown", (e) => { if (e.target === shown) drag(view, "new", e, { ...box }); });
+  window.addEventListener("resize", placeBox);
+
+  const turn = (dir) => {
+    box = turnBox(box, dir, shown.width, shown.height);
+    turns += dir; showPhoto();
+  };
 
   const blurLab = el("label", { class: "switch" }, `<input type="checkbox" checked> Blur background`);
   blurLab.querySelector("input").addEventListener("change", (e) => { blurOn = e.target.checked; redraw(); });
   const zoomLab = el("label", { class: "switch" }, `Space around it <input type="range" min="0" max="40" value="12">`);
   zoomLab.querySelector("input").addEventListener("input", (e) => { pad = Number(e.target.value) / 100; redraw(); });
   controls.append(
-    button("↺ Rotate", "quiet small", () => { turns -= 1; redraw(); }),
-    button("↻ Rotate", "quiet small", () => { turns += 1; redraw(); }),
+    button("↺ Rotate", "quiet small", () => turn(-1)),
+    button("↻ Rotate", "quiet small", () => turn(1)),
+    button("Reset crop", "quiet small", () => { box = defaultBox(shown.width, shown.height); placeBox(); redraw(); }),
     blurLab, zoomLab);
 
+  const close = () => { window.removeEventListener("resize", placeBox); slot.innerHTML = ""; };
   const save = button("Save as product photo", "primary", async (e) => {
     e.target.disabled = true;
     try {
-      const blob = await new Promise((res) => outCanvas.toBlob(res, "image/jpeg", 0.86));
+      const final = compose(shown, box, { blur: blurOn, pad, soft });
+      const blob = await new Promise((res) => final.toBlob(res, "image/jpeg", 0.86));
       const b64 = await new Promise((res) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(blob); });
       await api("save_photo", { barcode, image: b64, photo_submission_id: submissionId || null });
       toast("Saved as the product photo");
-      slot.innerHTML = "";
+      close();
       await refreshAll();
     } catch (err) { toast("Failed: " + err.message); e.target.disabled = false; }
   });
-  actions.append(save, button("Cancel", "quiet", () => { slot.innerHTML = ""; }));
+  actions.append(save, button("Cancel", "quiet", close));
 
-  try {
-    const m = await segment(base, (s) => { status.textContent = s; });
-    if (maskBox(m)) { mask = m; status.textContent = "Done. Rotate or adjust if needed, then save."; }
-    else status.textContent = "Couldn't pick out the product, so it's a plain centre crop. Rotate if needed, then save.";
-    redraw();
-  } catch (e) {
-    console.warn("segmentation failed", e);
-    status.textContent = "The background tool couldn't run on this device, so it's a plain centre crop. Rotate if needed, then save.";
-  }
+  showPhoto();
+  status.textContent = "Drag a box round the product, rotate if needed, then save.";
 }
 
 /* ─────────────── App mock-up ─────────────── */
