@@ -101,7 +101,9 @@
   }
 
   async function signOut() {
-    await sb.auth.signOut();
+    // This browser only: Supabase's default ends every session, which signed
+    // people out of the app on their phone too (found 4 Nov 2026).
+    await sb.auth.signOut({ scope: "local" });
     location.href = "/";
   }
 

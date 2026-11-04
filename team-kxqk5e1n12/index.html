@@ -437,10 +437,13 @@ async function start() {
     me = await api("me");
   } catch (e) {
     const who = session.user?.email || "that account";
-    await sb.auth.signOut();
-    return showLogin(e.message === "not_authorised"
-      ? `You signed in as ${who}, which isn't on the admin team. Ask Eddy to add it, or sign in with a different account.`
-      : "Couldn't check your access: " + e.message);
+    // Only a real "not on the team" answer signs you out. A network blip or
+    // server error keeps the session, so a reload is all it takes.
+    if (e.message === "not_authorised") {
+      await sb.auth.signOut({ scope: 'local' });
+      return showLogin(`You signed in as ${who}, which isn't on the admin team. Ask Eddy to add it, or sign in with a different account.`);
+    }
+    return showLogin("Couldn't check your access: " + e.message + ". You're still signed in, reload the page to try again.");
   }
   $("login").classList.add("hidden");
   $("app").classList.remove("hidden");
@@ -458,7 +461,7 @@ $("loginForm").addEventListener("submit", async (e) => {
   if (error) { $("loginErr").textContent = error.message; return; }
   start();
 });
-$("signOut").addEventListener("click", async () => { await sb.auth.signOut(); me = null; showLogin(); });
+$("signOut").addEventListener("click", async () => { await sb.auth.signOut({ scope: 'local' }); me = null; showLogin(); });
 
 // Google and password-reset links must come back to this page, so they only
 // work once the page is online (not when opened as a file from Finder).
