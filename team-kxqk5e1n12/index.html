@@ -112,6 +112,12 @@
   .photos img { max-width: 220px; max-height: 220px; border-radius: 14px; border: 1px solid var(--line); display: block; }
   .photos figure { margin: 0; }
   .photos figcaption { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .roll { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .roll figure { margin: 0; position: relative; }
+  .roll img { width: 84px; height: 63px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); display: block; }
+  .roll .cover img { outline: 3px solid var(--primary); outline-offset: 1px; }
+  .roll figcaption { font-size: 11px; color: var(--muted); margin-top: 3px; text-align: center; }
+  .roll .btn.small { padding: 2px 8px; font-size: 11px; }
   .ingredients { font-size: 14px; margin-top: 8px; }
   .empty { text-align: center; color: var(--muted); padding: 40px 0; }
   .toast {
@@ -558,7 +564,7 @@ const INTROS = {
   product_flags: "Reports from people using the app. <strong>Fix product</strong> edits it here, rescores it and closes the report with a note of what changed. <strong>Review score</strong> shows exactly how the score was worked out. <strong>Quarantine</strong> hides it from the app until the weekly review.",
   ingredient_flags: "Reports about a single ingredient. If the text is wrong, fix it on the product. If it's really a question about whether an ingredient should count as a processing marker, send it to <strong>scoring review</strong>: rule changes are a separate, deliberate job.",
   allergens: "People telling us whether a product contains an allergen. Applying the answer updates the product's allergen tags. If the ingredient list mentions the allergen, fix the ingredients too, as the app checks both.",
-  photos: "Photos people took of products. <strong>Tidy up and approve</strong> lets you rotate it, drag a box round the product and blur the background, shows you the result, then saves it as the product's photo. It all runs in your browser with nothing to download.",
+  photos: "Photos people took of products. <strong>Tidy up and approve</strong> lets you rotate it, drag a box round the product and blur the background, shows you the result, then adds it to the product's photo roll (up to 10 per product; the first is the cover). It all runs in your browser with nothing to download. Change the cover or remove a photo from Look up.",
   missed_scans: "Barcodes people scanned that Unwrap couldn't answer. Only the barcode is counted, nothing about who scanned it, and each phone counts a barcode once per session. <strong>20+ misses, not picked up</strong> is the add-it-ourselves list. Once a barcode has ingredients in Unwrap it moves to Fixed by itself.",
   log: "Every change made here, newest first: who, what and when. Product edits keep a before and after, and an admin can undo them.",
   quarantine: "Products hidden from the app until an admin reviews them, usually weekly. They land here when a moderator rejects a live product or someone presses Quarantine on a report or in Look up. <strong>Restore</strong> puts it back; <strong>Remove for good</strong> keeps it out.",
@@ -771,18 +777,29 @@ function renderSubmission(r) {
 
 /* ─────────────── Photos ─────────────── */
 
+// Thumbnails of a product's photo roll (cover outlined), with how many it has.
+function rollStrip(roll, wanted = 10) {
+  const list = roll || [];
+  const head = list.length
+    ? `${list.length} of ${wanted} photos so far${list.length >= wanted ? " — it has enough; only approve this one if it's clearer or shows a different pack" : ""}`
+    : "No photos yet — this one will be the cover";
+  return `<div class="hint" style="margin-top:8px">${esc(head)}</div>` + (list.length ? `<div class="roll">${list.map((x, i) =>
+    `<figure class="${x.is_cover ? "cover" : ""}"><img src="${esc(x.url)}" alt="Photo ${i + 1}"><figcaption>${x.is_cover ? "Cover" : i + 1}</figcaption></figure>`).join("")}</div>` : "");
+}
+
+
 function renderPhoto(r) {
   const c = card(`
     <div class="row-head"><h3>${esc(r.product_name || "Not in Unwrap yet")}</h3><span class="meta">${esc(r.barcode)} · ${offLink(r.barcode)}</span></div>
     <div class="meta">${when(r.created_at)}${reporterLine(r)}</div>
     <div class="photos">
       ${r.photo_url ? `<figure><a href="${esc(r.photo_url)}" target="_blank" rel="noopener"><img src="${esc(r.photo_url)}" alt="Submitted photo for ${esc(r.barcode)}"></a><figcaption>Sent in</figcaption></figure>` : `<span class="hint">Photo file missing</span>`}
-      ${r.current_image_url ? `<figure><img src="${esc(r.current_image_url)}" alt="Current product photo"><figcaption>Current product photo</figcaption></figure>` : ""}
-    </div>`);
+    </div>
+    ${rollStrip(r.roll, r.photos_wanted)}`);
   const wrap = el("div", { class: "actions" });
   const slot = el("div");
   if (r.status === "pending") {
-    const approve = button("Tidy up and approve", "primary", () => openStudio(slot, { barcode: r.barcode, url: r.photo_url, submissionId: r.id }));
+    const approve = button("Tidy up and approve", "primary", () => openStudio(slot, { barcode: r.barcode, url: r.photo_url, submissionId: r.id, rollCount: (r.roll || []).length }));
     if (!r.in_catalogue || !r.photo_url) approve.disabled = true;
     wrap.appendChild(approve);
     wrap.appendChild(button("Reject", "danger", (e) => run(e.target, () => api("set_photo", { id: r.id, status: "rejected" }), "Rejected")));
@@ -1281,7 +1298,7 @@ async function loadImageCanvas(url) {
   return c;
 }
 
-async function openStudio(slot, { barcode, url, submissionId }) {
+async function openStudio(slot, { barcode, url, submissionId, rollCount = 0 }) {
   slot.innerHTML = "";
   const panel = el("div", { class: "panel" }, `<h4>Tidy up the photo</h4>`);
   const status = el("p", { class: "progress" }, "Loading the photo…");
@@ -1369,21 +1386,23 @@ async function openStudio(slot, { barcode, url, submissionId }) {
   blurLab.querySelector("input").addEventListener("change", (e) => { blurOn = e.target.checked; redraw(); });
   const zoomLab = el("label", { class: "switch" }, `Space around it <input type="range" min="0" max="40" value="12">`);
   zoomLab.querySelector("input").addEventListener("input", (e) => { pad = Number(e.target.value) / 100; redraw(); });
+  const coverLab = el("label", { class: "switch" }, `<input type="checkbox" ${rollCount ? "" : "checked disabled"}> Make it the cover`);
   controls.append(
     button("↺ Rotate", "quiet small", () => turn(-1)),
     button("↻ Rotate", "quiet small", () => turn(1)),
     button("Reset crop", "quiet small", () => { box = defaultBox(shown.width, shown.height); placeBox(); redraw(); }),
-    blurLab, zoomLab);
+    blurLab, zoomLab, coverLab);
 
   const close = () => { window.removeEventListener("resize", placeBox); slot.innerHTML = ""; };
-  const save = button("Save as product photo", "primary", async (e) => {
+  const save = button(rollCount ? "Add to the product's photos" : "Save as product photo", "primary", async (e) => {
     e.target.disabled = true;
     try {
       const final = compose(shown, box, { blur: blurOn, pad, soft });
       const blob = await new Promise((res) => final.toBlob(res, "image/jpeg", 0.86));
       const b64 = await new Promise((res) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(blob); });
-      await api("save_photo", { barcode, image: b64, photo_submission_id: submissionId || null });
-      toast("Saved as the product photo");
+      const res = await api("save_photo", { barcode, image: b64, photo_submission_id: submissionId || null,
+        as_cover: coverLab.querySelector("input").checked });
+      toast(res.is_cover ? `Saved as the cover (${res.count} of ${res.wanted})` : `Added to the roll (${res.count} of ${res.wanted})`);
       close();
       await refreshAll();
     } catch (err) { toast("Failed: " + err.message); e.target.disabled = false; }
@@ -1587,6 +1606,28 @@ async function openProduct(barcode, results, detail) {
   else if (!p.is_deleted) act.appendChild(button("Quarantine", "danger", (e) => hideProduct(e.target, barcode, "Quarantined from Look up", null)));
   c.append(act, slot);
   detail.appendChild(c);
+
+  // Photo roll: choose the cover, remove a bad one.
+  const roll = h.roll || [];
+  if (roll.length) {
+    const box = card(`<div class="section-title" style="margin-top:0">Photos (${roll.length} of ${h.photos_wanted || 10})</div>
+      <div class="hint">The cover shows first in the app and on the share card. Removing a photo keeps the file for the change log; the person who sent it stops getting credit for it.</div>`);
+    const strip = el("div", { class: "roll" });
+    roll.forEach((x, i) => {
+      const fig = el("figure", { class: x.is_cover ? "cover" : "" },
+        `<a href="${esc(x.url)}" target="_blank" rel="noopener"><img src="${esc(x.url)}" alt="Photo ${i + 1}"></a><figcaption>${x.is_cover ? "Cover" : (x.from_contributor ? "Sent in" : "Added")}</figcaption>`);
+      const btns = el("div", { class: "actions", style: "gap:4px;margin-top:4px" });
+      if (!x.is_cover) btns.appendChild(button("Make cover", "quiet small", (e) => run(e.target, () => api("set_cover_photo", { photo_id: x.id }), "New cover set").then(() => openProduct(barcode, results, detail))));
+      btns.appendChild(button("Remove", "danger small", (e) => {
+        if (!confirm("Remove this photo from the product?")) return;
+        run(e.target, () => api("remove_photo", { photo_id: x.id }), "Photo removed").then(() => openProduct(barcode, results, detail));
+      }));
+      fig.appendChild(btns);
+      strip.appendChild(fig);
+    });
+    box.appendChild(strip);
+    detail.appendChild(box);
+  }
 
   const section = (title, items, line) => {
     if (!items || !items.length) return;
