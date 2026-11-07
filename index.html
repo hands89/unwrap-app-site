@@ -64,6 +64,34 @@
     .aisle { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
     .aisle figure { display: flex; flex-direction: column; gap: 8px; }
     .aisle .photo { border-radius: var(--radius-sm); }
+    /* Score disc top left (matches the app's badge) and the flagged ingredient bottom right */
+    .aisle-tile { position: relative; }
+    .aisle-score {
+      position: absolute; top: 10px; left: 10px;
+      width: 54px; height: 54px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 22px; line-height: 1;
+      box-shadow: 0 4px 14px rgba(30, 27, 24, .28);
+      isolation: isolate;
+    }
+    .aisle-score small { font-size: .55em; margin-left: 1px; }
+    .aisle-score::before {
+      content: ""; position: absolute; inset: 15%; z-index: -1; opacity: .15; background: #fff;
+      -webkit-mask: url("/assets/images/logo.png") center / contain no-repeat;
+              mask: url("/assets/images/logo.png") center / contain no-repeat;
+    }
+    .aisle-flag {
+      position: absolute; right: 10px; bottom: 12px; max-width: calc(100% - 20px);
+      font-family: var(--font-effect); font-size: 22px; line-height: 1.1;
+      color: #B46915; background: #FBE9D7;
+      padding: 4px 11px 3px; border-radius: 999px;
+      transform: rotate(-3deg);
+      box-shadow: 0 3px 10px rgba(30, 27, 24, .22);
+    }
+    @media (max-width: 640px) {
+      .aisle-score { width: 44px; height: 44px; font-size: 18px; top: 8px; left: 8px; }
+      .aisle-flag { font-size: 18px; right: 8px; bottom: 9px; padding: 3px 9px 2px; }
+    }
     .aisle figcaption { font-size: 13px; color: var(--text-muted); }
 
     .closing { text-align: left; }
@@ -221,10 +249,10 @@
           Every week I pick up a few everyday products, turn them over and post what's on the back.
         </p>
         <div class="aisle">
-          <figure><div class="photo ratio-portrait"><img src="/assets/images/aisle/french-fancies.jpg" alt="A box of cakes held up in a supermarket aisle" loading="lazy" width="900" height="1200"></div></figure>
-          <figure><div class="photo ratio-portrait"><img src="/assets/images/aisle/muller-rice.jpg" alt="A dessert pot held up in the chiller aisle" loading="lazy" width="900" height="1200"></div></figure>
-          <figure><div class="photo ratio-portrait"><img src="/assets/images/aisle/horseradish.jpg" alt="A jar of sauce held up in a shop" loading="lazy" width="900" height="1200"></div></figure>
-          <figure><div class="photo ratio-portrait"><img src="/assets/images/aisle/high-juice.jpg" alt="A bottle of squash held up in the drinks aisle" loading="lazy" width="900" height="1200"></div></figure>
+          <figure><div class="photo ratio-portrait aisle-tile"><img src="/assets/images/aisle/french-fancies.jpg" alt="Mr Kipling French Fancies held up in a supermarket aisle. Unwrap score 9.4; carmine flagged." loading="lazy" width="900" height="1200"><span class="aisle-score" style="background:rgb(149,36,22)" aria-label="Unwrap score 9.4" data-score="9.4"><span>9<small>.4</small></span></span><span class="aisle-flag">carmine</span></div></figure>
+          <figure><div class="photo ratio-portrait aisle-tile"><img src="/assets/images/aisle/muller-rice.jpg" alt="Müller Rice Strawberry held up in the chiller aisle. Unwrap score 8.2; carmines flagged." loading="lazy" width="900" height="1200"><span class="aisle-score" style="background:rgb(164,55,25)" aria-label="Unwrap score 8.2" data-score="8.2"><span>8<small>.2</small></span></span><span class="aisle-flag">carmines</span></div></figure>
+          <figure><div class="photo ratio-portrait aisle-tile"><img src="/assets/images/aisle/horseradish.jpg" alt="Sainsbury's horseradish sauce held up in a shop. Xanthan gum flagged." loading="lazy" width="900" height="1200"><span class="aisle-flag">xanthan gum</span></div></figure>
+          <figure><div class="photo ratio-portrait aisle-tile"><img src="/assets/images/aisle/high-juice.jpg" alt="Tesco High Juice apple and mango held up in the drinks aisle. Unwrap score 6.5; cellulose gum flagged." loading="lazy" width="900" height="1200"><span class="aisle-score" style="background:rgb(179,82,26)" aria-label="Unwrap score 6.5" data-score="6.5"><span>6<small>.5</small></span></span><span class="aisle-flag">cellulose gum</span></div></figure>
         </div>
         <div class="cta-row" style="justify-content:flex-start;margin-top:22px">
           <a class="btn btn-outline btn-sm" href="https://www.instagram.com/unwrap_your_food/" target="_blank" rel="noopener">More on Instagram @unwrap_your_food</a>
