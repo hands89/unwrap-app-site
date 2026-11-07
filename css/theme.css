@@ -759,6 +759,30 @@ img { display: block; max-width: 100%; }
 .ratio-portrait { aspect-ratio: 4 / 5; }
 .ratio-wide { aspect-ratio: 16 / 9; }
 
+/* Crossfading photo stack: 4 images, 4s each, 1s fade (16s loop).
+   Negative first delay so the first photo is showing on load. */
+.photo.fade-stack { position: relative; }
+.fade-stack img {
+  position: absolute; inset: 0;
+  opacity: 0;
+  animation: fade-stack 16s infinite;
+}
+.fade-stack img:nth-child(1) { animation-delay: -1s; }
+.fade-stack img:nth-child(2) { animation-delay: 3s; }
+.fade-stack img:nth-child(3) { animation-delay: 7s; }
+.fade-stack img:nth-child(4) { animation-delay: 11s; }
+@keyframes fade-stack {
+  0%      { opacity: 0; }
+  6.25%   { opacity: 1; }
+  25%     { opacity: 1; }
+  31.25%  { opacity: 0; }
+  100%    { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fade-stack img { animation: none; }
+  .fade-stack img:first-child { opacity: 1; }
+}
+
 /* ══════════════════════════════════════════════
    Brand type roles (V1.1.0, 3 Nov 2026)
    ══════════════════════════════════════════════ */

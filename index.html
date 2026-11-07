@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Figtree:ital,wght@0,300..900;1,300..900&family=Atkinson+Hyperlegible+Next:ital,wght@0,200..800;1,200..800&family=Caveat+Brush&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="/css/theme.css?v=5" />
+  <link rel="stylesheet" href="/css/theme.css?v=6" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/store.js"></script>
   <script src="/js/auth.js?v=3"></script>
@@ -188,8 +188,13 @@
 
       <!-- About -->
       <section class="section about">
-        <!-- Shot needed: you in the kitchen, or your hands cooking (the boys: hands only, no faces) -->
-        <div class="photo ratio-square about-media"><img src="/assets/media/eddy-kitchen.jpg" alt="Eddy at his kitchen table" loading="lazy" width="800" height="800"></div>
+        <!-- Four photos crossfading, 4s each (16s loop). First one is what shows with reduced motion. -->
+        <div class="photo ratio-square about-media fade-stack">
+          <img src="/assets/media/eddy-snow.jpg" alt="Eddy smiling in a snowy field in the hills near home" loading="lazy" width="800" height="800">
+          <img src="/assets/media/eddy-bbq.jpg" alt="Eddy sitting by a barbecue in the garden" loading="lazy" width="800" height="800">
+          <img src="/assets/media/eddy-woods.jpg" alt="Eddy sitting in the woods" loading="lazy" width="800" height="800">
+          <img src="/assets/media/eddy-rome.jpg" alt="Eddy at a pavement café table" loading="lazy" width="800" height="800">
+        </div>
         <div class="about-text">
           <div class="section-label">Who's behind it</div>
           <h2 class="section-title">One person, around the shifts.</h2>
