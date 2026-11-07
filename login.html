@@ -235,9 +235,9 @@
     // Sign in with Apple (Apple's own browser script, then the token goes
     // straight to Supabase). Same Apple ID = same account as the app.
     // Uses the website's Services ID; needs no OAuth secret, so nothing to
-    // renew every 6 months. Hidden until APPLE_LIVE is true; add ?apple=1 to
-    // the URL to test it on the live domain before then.
-    const APPLE_LIVE = false;
+    // renew every 6 months. Live since 7 Nov 2026 (APPLE_LIVE); ?apple=1 still
+    // forces it on if APPLE_LIVE is ever switched off for testing.
+    const APPLE_LIVE = true;
     const APPLE_SERVICES_ID = "com.edward.unwrap.web";
     const appleBtns = [$("btn-apple"), $("btn-apple-2")];
     const appleOn = (APPLE_LIVE || new URLSearchParams(location.search).get("apple") === "1") && window.AppleID && window.crypto && crypto.subtle;
