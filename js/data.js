@@ -54,8 +54,30 @@
       .order("title");
     if (error) throw error;
 
+    // Since 7 Nov 2026 one card can serve several categories (content_paths),
+    // and cards that moved to Recipes carry make:hide. Recipes that use a card
+    // are listed on it ("Meals with it").
+    const [pathsRes, usesRes] = await Promise.all([
+      sb.from("content_paths").select("content_id, category_path").eq("content_type", "myo"),
+      sb.from("recipes").select("id, title, recipe_ingredients(myo_card_id)").eq("is_active", true).order("title"),
+    ]);
+    const extraPaths = new Map();
+    for (const p of (pathsRes.data || [])) {
+      if (!extraPaths.has(p.content_id)) extraPaths.set(p.content_id, []);
+      extraPaths.get(p.content_id).push(p.category_path);
+    }
+    const usedIn = new Map();
+    for (const r of (usesRes.data || [])) {
+      for (const i of (r.recipe_ingredients || [])) {
+        if (!i.myo_card_id) continue;
+        if (!usedIn.has(i.myo_card_id)) usedIn.set(i.myo_card_id, []);
+        const list = usedIn.get(i.myo_card_id);
+        if (!list.some((x) => x.id === r.id)) list.push({ id: r.id, title: r.title });
+      }
+    }
+
     const byTitle = new Map();
-    for (const row of data || []) {
+    for (const row of (data || []).filter((r) => !(r.tags || []).includes("make:hide"))) {
       const key = row.title.trim().toLowerCase();
       const existing = byTitle.get(key);
       if (existing) {
@@ -67,6 +89,8 @@
     }
     const cards = Array.from(byTitle.values());
     for (const c of cards) {
+      for (const id of c.ids) for (const p of (extraPaths.get(id) || [])) if (!c.paths.includes(p)) c.paths.push(p);
+      c.meals = c.ids.flatMap((id) => usedIn.get(id) || []);
       c.l1s = Array.from(new Set(c.paths.map((p) => p.split("/")[0])));
       c.keywords = (c.tags || []).filter((t) => t.startsWith("kw:")).map((t) => t.slice(3));
       c.plainTags = (c.tags || []).filter((t) => !t.startsWith("kw:") && t !== "myo");

@@ -115,6 +115,9 @@
     .steps li { font-size: 14.5px; line-height: 1.6; margin-bottom: 10px; }
     .d-tips { margin-top: 20px; font-size: 14px; line-height: 1.6; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 14px; }
     .d-tips strong { color: var(--text); }
+    .d-meals { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 14px; }
+    .d-meals ul { margin: 6px 0 0; padding-left: 18px; line-height: 1.8; }
+    .d-meals a, .ings a { color: var(--green-dark); font-weight: 600; border-bottom: 1px dashed rgba(44,95,62,.4); text-decoration: none; }
     .d-foot { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
     .d-paths { font-size: 12px; color: var(--text-light); flex: 1; }
 
@@ -241,7 +244,7 @@
     $("year").textContent = new Date().getFullYear();
 
     const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-    const costLabel = { cheap: "Cheap", mid: "Mid-price", pricey: "Pricier" };
+    const costLabel = { cheap: "Cheap", mid: "Mid-price", moderate: "Mid-price", pricey: "Pricier", expensive: "Pricier" };
     const diffLabel = { easy: "Easy", medium: "A bit of effort", hard: "Takes practice" };
 
     // ── Gate ───────────────────────────────────────────────────────────────
@@ -336,7 +339,14 @@
     function open(id) {
       const c = cards.find((x) => x.ids.includes(id)); if (!c) return;
       id = c.id;
-      const ings = (c.ingredients || []).map((i) => "<li>" + esc(i.item) + (i.note ? "<small>" + esc(i.note) + "</small>" : "") + "</li>").join("");
+      // A part with its own card links to it (composition, 7 Nov 2026).
+      const ings = (c.ingredients || []).map((i) => {
+        const name = i.myo_card_id && cards.some((x) => x.ids.includes(i.myo_card_id))
+          ? '<a href="#card=' + esc(i.myo_card_id) + '" data-card="' + esc(i.myo_card_id) + '">' + esc(i.item) + "</a>"
+          : esc(i.item);
+        return "<li>" + name + (i.note ? "<small>" + esc(i.note) + "</small>" : "") + "</li>";
+      }).join("");
+      const meals = (c.meals || []).map((r) => '<li><a href="/recipes.html#recipe=' + esc(r.id) + '">' + esc(r.title) + "</a></li>").join("");
       const st = steps(c.instructions).map((s) => "<li>" + esc(s) + "</li>").join("");
       $("d-inner").innerHTML =
         '<div class="d-top"><div><h2 id="d-title">' + esc(c.title) + '</h2><div class="d-sub">' + esc(c.subtitle || "") + '</div></div>' +
@@ -347,12 +357,15 @@
         '<div class="d-cols"><div><div class="d-h">Ingredients</div><ul class="ings">' + ings + '</ul></div>' +
         '<div><div class="d-h">Method</div><ol class="steps">' + st + "</ol></div></div>" +
         (c.tips ? '<div class="d-tips"><strong>Tips.</strong> ' + esc(c.tips) + "</div>" : "") +
+        (meals ? '<div class="d-meals"><div class="d-h">Meals with it</div><ul>' + meals + "</ul></div>" : "") +
         '<div class="d-foot"><span class="d-paths">Shown in the app under: ' + esc(c.l1s.map(D.l1Label).join(", ")) + '</span>' +
         '<button type="button" class="btn btn-outline btn-sm" id="d-print">Print</button></div>';
       $("d-inner").querySelector(".d-close").onclick = () => dlg.close();
+      $("d-inner").querySelectorAll("a[data-card]").forEach((a) => a.addEventListener("click", (ev) => { ev.preventDefault(); open(a.dataset.card); }));
       $("d-print").onclick = () => window.print();
       history.replaceState(null, "", "#card=" + id);
-      dlg.showModal();
+      if (!dlg.open) dlg.showModal();
+      dlg.scrollTop = 0;
     }
     dlg.addEventListener("close", () => history.replaceState(null, "", location.pathname));
     dlg.addEventListener("click", (ev) => { if (ev.target === dlg) dlg.close(); });
