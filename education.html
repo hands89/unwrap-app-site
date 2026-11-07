@@ -99,6 +99,13 @@
     .file-btn:hover { background: #245133; }
     .file-btn.is-locked { background: transparent; color: var(--text-light); border: 1px solid var(--border); }
     .file-btn.is-locked:hover { background: var(--white); color: var(--green-dark); }
+    .pack-files { display: grid; gap: 18px; align-content: start; }
+    .sessions { border-top: 1px dashed var(--border); padding-top: 16px; display: grid; gap: 8px; }
+    .sessions-label {
+      font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.4px;
+      color: var(--accent-deep); margin: 0;
+    }
+    .sessions-intro { font-size: 13px; color: var(--text-muted); line-height: 1.55; margin: 0 0 4px; }
     .file-btn.is-missing { background: transparent; color: var(--text-light); border: 1px dashed var(--border); cursor: default; }
 
     /* About */
@@ -280,13 +287,23 @@
         tag: "Primary · KS2",
         title: "Read the Label",
         desc: "Pupils learn to find the ingredients list on a packet, sort kitchen words from factory words, and work out why some ingredients are added.",
-        meta: [["Ages", "Years 3–6 (7–11)"], ["Length", "60 minutes, with a 45-minute version"], ["Who", "Class teacher, food teacher or visiting volunteer"]],
+        meta: [["Ages", "Years 3–6 (7–11)"], ["Length", "60 minutes (45-minute version in the notes), or five sessions of 10–15 minutes"], ["Who", "Class teacher, food teacher or visiting volunteer"]],
         files: [
-          { name: "Slides", note: "18 slides, print-ready", path: "ks2/read-the-label-ks2-slides.pdf", source: "Read the Label KS2 - slides (print copy).pdf" },
+          { name: "Slides · whole lesson", note: "18 slides, print-ready", path: "ks2/read-the-label-ks2-slides.pdf", source: "Read the Label KS2 - slides (print copy).pdf" },
           { name: "Teacher notes", note: "Lesson plan, timings, curriculum links, answers, adaptations", path: "ks2/read-the-label-ks2-teacher-notes.pdf", source: "Read the Label KS2 - teacher notes.pdf" },
           { name: "Printables and games", note: "12 A4 pages: sorting cards, Label Lab, Label Hunt for home, five games and answers", path: "ks2/read-the-label-ks2-printables.pdf", source: "Read the Label KS2 - printables.pdf" },
           { name: "Evidence and sources", note: "Every claim in the pack, with its source", path: "ks2/read-the-label-ks2-evidence-and-sources.pdf", source: "Read the Label KS2 - evidence and sources.pdf" },
         ],
+        sessions: {
+          intro: "Short on time? The same lesson in five slide decks of 10–15 minutes. Each one works on its own, so teach one, a few, or all five in any order.",
+          files: [
+            { name: "1 · Turn it over", note: "About 13 minutes: find the ingredients list, biggest first", path: "ks2/sessions/read-the-label-ks2-session-1-turn-it-over.pdf", source: "Read the Label KS2 - session 1 Turn it over.pdf" },
+            { name: "2 · Kitchen words, factory words", note: "About 14 minutes: card sort, stand up or sit down, guess the food", path: "ks2/sessions/read-the-label-ks2-session-2-kitchen-factory-words.pdf", source: "Read the Label KS2 - session 2 Kitchen words, factory words.pdf" },
+            { name: "3 · Every ingredient has a job", note: "About 12 minutes: job words, Job Match, same jobs at home", path: "ks2/sessions/read-the-label-ks2-session-3-ingredient-jobs.pdf", source: "Read the Label KS2 - session 3 Every ingredient has a job.pdf" },
+            { name: "4 · Label Lab", note: "About 15 minutes: two yoghurts, flavour or flavoured", path: "ks2/sessions/read-the-label-ks2-session-4-label-lab.pdf", source: "Read the Label KS2 - session 4 Label Lab.pdf" },
+            { name: "5 · Make it simple", note: "About 12 minutes: a kitchen-words recipe, Label Hunt for home", path: "ks2/sessions/read-the-label-ks2-session-5-make-it-simple.pdf", source: "Read the Label KS2 - session 5 Make it simple.pdf" },
+          ],
+        },
       },
       {
         tag: "Secondary · KS3",
@@ -310,7 +327,7 @@
         ],
       },
     ];
-    const ALL_FILES = PACKS.flatMap((p) => p.files);
+    const ALL_FILES = PACKS.flatMap((p) => p.files.concat(p.sessions ? p.sessions.files : []));
 
     const A = window.unwrapAuth, sb = A && A.sb, $ = (id) => document.getElementById(id);
     const NEXT = encodeURIComponent("/education.html");
@@ -319,6 +336,12 @@
     const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
     // ── Render the packs (visible to everyone, buttons locked until signed in) ─
+    const fileRow = (f) => `
+            <li class="file">
+              <span class="file-icon">${DOC}</span>
+              <span class="file-text"><span class="file-name">${esc(f.name)}</span><br><span class="file-note">${esc(f.note)}</span></span>
+              <a class="file-btn is-locked" data-path="${esc(f.path)}" href="/login.html?signup=1&amp;next=${NEXT}">Sign in to download</a>
+            </li>`;
     function render() {
       $("packs").innerHTML = PACKS.map((p) => `
         <article class="pack">
@@ -328,13 +351,15 @@
             <p class="pack-desc">${esc(p.desc)}</p>
             <ul class="pack-meta">${p.meta.map(([k, v]) => `<li><strong>${esc(k)}</strong><span>${esc(v)}</span></li>`).join("")}</ul>
           </div>
-          <ul class="files">${p.files.map((f) => `
-            <li class="file">
-              <span class="file-icon">${DOC}</span>
-              <span class="file-text"><span class="file-name">${esc(f.name)}</span><br><span class="file-note">${esc(f.note)}</span></span>
-              <a class="file-btn is-locked" data-path="${esc(f.path)}" href="/login.html?signup=1&amp;next=${NEXT}">Sign in to download</a>
-            </li>`).join("")}
-          </ul>
+          <div class="pack-files">
+            <ul class="files">${p.files.map(fileRow).join("")}</ul>
+            ${p.sessions ? `
+            <div class="sessions">
+              <p class="sessions-label">Short sessions</p>
+              <p class="sessions-intro">${esc(p.sessions.intro)}</p>
+              <ul class="files">${p.sessions.files.map(fileRow).join("")}</ul>
+            </div>` : ""}
+          </div>
         </article>`).join("");
     }
 
