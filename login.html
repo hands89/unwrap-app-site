@@ -247,39 +247,55 @@
       const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
       return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
     };
-    const apple = async (ev) => {
+    // Prepare Apple before any click. Safari only allows the Apple window if it
+    // opens straight from the tap, with nothing awaited first.
+    // Apple gets the hashed nonce; Supabase gets the raw one and checks they match.
+    let rawNonce = null;
+    const prepareApple = async () => {
+      rawNonce = null;
+      const raw = Array.from(crypto.getRandomValues(new Uint8Array(16))).map((b) => b.toString(16).padStart(2, "0")).join("");
+      AppleID.auth.init({
+        clientId: APPLE_SERVICES_ID,
+        scope: "name email",
+        redirectURI: location.origin + "/login.html",
+        nonce: await sha256hex(raw),
+        usePopup: true,
+      });
+      rawNonce = raw;
+    };
+    if (appleOn) prepareApple();
+
+    const apple = (ev) => {
       const panelMsg = ev.currentTarget.id === "btn-apple-2" ? "msg-signup" : "msg-signin";
       msg(panelMsg, "");
+      if (!rawNonce) return msg(panelMsg, "One moment, then try again.");
+      const nonce = rawNonce;
+      const signing = AppleID.auth.signIn(); // must be the first thing the tap does
       appleBtns.forEach((b) => (b.disabled = true));
-      try {
-        // Apple gets the hashed nonce; Supabase gets the raw one and checks they match.
-        const rawNonce = Array.from(crypto.getRandomValues(new Uint8Array(16))).map((b) => b.toString(16).padStart(2, "0")).join("");
-        AppleID.auth.init({
-          clientId: APPLE_SERVICES_ID,
-          scope: "name email",
-          redirectURI: location.origin + "/login.html",
-          nonce: await sha256hex(rawNonce),
-          usePopup: true,
+      signing
+        .then(async (res) => {
+          const { error } = await sb.auth.signInWithIdToken({ provider: "apple", token: res.authorization.id_token, nonce });
+          if (error) return msg(panelMsg, friendly(error));
+          // Apple only sends the name the very first time someone uses it here.
+          const n = res.user && res.user.name;
+          const full = n ? [n.firstName, n.lastName].filter(Boolean).join(" ") : "";
+          if (full) {
+            // Same as the app's ensureProfile: a name from Apple sets the display name.
+            const { data: { user } } = await sb.auth.getUser();
+            if (user) await sb.from("users").upsert({ id: user.id, auth_user_id: user.id, email: user.email, display_name: full }, { onConflict: "id" });
+          }
+          done();
+        })
+        .catch((e) => {
+          // Closing Apple's window isn't an error worth showing.
+          if (e && /popup_closed_by_user|user_cancelled_authorize/i.test(e.error || "")) return;
+          if (e && /popup_blocked/i.test(e.error || "")) return msg(panelMsg, "Your browser blocked Apple's sign-in window. Allow pop-ups for this site and try again.");
+          msg(panelMsg, "Apple sign-in didn't go through. Please try again, or use email.");
+        })
+        .finally(() => {
+          appleBtns.forEach((b) => (b.disabled = false));
+          prepareApple(); // fresh nonce for any next attempt
         });
-        const res = await AppleID.auth.signIn();
-        const { error } = await sb.auth.signInWithIdToken({ provider: "apple", token: res.authorization.id_token, nonce: rawNonce });
-        if (error) return msg(panelMsg, friendly(error));
-        // Apple only sends the name the very first time someone uses it here.
-        const n = res.user && res.user.name;
-        const full = n ? [n.firstName, n.lastName].filter(Boolean).join(" ") : "";
-        if (full) {
-          // Same as the app's ensureProfile: a name from Apple sets the display name.
-          const { data: { user } } = await sb.auth.getUser();
-          if (user) await sb.from("users").upsert({ id: user.id, auth_user_id: user.id, email: user.email, display_name: full }, { onConflict: "id" });
-        }
-        done();
-      } catch (e) {
-        // Closing Apple's window isn't an error worth showing.
-        if (e && /popup_closed_by_user|user_cancelled_authorize/i.test(e.error || "")) return;
-        msg(panelMsg, "Apple sign-in didn't go through. Please try again, or use email.");
-      } finally {
-        appleBtns.forEach((b) => (b.disabled = false));
-      }
     };
     appleBtns.forEach((b) => b.addEventListener("click", apple));
 
