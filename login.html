@@ -17,6 +17,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/store.js"></script>
   <script src="/js/auth.js?v=3"></script>
+  <script src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_GB/appleid.auth.js"></script>
 </head>
 
 <body>
@@ -64,6 +65,7 @@
             <button type="submit" class="btn btn-primary btn-block" id="btn-signin">Sign in</button>
           </form>
           <div class="divider">or</div>
+          <button type="button" class="btn btn-apple btn-block hidden" id="btn-apple"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg> Continue with Apple</button>
           <button type="button" class="btn btn-google btn-block" id="btn-google"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.5 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.8 6C12.3 13.2 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.4 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.8-6A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.2 0 11.6-2 15.4-5.6l-7.5-5.8c-2 1.4-4.7 2.3-7.9 2.3-6.3 0-11.7-3.7-13.6-9.2l-7.8 6C6.5 42.6 14.6 48 24 48z"/></svg> Continue with Google</button>
           <div class="auth-links">
             <button type="button" class="link-btn" data-show="panel-reset">Forgot password?</button>
@@ -88,6 +90,7 @@
             <button type="submit" class="btn btn-primary btn-block" id="btn-signup">Create account</button>
           </form>
           <div class="divider">or</div>
+          <button type="button" class="btn btn-apple btn-block hidden" id="btn-apple-2"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg> Continue with Apple</button>
           <button type="button" class="btn btn-google btn-block" id="btn-google-2"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.5 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.8 6C12.3 13.2 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.4 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.8-6A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.2 0 11.6-2 15.4-5.6l-7.5-5.8c-2 1.4-4.7 2.3-7.9 2.3-6.3 0-11.7-3.7-13.6-9.2l-7.8 6C6.5 42.6 14.6 48 24 48z"/></svg> Continue with Google</button>
           <div class="auth-links">
             <span></span>
@@ -228,6 +231,57 @@
     };
     $("btn-google").addEventListener("click", google);
     $("btn-google-2").addEventListener("click", google);
+
+    // Sign in with Apple (Apple's own browser script, then the token goes
+    // straight to Supabase). Same Apple ID = same account as the app.
+    // Uses the website's Services ID; needs no OAuth secret, so nothing to
+    // renew every 6 months. Hidden until APPLE_LIVE is true; add ?apple=1 to
+    // the URL to test it on the live domain before then.
+    const APPLE_LIVE = false;
+    const APPLE_SERVICES_ID = "com.edward.unwrap.web";
+    const appleBtns = [$("btn-apple"), $("btn-apple-2")];
+    const appleOn = (APPLE_LIVE || new URLSearchParams(location.search).get("apple") === "1") && window.AppleID && window.crypto && crypto.subtle;
+    if (appleOn) appleBtns.forEach((b) => b.classList.remove("hidden"));
+
+    const sha256hex = async (text) => {
+      const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+      return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+    };
+    const apple = async (ev) => {
+      const panelMsg = ev.currentTarget.id === "btn-apple-2" ? "msg-signup" : "msg-signin";
+      msg(panelMsg, "");
+      appleBtns.forEach((b) => (b.disabled = true));
+      try {
+        // Apple gets the hashed nonce; Supabase gets the raw one and checks they match.
+        const rawNonce = Array.from(crypto.getRandomValues(new Uint8Array(16))).map((b) => b.toString(16).padStart(2, "0")).join("");
+        AppleID.auth.init({
+          clientId: APPLE_SERVICES_ID,
+          scope: "name email",
+          redirectURI: location.origin + "/login.html",
+          nonce: await sha256hex(rawNonce),
+          usePopup: true,
+        });
+        const res = await AppleID.auth.signIn();
+        const { error } = await sb.auth.signInWithIdToken({ provider: "apple", token: res.authorization.id_token, nonce: rawNonce });
+        if (error) return msg(panelMsg, friendly(error));
+        // Apple only sends the name the very first time someone uses it here.
+        const n = res.user && res.user.name;
+        const full = n ? [n.firstName, n.lastName].filter(Boolean).join(" ") : "";
+        if (full) {
+          // Same as the app's ensureProfile: a name from Apple sets the display name.
+          const { data: { user } } = await sb.auth.getUser();
+          if (user) await sb.from("users").upsert({ id: user.id, auth_user_id: user.id, email: user.email, display_name: full }, { onConflict: "id" });
+        }
+        done();
+      } catch (e) {
+        // Closing Apple's window isn't an error worth showing.
+        if (e && /popup_closed_by_user|user_cancelled_authorize/i.test(e.error || "")) return;
+        msg(panelMsg, "Apple sign-in didn't go through. Please try again, or use email.");
+      } finally {
+        appleBtns.forEach((b) => (b.disabled = false));
+      }
+    };
+    appleBtns.forEach((b) => b.addEventListener("click", apple));
 
     $("form-reset").addEventListener("submit", async (ev) => {
       ev.preventDefault(); msg("msg-reset", "");

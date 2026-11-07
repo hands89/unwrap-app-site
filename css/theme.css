@@ -547,6 +547,19 @@ img { display: block; max-width: 100%; }
 
 .btn-google svg { width: 18px; height: 18px; }
 
+/* Sign in with Apple: Apple's required black button, not the brand green. */
+.btn-apple {
+  background: #000;
+  color: #fff;
+  border-color: #000;
+}
+
+.btn-apple:hover { background: #1a1a1a; }
+
+.btn-apple svg { width: 18px; height: 18px; margin-top: -2px; }
+
+.btn-apple + .btn-google { margin-top: 10px; }
+
 .divider {
   display: flex;
   align-items: center;
