@@ -359,6 +359,8 @@ const QUEUES = {
                       statusLabels: { open: "waiting for review" } },
   categories:       { label: "Categories",       statuses: ["open", "no_category", "no_l3"],
                       statusLabels: { open: "all needing a look", no_category: "no category at all", no_l3: "aisle only, no swaps yet" } },
+  unreadable:       { label: "Unreadable lists", statuses: ["open", "resolved"],
+                      statusLabels: { open: "waiting for a fix", resolved: "fixed or marked fine" } },
   imports:          { label: "Imports",          statuses: ["pending", "high", "approved", "rejected", "skipped"],
                       statusLabels: { pending: "waiting", high: "waiting · high confidence", skipped: "skipped for later" } },
   log:              { label: "Change log",       statuses: ["all", "edits", "resolutions", "quarantine"],
@@ -381,6 +383,7 @@ let me = null;
 let current = "product_flags";
 let lookupState = { q: "", barcode: null };
 let counts = {};
+let unreadableOffset = 0;   // paging for the Unreadable lists tab
 
 const $ = (id) => document.getElementById(id);
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -536,12 +539,14 @@ sb.auth.onAuthStateChange((event) => {
   pendingLoginMsg = why; showLogin();
 })();
 $("refresh").addEventListener("click", refreshAll);
-$("statusFilter").addEventListener("change", load);
+$("statusFilter").addEventListener("change", () => { unreadableOffset = 0; load(); });
 
 /* ─────────────── Tabs and lists ─────────────── */
 
 async function loadCounts() {
   try { counts = await api("counts"); } catch (_) { counts = {}; }
+  // Unreadable lists (script 79) are counted by a database function, not admin-api.
+  try { const { data } = await sb.rpc("admin_unreadable_count"); counts.unreadable = data || 0; } catch (_) { /* leave it out */ }
 }
 
 function renderTabs() {
@@ -558,6 +563,7 @@ function renderTabs() {
 
 function select(key) {
   current = key;
+  unreadableOffset = 0;
   renderTabs();
   const sel = $("statusFilter"); sel.innerHTML = "";
   for (const s of QUEUES[key].statuses) {
@@ -576,6 +582,7 @@ const INTROS = {
   log: "Every change made here, newest first: who, what and when. Product edits keep a before and after, and an admin can undo them.",
   quarantine: "Products hidden from the app until an admin reviews them, usually weekly. They land here when a moderator rejects a live product or someone presses Quarantine on a report or in Look up. <strong>Restore</strong> puts it back; <strong>Remove for good</strong> keeps it out.",
   imports: "Products Open Food Facts has a <strong>label photo</strong> for but no typed ingredients. The list is what a machine read off the photo, so treat it as a draft: check it against the photo, fix anything wrong (one ingredient per line), pick the category and <strong>Approve</strong>. Nothing here is in the app until you do. <strong>Reject</strong> if the photo is unreadable or it isn't food.",
+  unreadable: "Ingredient lists where pack text got tangled into the ingredients (allergy advice, nutrition panels, addresses, OCR mush). The app hides their score and asks whoever scans it for a photo of the ingredients panel. The rows that need a look are highlighted. <strong>Fix ingredients</strong> opens the editor: rewrite the list from the photo or the pack, save, then press <strong>Done: list is right</strong> to bring the score back straight away (otherwise it comes back overnight once the tangled rows are gone). If the highlighted text is actually fine, press <strong>Done</strong> on its own. Not food? <strong>Hide</strong> sends it to Quarantine.",
   categories: "Products whose category was guessed by the bulk import and needs a human eye. They already scan and score; a product only offers swaps once it has all three levels. If the guess is right press <strong>Looks right</strong>. Otherwise pick the category and <strong>Save</strong>. Not food at all? <strong>Hide</strong> sends it to Quarantine.",
 };
 
@@ -589,6 +596,7 @@ async function load() {
     if (current === "spread") return isAdmin() ? await renderSpread() : (list.innerHTML = `<div class="empty">Score spread is for admins.</div>`);
     if (current === "create") return isAdmin() ? await renderCreate() : (list.innerHTML = `<div class="empty">Creating content is for admins.</div>`);
     if (current === "log") return await renderLog();
+    if (current === "unreadable") return await renderUnreadable();
     const { rows } = await api("list", { queue: current, status: $("statusFilter").value, batch: current === "imports" ? importBatch : undefined });
     list.innerHTML = "";
     if (INTROS[current]) list.appendChild(el("p", { class: "hint" }, INTROS[current]));
@@ -878,6 +886,52 @@ function renderCategoryReview(r) {
   wrap.appendChild(button("Open product", "quiet", () => openEditor(slot, r.barcode, {})));
   wrap.appendChild(button("Hide (not food)", "danger", (e) => run(e.target,
     () => api("quarantine_product", { barcode: r.barcode, reason: notes.value.trim() || "Not food, or unreadable (category review)" }), "Hidden and sent to Quarantine")));
+  c.append(wrap, slot);
+  return c;
+}
+
+/* ─────────────── Unreadable lists (script 79, 8 Nov 2026) ─────────────── */
+// Read through database functions (admin_unreadable_list / admin_mark_list_readable), team members only.
+
+async function renderUnreadable() {
+  const list = $("list");
+  const view = $("statusFilter").value || "open";
+  const { data, error } = await sb.rpc("admin_unreadable_list", { p_view: view, p_limit: 100, p_offset: unreadableOffset });
+  if (error) throw new Error(error.message);
+  list.innerHTML = "";
+  list.appendChild(el("p", { class: "hint" }, INTROS.unreadable));
+  const rows = data || [];
+  if (!rows.length && !unreadableOffset) { list.appendChild(el("div", { class: "empty" }, "Nothing here. Good.")); return; }
+  for (const r of rows) list.appendChild(renderUnreadableRow(r, view));
+  const nav = el("div", { class: "actions" });
+  if (unreadableOffset > 0) nav.appendChild(button("Previous 100", "quiet", () => { unreadableOffset = Math.max(0, unreadableOffset - 100); load(); }));
+  if (rows.length === 100) nav.appendChild(button("Next 100", "quiet", () => { unreadableOffset += 100; load(); }));
+  if (nav.children.length) list.appendChild(nav);
+}
+
+function renderUnreadableRow(r, view) {
+  const flagged = (r.flagged || []).map((f) => f.text);
+  const isFlagged = (t) => flagged.some((f) => String(t || "").toLowerCase() === String(f).toLowerCase());
+  const ings = (r.ingredients_preview || []).map((x) => isFlagged(x) ? `<mark>${esc(x)}</mark>` : esc(x)).join(", ");
+  const c = card(`
+    <div class="row-head"><h3>${esc(r.name || "Unnamed product")}</h3><span class="meta">${esc(r.brand || "")} · ${esc(r.barcode)} · ${offLink(r.barcode)}</span></div>
+    <div class="reason"><span class="tag">${esc(catPath(r))}</span>${r.suppression_reason ? `<span class="tag warn">no score in the app: ${esc(nice(r.suppression_reason))}</span>` : ""}</div>
+    <div class="meta"><strong>Needs a look:</strong> ${(r.flagged || []).map((f) => `<span class="tag warn">${esc(f.text)}</span>`).join(" ")}</div>
+    ${ings ? `<div class="meta">Full list: ${ings}</div>` : ""}
+    ${view === "resolved" ? `<div class="meta">${(r.flagged || []).map((f) => esc(nice(f.resolution || ""))).filter(Boolean).join(" · ")}</div>` : ""}`);
+  if (view !== "open") return c;
+  const slot = el("div");
+  const wrap = el("div", { class: "actions" });
+  const notes = notesBox("", "Notes (optional): what you changed");
+  wrap.appendChild(notes);
+  wrap.appendChild(button("Fix ingredients", "primary", () => openEditor(slot, r.barcode, {})));
+  wrap.appendChild(button("Done: list is right", "", (e) => run(e.target, async () => {
+    const { data, error } = await sb.rpc("admin_mark_list_readable", { p_product_id: r.id, p_note: notes.value.trim() || null });
+    if (error) throw new Error(error.message);
+    return data;
+  }, (res) => res && res.score_back ? "Done: score is back in the app" : "Done")));
+  wrap.appendChild(button("Hide (not food)", "danger", (e) => run(e.target,
+    () => api("quarantine_product", { barcode: r.barcode, reason: notes.value.trim() || "Unreadable ingredient list" }), "Hidden and sent to Quarantine")));
   c.append(wrap, slot);
   return c;
 }
