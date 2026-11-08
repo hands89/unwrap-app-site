@@ -88,9 +88,62 @@
       transform: rotate(-3deg);
       box-shadow: 0 3px 10px rgba(30, 27, 24, .22);
     }
+    /* Flip cards: hover (mouse) or tap/keyboard (button) shows the swaps */
+    .flip { margin: 0; perspective: 1200px; }
+    .flip-inner { position: relative; aspect-ratio: 4 / 5; transform-style: preserve-3d; transition: transform .6s cubic-bezier(.2,.7,.2,1); }
+    .flip .flip-face { position: absolute; inset: 0; border-radius: var(--radius-sm); overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; aspect-ratio: auto; }
+    .flip-front img { width: 100%; height: 100%; object-fit: cover; }
+    .flip-back {
+      transform: rotateY(180deg);
+      background: #FFFDF8; border: 1px solid #E6DCCB;
+      padding: 16px 14px 14px; display: flex; flex-direction: column; gap: 4px;
+    }
+    .flip.is-flipped .flip-inner { transform: rotateY(180deg); }
+    @media (hover: hover) { .flip:hover .flip-inner { transform: rotateY(180deg); } }
+    .flip-hint {
+      position: absolute; top: 12px; right: 10px;
+      font: 600 12px/1 var(--font-subtitle, 'Figtree', sans-serif);
+      color: #2D5F3E; background: rgba(248, 244, 236, .94);
+      border: 0; border-radius: 999px; padding: 7px 10px; cursor: pointer;
+      box-shadow: 0 2px 8px rgba(30, 27, 24, .18);
+    }
+    .flip-hint:focus-visible, .swap-more:focus-visible { outline: 2px solid #2D5F3E; outline-offset: 2px; }
+    .swap-eyebrow { font: 600 11px/1.2 'Figtree', sans-serif; letter-spacing: .12em; text-transform: uppercase; color: #2D5F3E; }
+    .swap-instead { font-size: 13px; color: #6B6560; line-height: 1.3; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .swap-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; flex: 1 1 auto; min-height: 0; overflow: hidden; }
+    .swap-list li { display: flex; align-items: center; gap: 10px; }
+    .mini-score {
+      flex: none; width: 38px; height: 38px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font: 800 15px/1 'Figtree', sans-serif;
+    }
+    .mini-score small { font-size: .6em; margin-left: 1px; }
+    .swap-text { display: flex; flex-direction: column; min-width: 0; }
+    .swap-name { font-size: 14px; font-weight: 600; line-height: 1.2; color: #1E1B18; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .swap-brand { font-size: 12px; color: #6B6560; line-height: 1.3; }
+    .swap-more { font: 600 13px/1.2 'Figtree', sans-serif; color: #2D5F3E; text-decoration: none; margin-top: 8px; }
+    .swap-more:hover { text-decoration: underline; }
+    @media (prefers-reduced-motion: reduce) {
+      .flip-inner { transition: none; transform: none !important; }
+      .flip .flip-face { backface-visibility: visible; transition: opacity .25s; }
+      .flip-back { transform: none; opacity: 0; }
+      .flip.is-flipped .flip-back { opacity: 1; }
+      .flip.is-flipped .flip-front { opacity: 0; }
+      @media (hover: hover) { .flip:hover .flip-back { opacity: 1; } .flip:hover .flip-front { opacity: 0; } }
+    }
     @media (max-width: 640px) {
       .aisle-score { width: 44px; height: 44px; font-size: 18px; top: 8px; left: 8px; }
       .aisle-flag { font-size: 18px; right: 8px; bottom: 9px; padding: 3px 9px 2px; }
+      .flip-back { padding: 12px 10px 10px; }
+      .swap-instead { display: none; }
+      .swap-eyebrow { margin-bottom: 6px; }
+      .swap-list { gap: 7px; }
+      .swap-list li { gap: 7px; }
+      .mini-score { width: 30px; height: 30px; font-size: 12px; }
+      .swap-name { font-size: 12.5px; }
+      .swap-brand { font-size: 11px; }
+      .swap-more { font-size: 12px; margin-top: 4px; }
+      .flip-hint { top: 10px; right: 8px; padding: 6px 8px; font-size: 11px; }
     }
     .aisle figcaption { font-size: 13px; color: var(--text-muted); }
 
@@ -249,10 +302,10 @@
           Every week I pick up a few everyday products, turn them over and post what's on the back.
         </p>
         <div class="aisle">
-          <figure><div class="photo ratio-portrait aisle-tile"><img src="/assets/images/aisle/french-fancies.jpg" alt="Mr Kipling French Fancies held up in a supermarket aisle. Unwrap score 9.4; carmine flagged." loading="lazy" width="900" height="1200"><span class="aisle-score" style="background:rgb(149,36,22)" aria-label="Unwrap score 9.4" data-score="9.4"><span>9<small>.4</small></span></span><span class="aisle-flag">carmine</span></div></figure>
-          <figure><div class="photo ratio-portrait aisle-tile"><img src="/assets/images/aisle/muller-rice.jpg" alt="Müller Rice Strawberry held up in the chiller aisle. Unwrap score 8.2; carmines flagged." loading="lazy" width="900" height="1200"><span class="aisle-score" style="background:rgb(164,55,25)" aria-label="Unwrap score 8.2" data-score="8.2"><span>8<small>.2</small></span></span><span class="aisle-flag">carmines</span></div></figure>
-          <figure><div class="photo ratio-portrait aisle-tile"><img src="/assets/images/aisle/corned-beef.jpg" alt="Aldi corned beef held up in a supermarket aisle. Unwrap score 4.0; sodium nitrite flagged." loading="lazy" width="900" height="1200"><span class="aisle-score" style="background:rgb(145,124,32)" aria-label="Unwrap score 4.0" data-score="4.0"><span>4<small>.0</small></span></span><span class="aisle-flag">sodium nitrite</span></div></figure>
-          <figure><div class="photo ratio-portrait aisle-tile"><img src="/assets/images/aisle/high-juice.jpg" alt="Tesco High Juice apple and mango held up in the drinks aisle. Unwrap score 6.5; cellulose gum flagged." loading="lazy" width="900" height="1200"><span class="aisle-score" style="background:rgb(179,82,26)" aria-label="Unwrap score 6.5" data-score="6.5"><span>6<small>.5</small></span></span><span class="aisle-flag">cellulose gum</span></div></figure>
+          <figure class="flip"><div class="flip-inner"><div class="flip-face flip-front photo aisle-tile"><img src="/assets/images/aisle/french-fancies.jpg" alt="Mr Kipling French Fancies held up in a supermarket aisle. Unwrap score 9.4; carmine flagged." loading="lazy" width="900" height="1200"><span class="aisle-score" style="background:rgb(149,36,22)" aria-label="Unwrap score 9.4" data-score="9.4"><span>9<small>.4</small></span></span><span class="aisle-flag">carmine</span><button type="button" class="flip-hint" aria-expanded="false" aria-label="Show swaps for Mr Kipling French Fancies">Swaps <span aria-hidden="true">↻</span></button></div><div class="flip-face flip-back"><div class="swap-eyebrow">Swap it for</div><div class="swap-instead">instead of French Fancies</div><ul class="swap-list"><li><span class="mini-score" style="background:rgb(176,107,22)" aria-label="Unwrap score 4.9"><span>4<small>.9</small></span></span><span class="swap-text"><span class="swap-name">Oreo Brownie</span><span class="swap-brand">Milka</span></span></li><li><span class="mini-score" style="background:rgb(180,105,21)" aria-label="Unwrap score 5.0"><span>5<small>.0</small></span></span><span class="swap-text"><span class="swap-name">Chocolate Mini Rolls</span><span class="swap-brand">Waitrose</span></span></li></ul><a class="swap-more" href="/app.html">More swaps in the app →</a></div></div></figure>
+          <figure class="flip"><div class="flip-inner"><div class="flip-face flip-front photo aisle-tile"><img src="/assets/images/aisle/muller-rice.jpg" alt="Müller Rice Strawberry held up in the chiller aisle. Unwrap score 8.2; carmines flagged." loading="lazy" width="900" height="1200"><span class="aisle-score" style="background:rgb(164,55,25)" aria-label="Unwrap score 8.2" data-score="8.2"><span>8<small>.2</small></span></span><span class="aisle-flag">carmines</span><button type="button" class="flip-hint" aria-expanded="false" aria-label="Show swaps for Müller Rice Strawberry">Swaps <span aria-hidden="true">↻</span></button></div><div class="flip-face flip-back"><div class="swap-eyebrow">Swap it for</div><div class="swap-instead">instead of Müller Rice</div><ul class="swap-list"><li><span class="mini-score" style="background:rgb(117,138,41)" aria-label="Unwrap score 3.2"><span>3<small>.2</small></span></span><span class="swap-text"><span class="swap-name">Clotted Cream Rice Pudding</span><span class="swap-brand">Sainsbury's</span></span></li><li><span class="mini-score" style="background:rgb(117,138,41)" aria-label="Unwrap score 3.2"><span>3<small>.2</small></span></span><span class="swap-text"><span class="swap-name">Rice Pudding</span><span class="swap-brand">Ambrosia</span></span></li><li><span class="mini-score" style="background:rgb(117,138,41)" aria-label="Unwrap score 3.2"><span>3<small>.2</small></span></span><span class="swap-text"><span class="swap-name">Rice Pudding</span><span class="swap-brand">Heinz</span></span></li></ul><a class="swap-more" href="/app.html">More swaps in the app →</a></div></div></figure>
+          <figure class="flip"><div class="flip-inner"><div class="flip-face flip-front photo aisle-tile"><img src="/assets/images/aisle/corned-beef.jpg" alt="Aldi corned beef held up in a supermarket aisle. Unwrap score 4.0; sodium nitrite flagged." loading="lazy" width="900" height="1200"><span class="aisle-score" style="background:rgb(145,124,32)" aria-label="Unwrap score 4.0" data-score="4.0"><span>4<small>.0</small></span></span><span class="aisle-flag">sodium nitrite</span><button type="button" class="flip-hint" aria-expanded="false" aria-label="Show swaps for Aldi corned beef">Swaps <span aria-hidden="true">↻</span></button></div><div class="flip-face flip-back"><div class="swap-eyebrow">Swap it for</div><div class="swap-instead">instead of Aldi corned beef</div><ul class="swap-list"><li><span class="mini-score" style="background:rgb(114,140,42)" aria-label="Unwrap score 3.1"><span>3<small>.1</small></span></span><span class="swap-text"><span class="swap-name">4 Slice Corned Beef</span><span class="swap-brand">Asda</span></span></li><li><span class="mini-score" style="background:rgb(114,140,42)" aria-label="Unwrap score 3.1"><span>3<small>.1</small></span></span><span class="swap-text"><span class="swap-name">Corned Beef</span><span class="swap-brand">Morrisons</span></span></li><li><span class="mini-score" style="background:rgb(117,138,41)" aria-label="Unwrap score 3.2"><span>3<small>.2</small></span></span><span class="swap-text"><span class="swap-name">Corned Beef</span><span class="swap-brand">Fray Bentos</span></span></li></ul><a class="swap-more" href="/app.html">More swaps in the app →</a></div></div></figure>
+          <figure class="flip"><div class="flip-inner"><div class="flip-face flip-front photo aisle-tile"><img src="/assets/images/aisle/high-juice.jpg" alt="Tesco High Juice apple and mango held up in the drinks aisle. Unwrap score 6.5; cellulose gum flagged." loading="lazy" width="900" height="1200"><span class="aisle-score" style="background:rgb(179,82,26)" aria-label="Unwrap score 6.5" data-score="6.5"><span>6<small>.5</small></span></span><span class="aisle-flag">cellulose gum</span><button type="button" class="flip-hint" aria-expanded="false" aria-label="Show swaps for Tesco High Juice apple & mango">Swaps <span aria-hidden="true">↻</span></button></div><div class="flip-face flip-back"><div class="swap-eyebrow">Swap it for</div><div class="swap-instead">instead of Tesco High Juice</div><ul class="swap-list"><li><span class="mini-score" style="background:rgb(180,102,22)" aria-label="Unwrap score 5.2"><span>5<small>.2</small></span></span><span class="swap-text"><span class="swap-name">Mango & Passion Fruit</span><span class="swap-brand">Bottle Green</span></span></li><li><span class="mini-score" style="background:rgb(179,85,26)" aria-label="Unwrap score 6.3"><span>6<small>.3</small></span></span><span class="swap-text"><span class="swap-name">Apple & Mango Squash</span><span class="swap-brand">Waitrose</span></span></li><li><span class="mini-score" style="background:rgb(179,85,26)" aria-label="Unwrap score 6.3"><span>6<small>.3</small></span></span><span class="swap-text"><span class="swap-name">Apple & Mango High Juice</span><span class="swap-brand">Asda</span></span></li></ul><a class="swap-more" href="/app.html">More swaps in the app →</a></div></div></figure>
         </div>
         <div class="cta-row" style="justify-content:flex-start;margin-top:22px">
           <a class="btn btn-outline btn-sm" href="https://www.instagram.com/unwrap_your_food/" target="_blank" rel="noopener">More on Instagram @unwrap_your_food</a>
@@ -311,6 +364,19 @@
 
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+  <script>
+    // From the aisle: tap/keyboard flips a card. Mouse users get it on hover (CSS).
+    (function () {
+      var hover = window.matchMedia && window.matchMedia('(hover: hover)').matches;
+      document.querySelectorAll('.aisle .flip').forEach(function (card) {
+        var btn = card.querySelector('.flip-hint');
+        function set(on) { card.classList.toggle('is-flipped', on); btn.setAttribute('aria-expanded', on ? 'true' : 'false'); }
+        btn.addEventListener('click', function (e) { e.stopPropagation(); set(!card.classList.contains('is-flipped')); });
+        if (!hover) card.addEventListener('click', function (e) { if (e.target.closest('a')) return; set(!card.classList.contains('is-flipped')); });
+        card.addEventListener('mouseleave', function () { set(false); });
+      });
+    })();
   </script>
 </body>
 </html>
