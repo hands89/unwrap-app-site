@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Press and partner information for Unwrap — a free UK app that helps families read food labels in plain English." />
+  <meta name="description" content="Press and partner information for Unwrap — a free UK app, built by a firefighter in the North West, that helps people read food labels in plain English." />
   <!-- Unlisted until approved: remove this line and add the footer link to publish -->
   <meta name="robots" content="noindex" />
   <title>Unwrap — Press &amp; partners</title>
@@ -29,9 +29,20 @@
     .is-isnt .card { margin: 0; }
     .asset-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
     .asset-row img { width: 72px; height: 72px; object-fit: contain; background: var(--white); border-radius: 18px; box-shadow: var(--shadow-sm); padding: 6px; }
+    .founder { display: grid; grid-template-columns: 140px 1fr; gap: 18px; align-items: center; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; box-shadow: var(--shadow-sm); margin-bottom: 14px; }
+    .founder img { width: 140px; height: 140px; object-fit: cover; border-radius: 50%; }
+    .founder blockquote { margin: 0; }
+    .founder blockquote p { font-size: 17px; line-height: 1.55; color: var(--text); margin: 0 0 8px; }
+    .founder cite { font-style: normal; font-size: 13px; color: var(--text-muted); }
+    .asset-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+    .asset-grid a { display: block; text-decoration: none; color: var(--text-muted); font-size: 12px; text-align: center; }
+    .asset-grid img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--radius-sm); display: block; margin-bottom: 4px; }
     a:focus-visible, .btn:focus-visible { outline: 3px solid var(--green-dark); outline-offset: 2px; border-radius: 6px; }
     @media (max-width: 640px) {
       .facts, .is-isnt { grid-template-columns: 1fr; }
+      .founder { grid-template-columns: 1fr; text-align: center; }
+      .founder img { margin: 0 auto; width: 120px; height: 120px; }
+      .asset-grid { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
@@ -64,28 +75,36 @@
 
     <main>
       <h1 class="page-title">Press &amp; partners</h1>
-      <p class="page-sub">Most of us were never taught to read a food label. Unwrap is a free app that does it with you, in plain English.</p>
+      <p class="page-sub">Most of us were never taught to read a food label. I built Unwrap, a free app that does it with you, in plain English.</p>
+
+      <div class="founder">
+        <img src="/assets/media/eddy-snow.jpg" alt="Eddy, who built Unwrap, smiling in a snowy field in the hills near home" width="800" height="800">
+        <blockquote>
+          <p>&ldquo;I love food and I love cooking, but I always struggled to understand what was in the products I was buying. So I built Unwrap, to help myself and others make more educated decisions about what we&rsquo;re eating.&rdquo;</p>
+          <cite>Eddy, firefighter, dad and the person behind Unwrap</cite>
+        </blockquote>
+      </div>
 
       <div class="facts">
         <div class="fact"><div class="fact-k">What</div><div class="fact-v">A barcode-scanning app that explains what's in packaged food and how it was made</div></div>
-        <div class="fact"><div class="fact-k">Who</div><div class="fact-v">Built by Eddy, a serving firefighter and dad, in his time off</div></div>
+        <div class="fact"><div class="fact-k">Who</div><div class="fact-v">Me, Eddy: a serving firefighter and dad, building it in my time off</div></div>
         <div class="fact"><div class="fact-k">Where</div><div class="fact-v">North West England. Built for UK shoppers</div></div>
-        <div class="fact"><div class="fact-k">Products</div><div class="fact-v">Over 55,000 UK products and growing, added to by users</div></div>
+        <div class="fact"><div class="fact-k">Products</div><div class="fact-v">Over 55,000 UK products and growing, added to by people who use it</div></div>
         <div class="fact"><div class="fact-k">Cost</div><div class="fact-v">Free to scan, no account needed. Optional pay-what-you-can supporter tier</div></div>
-        <div class="fact"><div class="fact-k">Available</div><div class="fact-v">iPhone and Android</div></div>
+        <div class="fact"><div class="fact-k">Available</div><div class="fact-v"><a class="email-link" href="https://apps.apple.com/gb/app/unwrap-app/id6757312100">iPhone</a> and <a class="email-link" href="https://play.google.com/store/apps/details?id=com.edward.unwrap">Android</a></div></div>
       </div>
 
       <h2 class="section-h">The story</h2>
       <div class="card">
-        <p>Eddy is a firefighter and a dad living in the North West. He built Unwrap on his own, around his shifts.</p>
-        <p>You scan a barcode and Unwrap lists every ingredient in plain English. It tells you what each one is, why it's there, and how processed the food is overall. If you want something simpler, it suggests similar products, other ideas, and easy recipes to make it yourself.</p>
-        <p>Unwrap is built by one person. It isn't funded by investors or food companies, it has no adverts, and it doesn't sell anyone's data. People who scan without an account aren't tracked.</p>
+        <p>I'm a firefighter and a dad, and I built Unwrap on my own, around my shifts.</p>
+        <p>You scan a barcode and Unwrap lists every ingredient in plain English: what each one is, why it's there, and how processed the food is overall. If you want something simpler, it suggests a similar product, another idea, or a make-your-own recipe. The make-your-own cards and recipes are on this website too.</p>
+        <p>It isn't funded by investors or food companies, it has no adverts, and it doesn't sell anyone's data. People who scan without an account aren't tracked.</p>
       </div>
 
       <h2 class="section-h">Food education, not food fear</h2>
       <div class="card">
-        <p>Unwrap is about understanding food, not about being told off. There's no guilt, no scare stories and no "good" or "bad" foods. It explains what is on the label so people can make their own choices.</p>
-        <p>It goes alongside cooking and nutrition lessons. The skills are the same ones schools are being asked to teach: knowing where food comes from, how it is made, and how to judge the claims on a packet.</p>
+        <p>Unwrap is about understanding food, not being told off. There's no guilt, no scare stories and no "good" or "bad" foods. It explains what's on the label so people can make their own choices.</p>
+        <p>It sits alongside cooking and nutrition lessons. The skills are the ones schools are being asked to teach: knowing where food comes from, how it's made, and how to judge the claims on a packet.</p>
       </div>
 
       <div class="is-isnt">
@@ -94,7 +113,7 @@
           <ul class="checklist">
             <li>A guide to what's in a product, ingredient by ingredient</li>
             <li>A processing score from 1 to 10, with the working shown</li>
-            <li>Simpler swaps and make-your-own ideas</li>
+            <li>Simpler swaps, make-your-own cards and recipes</li>
           </ul>
         </div>
         <div class="card">
@@ -106,11 +125,17 @@
           </ul>
         </div>
       </div>
-      <p class="fine" style="font-size:13px;color:var(--text-muted);margin-top:10px">The score is worked out only from what is printed on the label. How it works, and where the evidence is still debated, is set out on the <a class="email-link" href="/evidence.html">Evidence &amp; approach</a> page.</p>
+      <p class="fine" style="font-size:13px;color:var(--text-muted);margin-top:10px">The score is worked out only from what is printed on the label. How it works, and where the evidence is still debated, is on the <a class="email-link" href="/evidence.html">Evidence &amp; approach</a> page.</p>
 
-      <h2 class="section-h">Schools and food educators</h2>
+      <h2 class="section-h">Schools, groups and food educators</h2>
       <div class="card">
-        <p>We're making a free "read the label" classroom resource that works without the app. If you teach food, run a school kitchen or support schools with food education, we'd like to hear what would help you.</p>
+        <p>I've written free label-literacy and food education packs that work without the app, and they're ready to use now:</p>
+        <ul class="checklist">
+          <li><strong>Read the Label</strong> for primary (KS2): a full lesson or five 10&ndash;15 minute sessions</li>
+          <li><strong>Behind the Label</strong> for secondary (KS3): a full lesson or six short sessions</li>
+          <li><strong>Food Detectives</strong> for Cubs, Scouts, Brownies and Guides: two games-based meeting plans</li>
+        </ul>
+        <p>Every pack comes with teacher or leader notes and a sheet showing the source for every claim. They're free with an adult account on the <a class="email-link" href="/education.html">Education</a> page. If you teach food, run a group or support schools, I'd like to hear what would help you.</p>
       </div>
 
       <h2 class="section-h">Assets</h2>
@@ -119,14 +144,20 @@
           <img src="/assets/images/logo.png" alt="Unwrap logo" width="72" height="72">
           <div>
             <p><a class="email-link" href="/assets/images/logo.png" download="unwrap-logo.png">Download the logo (PNG)</a></p>
-            <p>Screenshots, photos and a live demo are available on request.</p>
           </div>
         </div>
+        <div class="asset-grid">
+          <a href="/assets/media/eddy-snow.jpg" download="unwrap-eddy.jpg"><img src="/assets/media/eddy-snow.jpg" alt="Eddy in a snowy field" loading="lazy" width="800" height="800"><span>Eddy</span></a>
+          <a href="/assets/images/aisle/french-fancies.jpg" download="unwrap-aisle-french-fancies.jpg"><img src="/assets/images/aisle/french-fancies.jpg" alt="A box of French Fancies held up in a supermarket aisle" loading="lazy" width="900" height="1200"><span>In the aisle</span></a>
+          <a href="/assets/media/myo-whisk.jpg" download="unwrap-make-your-own.jpg"><img src="/assets/media/myo-whisk.jpg" alt="Whisking pancake batter in a bowl" loading="lazy" width="800" height="800"><span>Make your own</span></a>
+          <a href="/assets/media/recipe-pancakes.jpg" download="unwrap-recipe.jpg"><img src="/assets/media/recipe-pancakes.jpg" alt="Apple pancakes cooking in a pan" loading="lazy" width="800" height="800"><span>Recipes</span></a>
+        </div>
+        <p style="margin-top:12px">All photos are my own. Tap one to download it. App screenshots and a live demo are available on request.</p>
       </div>
 
       <div class="card">
         <h3>Get in touch</h3>
-        <p>For interviews, demos, schools or partnerships, email Eddy directly.</p>
+        <p>For interviews, demos, schools or partnerships, email me directly.</p>
         <p><a class="email-link" href="mailto:eddy.at.unwrap@gmail.com?subject=Press%20enquiry">eddy.at.unwrap@gmail.com</a></p>
         <p style="margin-top:14px"><a class="btn btn-primary btn-sm" href="mailto:eddy.at.unwrap@gmail.com?subject=Press%20enquiry">Email Eddy</a></p>
       </div>
