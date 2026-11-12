@@ -456,6 +456,52 @@
     .score-scale { display: flex; align-items: center; gap: 10px; max-width: 420px; margin: 18px auto 0; font-size: 12px; color: var(--text-light); }
     .score-scale i { flex: 1; height: 8px; border-radius: 999px; background: linear-gradient(90deg, #1F7A4D 0%, #6E8E2B 22.2%, #B46915 44.4%, #B24A1C 66.7%, #8E1A14 100%); }
     .table-scroll { overflow-x: auto; }
+    /* ── Hero animation (see it, scan it, swap it, unwrap it): inline SVG, 8s loop ── */
+    .hero-anim { display: block; width: 100%; aspect-ratio: 9 / 16; background: #F0E7D9; overflow: hidden; }
+    .hero-anim svg { display: block; width: 100%; height: 100%; }
+    .ha-word { font-family: var(--font-display); font-weight: 800; font-stretch: 125%; font-size: 31px; letter-spacing: -0.4px; fill: #1E1B18; text-anchor: middle; opacity: 0; }
+    .ha-final { font-family: var(--font-effect); font-weight: 400; font-size: 50px; fill: #2D5F3E; text-anchor: middle; transform-origin: 135px 335px; }
+    .ha-underline { fill: none; stroke: #8FB468; stroke-width: 5; stroke-linecap: round; stroke-dasharray: 150; }
+    .ha-brackets { fill: none; stroke: #2D5F3E; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; transform-origin: 135px 190px; opacity: 0; }
+    .ha-scan, .ha-arrow { opacity: 0; }
+    .ha-mark { transform-origin: 135px 190px; }
+    .ha-vein { fill: none; stroke: #8FB468; stroke-width: 2; stroke-dasharray: 420; }
+    .ha-inner { transform-origin: 318.71px 508.56px; }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .hero-anim * { animation-duration: 8s; animation-iteration-count: infinite; animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1); }
+      .ha-stage     { animation-name: ha-stage; }
+      .ha-left      { animation-name: ha-rise; }
+      .ha-right     { animation-name: ha-rise-late; }
+      .ha-inner     { animation-name: ha-inner; }
+      .ha-vein      { animation-name: ha-vein; }
+      .ha-mark      { animation-name: ha-mark; }
+      .ha-w1        { animation-name: ha-w1; }
+      .ha-w2        { animation-name: ha-w2; }
+      .ha-w3        { animation-name: ha-w3; }
+      .ha-brackets  { animation-name: ha-brackets; }
+      .ha-scan      { animation-name: ha-scan; animation-timing-function: ease-in-out; }
+      .ha-arrow-fwd { animation-name: ha-arrow-fwd; }
+      .ha-arrow-back{ animation-name: ha-arrow-back; }
+      .ha-final     { animation-name: ha-final; }
+      .ha-underline { animation-name: ha-underline; }
+    }
+
+    @keyframes ha-stage      { 0%, 93% { opacity: 1; } 97%, 100% { opacity: 0; } }
+    @keyframes ha-rise       { 0% { opacity: 0; transform: translateY(170px); } 8%, 100% { opacity: 1; transform: none; } }
+    @keyframes ha-rise-late  { 0%, 3% { opacity: 0; transform: translateY(170px); } 11%, 100% { opacity: 1; transform: none; } }
+    @keyframes ha-inner      { 0%, 8% { opacity: 0; transform: scale(0.3); } 15%, 100% { opacity: 1; transform: none; } }
+    @keyframes ha-vein       { 0%, 12% { stroke-dashoffset: 420; } 19%, 100% { stroke-dashoffset: 0; } }
+    @keyframes ha-mark       { 0%, 45% { opacity: 1; transform: none; } 48.5%, 61% { opacity: 0; transform: scale(0.8); } 65% { opacity: 1; transform: scale(1.07); } 68.5%, 100% { opacity: 1; transform: none; } }
+    @keyframes ha-w1         { 0%, 9% { opacity: 0; transform: translateY(14px); } 13%, 23% { opacity: 1; transform: none; } 26%, 100% { opacity: 0; transform: translateY(-12px); } }
+    @keyframes ha-w2         { 0%, 26% { opacity: 0; transform: translateY(14px); } 30%, 43% { opacity: 1; transform: none; } 46%, 100% { opacity: 0; transform: translateY(-12px); } }
+    @keyframes ha-w3         { 0%, 46% { opacity: 0; transform: translateY(14px); } 50%, 60% { opacity: 1; transform: none; } 63%, 100% { opacity: 0; transform: translateY(-12px); } }
+    @keyframes ha-brackets   { 0%, 24% { opacity: 0; transform: scale(1.18); } 28%, 43% { opacity: 1; transform: none; } 46%, 100% { opacity: 0; transform: scale(1.1); } }
+    @keyframes ha-scan       { 0%, 27% { opacity: 0; transform: translateY(0); } 28.5% { opacity: 1; transform: translateY(0); } 35.5% { opacity: 1; transform: translateY(150px); } 42.5% { opacity: 1; transform: translateY(0); } 44%, 100% { opacity: 0; transform: translateY(0); } }
+    @keyframes ha-arrow-fwd  { 0%, 46.5% { opacity: 0; transform: translateX(-330px); } 47% { opacity: 1; transform: translateX(-330px); } 53%, 59% { opacity: 1; transform: none; } 64% { opacity: 1; transform: translateX(330px); } 64.5%, 100% { opacity: 0; transform: translateX(330px); } }
+    @keyframes ha-arrow-back { 0%, 46.5% { opacity: 0; transform: translateX(330px); } 47% { opacity: 1; transform: translateX(330px); } 53%, 59% { opacity: 1; transform: none; } 64% { opacity: 1; transform: translateX(-330px); } 64.5%, 100% { opacity: 0; transform: translateX(-330px); } }
+    @keyframes ha-final      { 0%, 65% { opacity: 0; transform: translateY(12px) scale(0.9); } 69.5%, 100% { opacity: 1; transform: none; } }
+    @keyframes ha-underline  { 0%, 69% { stroke-dashoffset: 150; } 75%, 100% { stroke-dashoffset: 0; } }
     @media (max-width: 760px) {
       .app-hero { grid-template-columns: 1fr; gap: 28px; padding: 28px 0 32px; }
       .app-hero .cta-row { padding: 0; }
@@ -513,9 +559,45 @@
           <p class="fine">Free to scan. UK products. On the App Store and Google Play.</p>
         </div>
         <!-- Shot needed: screen recording of a real scan, barcode to score to swap (portrait, 4:5) -->
-        <video class="hero-video app-hero-media app-hero-video" autoplay muted loop playsinline preload="metadata" poster="/assets/media/see-scan-swap-poster.jpg" aria-label="Animated Unwrap logo: see it, scan it, swap it, unwrap it">
-          <source src="/assets/media/see-scan-swap.mp4" type="video/mp4">
-        </video>
+        <div class="hero-anim app-hero-media app-hero-video" role="img" aria-label="Animated Unwrap logo: see it, scan it, swap it, unwrap it">
+          <svg viewBox="0 0 270 480" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+            <g class="ha-stage">
+              <g class="ha-mark">
+                <g transform="translate(77 128.6) scale(0.2057)">
+                  <path class="ha-right" fill="#6AA155" d="M563.92.13s-243.78-11.38-244.73,177.38v322.51s12.33,87.27-141.33,75.88c0,0,67.35,34.15,173.59,13.28,0,0,114.78-28.46,178.33-133.75,0,0,34.15-47.43,34.15-133.75V.13Z"/>
+                  <path class="ha-left" fill="#8FB468" d="M0,1.08s243.78-11.38,244.73,177.38v322.51s-12.33,87.27,141.33,75.88c0,0-67.35,34.15-173.59,13.28,0,0-114.78-28.46-178.33-133.75,0,0-34.15-47.43-34.15-133.75V1.08Z"/>
+                  <path class="ha-inner" fill="#4A8B41" d="M318.71,330.23s18.02-105.29,183.07-190.66c0,0,18.02,174.53-15.18,233.34,0,0-65.45,124.26-167.89,135.64v-178.33Z"/>
+                  <path class="ha-vein" d="M318.71,508.56c62.6-80.63,183.08-368.99,183.08-368.99"/>
+                </g>
+              </g>
+
+              <path class="ha-brackets" d="M55 124V112a8 8 0 0 1 8-8h12 M195 104h12a8 8 0 0 1 8 8v12 M215 256v12a8 8 0 0 1-8 8h-12 M75 276H63a8 8 0 0 1-8-8v-12"/>
+              <g class="ha-scan">
+                <rect x="59" y="106" width="152" height="18" rx="9" fill="#2D5F3E" opacity="0.14"/>
+                <rect x="59" y="113.5" width="152" height="3" rx="1.5" fill="#2D5F3E"/>
+              </g>
+
+              <g transform="translate(42 125) scale(0.62)">
+                <g class="ha-arrow ha-arrow-back">
+                  <g transform="translate(230 0) scale(-1 1)">
+                    <path d="M10 117Q80 100 150 112V82L220 128L150 174V144Q80 156 10 139Q26 128 10 117Z" fill="#8FB468" stroke="#F8F4EC" stroke-width="12" stroke-linejoin="round" paint-order="stroke"/>
+                    <path d="M28 128Q80 125 180 128" stroke="#F8F4EC" stroke-width="5" fill="none" stroke-linecap="round"/>
+                  </g>
+                </g>
+                <g class="ha-arrow ha-arrow-fwd">
+                  <path d="M80 71Q150 54 220 66V36L290 82L220 128V98Q150 110 80 93Q96 82 80 71Z" fill="#2D5F3E" stroke="#F8F4EC" stroke-width="12" stroke-linejoin="round" paint-order="stroke"/>
+                  <path d="M98 82Q150 79 250 82" stroke="#8FB468" stroke-width="5" fill="none" stroke-linecap="round"/>
+                </g>
+              </g>
+
+              <text class="ha-word ha-w1" x="135" y="346">See it.</text>
+              <text class="ha-word ha-w2" x="135" y="346">Scan it.</text>
+              <text class="ha-word ha-w3" x="135" y="346">Swap it.</text>
+              <text class="ha-final" x="135" y="350">Unwrap it.</text>
+              <path class="ha-underline" d="M68 369Q135 357 204 366"/>
+            </g>
+          </svg>
+        </div>
       </section>
 
       <!-- How it works -->
