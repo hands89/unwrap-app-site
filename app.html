@@ -456,6 +456,17 @@
     .score-scale { display: flex; align-items: center; gap: 10px; max-width: 420px; margin: 18px auto 0; font-size: 12px; color: var(--text-light); }
     .score-scale i { flex: 1; height: 8px; border-radius: 999px; background: linear-gradient(90deg, #1F7A4D 0%, #6E8E2B 22.2%, #B46915 44.4%, #B24A1C 66.7%, #8E1A14 100%); }
     .table-scroll { overflow-x: auto; }
+    /* ── App screenshots (real captures from v1.2.4) ── */
+    .phone { display: block; width: 100%; max-width: 210px; height: auto; aspect-ratio: 600 / 1304; margin: 0 auto 18px; border: 5px solid #1E1B18; border-radius: 30px; background: #F0E7D9; box-shadow: 0 10px 28px rgba(30, 27, 24, 0.14); }
+    .screens { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .screen { text-align: center; }
+    .screen h3 { font-size: 15px; font-weight: 600; margin-bottom: 5px; }
+    .screen p  { font-size: 14px; color: var(--text-muted); line-height: 1.55; max-width: 260px; margin: 0 auto; }
+    @media (max-width: 640px) {
+      .screens { grid-template-columns: 1fr; gap: 32px; }
+      .phone { max-width: 190px; }
+    }
+
     /* ── Hero animation (see it, scan it, swap it, unwrap it): inline SVG, 8s loop ── */
     .hero-anim { display: block; width: 100%; aspect-ratio: 9 / 16; background: #F0E7D9; overflow: hidden; }
     .hero-anim svg { display: block; width: 100%; height: 100%; }
@@ -606,16 +617,19 @@
         <h2 class="section-title">Three taps.</h2>
         <div class="steps">
           <div class="step">
+            <img class="phone" src="/assets/images/app/scan-result.webp" width="600" height="1304" loading="lazy" alt="Unwrap scan result for a sliced white loaf: a score of 6.3, the product photo and the ingredient list with four ingredients flagged">
             <div class="step-num">1</div>
             <h3>Scan</h3>
             <p>Point your camera at a food barcode, or snap a supermarket receipt to look over a whole shop.</p>
           </div>
           <div class="step">
+            <img class="phone" src="/assets/images/app/ingredient-sheet.webp" width="600" height="1304" loading="lazy" alt="Unwrap explaining a flagged ingredient, E472e: an emulsifier used in bread and baked goods to strengthen dough">
             <div class="step-num">2</div>
             <h3>Understand</h3>
             <p>See every ingredient laid out. Flagged ones are highlighted, each with a plain-English explanation.</p>
           </div>
           <div class="step">
+            <img class="phone" src="/assets/images/app/swaps.webp" width="600" height="1304" loading="lazy" alt="Unwrap showing a swap with a lower score, an alternative and a Make Your Own card under a scanned product">
             <div class="step-num">3</div>
             <h3>Decide</h3>
             <p>Look at swaps, alternatives and make-your-own ideas. Or do nothing. It's your call.</p>
@@ -717,6 +731,29 @@
             </ul>
             <span class="tier-tag">Supporters</span>
           </a>
+        </div>
+      </section>
+
+      <!-- More screens -->
+      <section class="section">
+        <div class="section-label">Inside the app</div>
+        <h2 class="section-title">A few more screens.</h2>
+        <div class="screens">
+          <div class="screen">
+            <img class="phone" src="/assets/images/app/allergen-alert.webp" width="600" height="1304" loading="lazy" alt="Unwrap allergen alert on a scanned loaf, saying the ingredients list indicates it contains gluten">
+            <h3>Allergen alerts</h3>
+            <p>Tell Unwrap what you avoid and it flags it on the scan. Always check the pack as well.</p>
+          </div>
+          <div class="screen">
+            <img class="phone" src="/assets/images/app/myo-card.webp" width="600" height="1304" loading="lazy" alt="Unwrap Make Your Own card for a simple white loaf, with four ingredients, the time it takes and the method">
+            <h3>Make Your Own cards</h3>
+            <p>What you need, how long it takes and the steps, on one card.</p>
+          </div>
+          <div class="screen">
+            <img class="phone" src="/assets/images/app/history.webp" width="600" height="1304" loading="lazy" alt="Unwrap scan history, a list of scanned products each with its score">
+            <h3>Your scan history</h3>
+            <p>Everything you've scanned, with its score, ready to look at again.</p>
+          </div>
         </div>
       </section>
 
