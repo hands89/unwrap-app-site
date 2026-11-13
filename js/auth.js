@@ -100,7 +100,48 @@
     }
   }
 
+  // True when this browser holds a saved sign-in. A hint for the first paint
+  // only: every real decision still goes through getSession().
+  function maybeSignedIn() {
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        if (/^sb-.+-auth-token$/.test(localStorage.key(i))) return true;
+      }
+    } catch (e) { /* storage blocked: treat as signed out */ }
+    return false;
+  }
+
+  // Membership, remembered for this browser tab so each page doesn't wait on
+  // the get-tier function again: 10 minutes for a Supporter, 1 minute otherwise
+  // (so a new membership shows up quickly). Only confirmed answers are kept.
+  const TIER_KEY = "unwrap.tier";
+  function peekTier(uid) {
+    try {
+      const c = JSON.parse(sessionStorage.getItem(TIER_KEY) || "null");
+      if (c && (!uid || c.uid === uid) && Date.now() < c.until) return c.tier;
+    } catch (e) { /* ignore */ }
+    return null;
+  }
+  async function getTierCached(session) {
+    const uid = session.user.id;
+    const hit = peekTier(uid);
+    if (hit) return hit;
+    const t = await getTier(session);
+    if (t && t.verified) {
+      try {
+        sessionStorage.setItem(TIER_KEY, JSON.stringify({ uid, tier: t, until: Date.now() + (t.tier === "subscriber" ? 10 : 1) * 60000 }));
+      } catch (e) { /* ignore */ }
+    }
+    return t;
+  }
+  function forgetCached() {
+    try {
+      Object.keys(sessionStorage).filter((k) => k.startsWith("unwrap.")).forEach((k) => sessionStorage.removeItem(k));
+    } catch (e) { /* ignore */ }
+  }
+
   async function signOut() {
+    forgetCached();
     // This browser only: Supabase's default ends every session, which signed
     // people out of the app on their phone too (found 4 Nov 2026).
     await sb.auth.signOut({ scope: "local" });
@@ -113,10 +154,11 @@
     return n.startsWith("/") && !n.startsWith("//") ? n : (fallback || "/account.html");
   }
 
-  window.unwrapAuth = { sb, $, getSession, requireAuth, getTier, signOut, nextPath, paintNav };
+  window.unwrapAuth = { sb, $, getSession, requireAuth, getTier, getTierCached, peekTier, maybeSignedIn, signOut, nextPath, paintNav };
 
   document.addEventListener("DOMContentLoaded", async () => {
     wireMenuToggle();
+    if (maybeSignedIn()) paintNav({});   // show "Account" straight away; corrected below if the sign-in has lapsed
     paintNav(await getSession());
     if (sb) sb.auth.onAuthStateChange((_event, session) => paintNav(session));
   });

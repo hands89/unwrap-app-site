@@ -47,20 +47,23 @@
   // into one with a list of every category path it appears on.
   async function fetchMyoCards() {
     if (!sb) throw new Error("Not connected");
-    const { data, error } = await sb
+    const cardsReq = sb
       .from("myo_cards")
       .select("id, category_path, title, subtitle, description, why_it_helps, ingredients, instructions, time_minutes, cost_band, difficulty, tips, tags, display_order")
       .eq("is_active", true)
       .order("title");
-    if (error) throw error;
 
     // Since 7 Nov 2026 one card can serve several categories (content_paths),
     // and cards that moved to Recipes carry make:hide. Recipes that use a card
     // are listed on it ("Meals with it").
-    const [pathsRes, usesRes] = await Promise.all([
+    // All three reads go out together (they used to queue behind the cards).
+    const [cardsRes, pathsRes, usesRes] = await Promise.all([
+      cardsReq,
       sb.from("content_paths").select("content_id, category_path").eq("content_type", "myo"),
       sb.from("recipes").select("id, title, recipe_ingredients(myo_card_id)").eq("is_active", true).order("title"),
     ]);
+    const { data, error } = cardsRes;
+    if (error) throw error;
     const extraPaths = new Map();
     for (const p of (pathsRes.data || [])) {
       if (!extraPaths.has(p.content_id)) extraPaths.set(p.content_id, []);
@@ -122,6 +125,20 @@
       steps: (r.recipe_steps || []).slice().sort((a, b) => a.step_number - b.step_number).map((s) => s.instruction),
     }));
     return recipes;
+  }
+
+  // What a page fetched, remembered for this browser tab (30 minutes, per
+  // account) so going back to a page shows it at once. Pages still fetch a
+  // fresh copy in the background and swap it in if anything changed.
+  function readCache(name, uid) {
+    try {
+      const c = JSON.parse(sessionStorage.getItem("unwrap.data." + name) || "null");
+      if (c && c.uid === uid && Date.now() - c.at < 30 * 60000) return c.data;
+    } catch (e) { /* ignore */ }
+    return null;
+  }
+  function writeCache(name, uid, data) {
+    try { sessionStorage.setItem("unwrap.data." + name, JSON.stringify({ uid, at: Date.now(), data })); } catch (e) { /* full or blocked */ }
   }
 
   // ── Scan history & product lookup (signed-in, any tier) ──────────────────
@@ -208,5 +225,5 @@
     return "rgb(" + c.join(",") + ")";
   }
 
-  window.unwrapData = { fetchMyoCards, fetchRecipes, fetchHistory, searchProducts, fetchProduct, scoreColour, l1Label };
+  window.unwrapData = { fetchMyoCards, fetchRecipes, readCache, writeCache, fetchHistory, searchProducts, fetchProduct, scoreColour, l1Label };
 })();

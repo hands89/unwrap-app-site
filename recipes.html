@@ -16,8 +16,8 @@
   <link rel="stylesheet" href="/css/theme.css?v=7" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/store.js"></script>
-  <script src="/js/auth.js?v=3"></script>
-  <script src="/js/data.js?v=2"></script>
+  <script src="/js/auth.js?v=4"></script>
+  <script src="/js/data.js?v=5"></script>
 
   <style>
     .myo-hero { padding: 28px 0 18px; }
@@ -82,6 +82,21 @@
     }
     .meta span.muted { background: var(--cream); color: var(--text-muted); }
     .empty { padding: 40px 20px; text-align: center; color: var(--text-muted); font-size: 15px; }
+
+    /* Picture slot on every card, and the loading tiles (v1.3.0) */
+    .mcard { padding: 0; gap: 0; overflow: hidden; }
+    .mcard .pending { aspect-ratio: 16 / 10; border-radius: 0; font-size: 12px; }
+    .mcard-body { padding: 14px 18px 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .mcard.is-skel { cursor: default; pointer-events: none; }
+    .mcard.is-skel .pending::before, .mcard.is-skel .pending::after { display: none; }
+    .skel-line { height: 13px; border-radius: 7px; background: var(--cream-deep); }
+    .skel-line.w60 { width: 60%; height: 18px; }
+    .skel-line.w85 { width: 85%; }
+    .skel-line.w40 { width: 40%; margin-top: 8px; }
+    @media (prefers-reduced-motion: no-preference) {
+      .mcard.is-skel { animation: skel 0.9s ease-in-out infinite alternate; }
+      @keyframes skel { from { opacity: 1; } to { opacity: 0.5; } }
+    }
 
     /* Detail */
     dialog.detail {
@@ -257,10 +272,14 @@
       $("gate-actions").innerHTML = actionsHtml;
     }
 
-    const session = await A.getSession();
-    if (!session) { renderPlaceholder(); return; }
-    const tier = await A.getTier(session);
-    if (tier.tier !== "subscriber") {
+    // ── Fast first paint ───────────────────────────────────────────────────
+    // Before any network call: if this browser holds a sign-in, hide the
+    // sign-in gate and show loading tiles, so signed-in people never see the
+    // gate flash up or an empty page. The checks below then confirm it.
+    function lock() { $("gate").classList.remove("is-in"); $("area").classList.add("gated-blur"); }
+    function unlock() { $("gate").classList.add("is-in"); $("area").classList.remove("gated-blur"); $("q").disabled = false; }
+    function notSupporter(tier) {
+      lock();
       showGate(
         "Recipes are for Supporters",
         tier.verified
@@ -269,27 +288,55 @@
         '<a class="btn btn-primary" href="' + UNWRAP_STORE.best + '" target="_blank" rel="noopener">Get the app</a><a class="btn btn-outline" href="/account.html">Your account</a>'
       );
       renderPlaceholder();
-      return;
     }
-    $("gate").classList.add("is-in");
-    $("area").classList.remove("gated-blur");
+    const guess = A.maybeSignedIn() ? A.peekTier() : null;
+    if (!A.maybeSignedIn()) renderPlaceholder();
+    else if (guess && guess.tier !== "subscriber") notSupporter(guess);
+    else { unlock(); renderSkeleton(); }
+
+    const session = await A.getSession();
+    if (!session) { lock(); renderPlaceholder(); return; }
+    const uid = session.user.id;
+
+    // Membership and the recipes are fetched side by side, and both are
+    // remembered for this browser tab, so coming back to the page is instant.
+    const remembered = D.readCache("recipes", uid);
+    const fresh = D.fetchRecipes().then((rows) => { D.writeCache("recipes", uid, rows); return rows; });
+    fresh.catch(() => {});
+    const tier = await A.getTierCached(session);
+    if (tier.tier !== "subscriber") { notSupporter(tier); return; }
+    unlock();
 
     // ── Data ───────────────────────────────────────────────────────────────
-    let recipes = [];
-    try {
-      recipes = await D.fetchRecipes();
-    } catch (e) {
-      $("grid").innerHTML = '<p class="empty">Couldn\'t load the recipes: ' + esc(e.message || e) + '</p>';
-      return;
+    let recipes = remembered;
+    if (!recipes) {
+      try {
+        recipes = await fresh;
+      } catch (e) {
+        $("grid").removeAttribute("aria-busy");
+        $("grid").innerHTML = '<p class="empty">Couldn\'t load the recipes: ' + esc(e.message || e) + '</p>';
+        return;
+      }
+    } else {
+      // Showing the remembered copy; swap in the fresh one if anything changed.
+      fresh.then((rows) => {
+        if (JSON.stringify(rows) === JSON.stringify(recipes)) return;
+        recipes = rows; buildCats(); render();
+      }).catch(() => {});
     }
 
-    const counts = {};
-    for (const r of recipes) for (const t of r.tags) counts[t] = (counts[t] || 0) + 1;
-    const tags = Object.keys(counts).sort((a, b) => counts[b] - counts[a] || a.localeCompare(b));
+    // Tag chips, biggest first. Rebuilt if a fresh copy of the recipes arrives.
     let activeTag = "";
     const catsEl = $("cats");
-    catsEl.innerHTML = '<button type="button" class="cat" data-cat="" aria-pressed="true">All <small>' + recipes.length + '</small></button>' +
-      tags.map((t) => '<button type="button" class="cat" data-cat="' + esc(t) + '" aria-pressed="false">' + esc(tagLabel(t)) + ' <small>' + counts[t] + '</small></button>').join("");
+    function buildCats() {
+      const counts = {};
+      for (const r of recipes) for (const t of r.tags) counts[t] = (counts[t] || 0) + 1;
+      const tags = Object.keys(counts).sort((a, b) => counts[b] - counts[a] || a.localeCompare(b));
+      if (activeTag && !counts[activeTag]) activeTag = "";
+      catsEl.innerHTML = '<button type="button" class="cat" data-cat="" aria-pressed="' + (activeTag === "") + '">All <small>' + recipes.length + '</small></button>' +
+        tags.map((t) => '<button type="button" class="cat" data-cat="' + esc(t) + '" aria-pressed="' + (activeTag === t) + '">' + esc(tagLabel(t)) + ' <small>' + counts[t] + '</small></button>').join("");
+    }
+    buildCats();
     catsEl.addEventListener("click", (ev) => {
       const b = ev.target.closest(".cat"); if (!b) return;
       activeTag = b.dataset.cat;
@@ -315,11 +362,12 @@
     }
 
     function render() {
+      $("grid").removeAttribute("aria-busy");
       const term = q.value.trim().toLowerCase();
       const list = recipes.filter((r) => (!activeTag || r.tags.includes(activeTag)) && matches(r, term));
       $("count").textContent = list.length === recipes.length ? recipes.length + " recipes" : list.length + " of " + recipes.length + " recipes";
       $("grid").innerHTML = list.length
-        ? list.map((r) => '<button type="button" class="mcard" data-id="' + r.id + '"><h3>' + esc(r.title) + '</h3><div class="sub">' + esc(r.subtitle || "") + "</div>" + metaHtml(r) + "</button>").join("")
+        ? list.map((r) => '<button type="button" class="mcard" data-id="' + r.id + '"><div class="pending" aria-hidden="true"></div><div class="mcard-body"><h3>' + esc(r.title) + '</h3><div class="sub">' + esc(r.subtitle || "") + "</div>" + metaHtml(r) + "</div></button>").join("")
         : '<p class="empty">Nothing matches that. Try a shorter word, or clear the tag.</p>';
     }
 
@@ -358,11 +406,20 @@
     const m = location.hash.match(/^#recipe=([0-9a-f-]{36})$/i);
     if (m) open(m[1]);
 
+    // Loading tiles: the shape of the page while the real ones arrive.
+    function renderSkeleton() {
+      $("count").textContent = "";
+      $("grid").setAttribute("aria-busy", "true");
+      $("grid").innerHTML = Array.from({ length: 9 }, () =>
+        '<div class="mcard is-skel" aria-hidden="true"><div class="pending"></div><div class="mcard-body"><div class="skel-line w60"></div><div class="skel-line w85"></div><div class="skel-line w40"></div></div></div>').join("");
+    }
+
     function renderPlaceholder() {
       $("count").textContent = "";
+      $("grid").removeAttribute("aria-busy");
       $("grid").innerHTML = Array.from({ length: 6 }, (_, i) =>
-        '<div class="mcard" aria-hidden="true"><h3>' + ["Simple tomato pasta", "Shakshuka", "Homemade granola", "Simple white loaf", "Hummus with warm pitta", "Shortbread fingers"][i] +
-        '</h3><div class="sub">Built from a Make Your Own card.</div><div class="meta"><span>30 min</span><span class="muted">Easy</span></div></div>').join("");
+        '<div class="mcard" aria-hidden="true"><div class="pending" aria-hidden="true"></div><div class="mcard-body"><h3>' + ["Simple tomato pasta", "Shakshuka", "Homemade granola", "Simple white loaf", "Hummus with warm pitta", "Shortbread fingers"][i] +
+        '</h3><div class="sub">Built from a Make Your Own card.</div><div class="meta"><span>30 min</span><span class="muted">Easy</span></div></div></div>').join("");
       $("q").disabled = true;
     }
   })();

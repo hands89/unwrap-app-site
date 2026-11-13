@@ -16,8 +16,8 @@
   <link rel="stylesheet" href="/css/theme.css?v=7" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/store.js"></script>
-  <script src="/js/auth.js?v=3"></script>
-  <script src="/js/data.js?v=2"></script>
+  <script src="/js/auth.js?v=4"></script>
+  <script src="/js/data.js?v=5"></script>
 
   <style>
     .myo-hero { padding: 28px 0 18px; }
@@ -82,6 +82,21 @@
     }
     .meta span.muted { background: var(--cream); color: var(--text-muted); }
     .empty { padding: 40px 20px; text-align: center; color: var(--text-muted); font-size: 15px; }
+
+    /* Picture slot on every card, and the loading tiles (v1.3.0) */
+    .mcard { padding: 0; gap: 0; overflow: hidden; }
+    .mcard .pending { aspect-ratio: 16 / 10; border-radius: 0; font-size: 12px; }
+    .mcard-body { padding: 14px 18px 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .mcard.is-skel { cursor: default; pointer-events: none; }
+    .mcard.is-skel .pending::before, .mcard.is-skel .pending::after { display: none; }
+    .skel-line { height: 13px; border-radius: 7px; background: var(--cream-deep); }
+    .skel-line.w60 { width: 60%; height: 18px; }
+    .skel-line.w85 { width: 85%; }
+    .skel-line.w40 { width: 40%; margin-top: 8px; }
+    @media (prefers-reduced-motion: no-preference) {
+      .mcard.is-skel { animation: skel 0.9s ease-in-out infinite alternate; }
+      @keyframes skel { from { opacity: 1; } to { opacity: 0.5; } }
+    }
 
     /* Detail */
     dialog.detail {
@@ -257,13 +272,14 @@
       $("gate-actions").innerHTML = actionsHtml;
     }
 
-    const session = await A.getSession();
-    if (!session) {
-      renderPlaceholder();
-      return;
-    }
-    const tier = await A.getTier(session);
-    if (tier.tier !== "subscriber") {
+    // ── Fast first paint ───────────────────────────────────────────────────
+    // Before any network call: if this browser holds a sign-in, hide the
+    // sign-in gate and show loading tiles, so signed-in people never see the
+    // gate flash up or an empty page. The checks below then confirm it.
+    function lock() { $("gate").classList.remove("is-in"); $("area").classList.add("gated-blur"); }
+    function unlock() { $("gate").classList.add("is-in"); $("area").classList.remove("gated-blur"); $("q").disabled = false; }
+    function notSupporter(tier) {
+      lock();
       showGate(
         "Make Your Own is for Supporters",
         tier.verified
@@ -272,28 +288,55 @@
         '<a class="btn btn-primary" href="' + UNWRAP_STORE.best + '" target="_blank" rel="noopener">Get the app</a><a class="btn btn-outline" href="/account.html">Your account</a>'
       );
       renderPlaceholder();
-      return;
     }
-    $("gate").classList.add("is-in");
-    $("area").classList.remove("gated-blur");
+    const guess = A.maybeSignedIn() ? A.peekTier() : null;
+    if (!A.maybeSignedIn()) renderPlaceholder();
+    else if (guess && guess.tier !== "subscriber") notSupporter(guess);
+    else { unlock(); renderSkeleton(); }
+
+    const session = await A.getSession();
+    if (!session) { lock(); renderPlaceholder(); return; }
+    const uid = session.user.id;
+
+    // Membership and the cards are fetched side by side, and both are
+    // remembered for this browser tab, so coming back to the page is instant.
+    const remembered = D.readCache("cards", uid);
+    const fresh = D.fetchMyoCards().then((rows) => { D.writeCache("cards", uid, rows); return rows; });
+    fresh.catch(() => {});
+    const tier = await A.getTierCached(session);
+    if (tier.tier !== "subscriber") { notSupporter(tier); return; }
+    unlock();
 
     // ── Data ───────────────────────────────────────────────────────────────
-    let cards = [];
-    try {
-      cards = await D.fetchMyoCards();
-    } catch (e) {
-      $("grid").innerHTML = '<p class="empty">Couldn\'t load the cards: ' + esc(e.message || e) + '</p>';
-      return;
+    let cards = remembered;
+    if (!cards) {
+      try {
+        cards = await fresh;
+      } catch (e) {
+        $("grid").removeAttribute("aria-busy");
+        $("grid").innerHTML = '<p class="empty">Couldn\'t load the cards: ' + esc(e.message || e) + '</p>';
+        return;
+      }
+    } else {
+      // Showing the remembered copy; swap in the fresh one if anything changed.
+      fresh.then((rows) => {
+        if (JSON.stringify(rows) === JSON.stringify(cards)) return;
+        cards = rows; buildCats(); render();
+      }).catch(() => {});
     }
 
-    // Category chips, biggest first.
-    const counts = {};
-    for (const c of cards) for (const l1 of c.l1s) counts[l1] = (counts[l1] || 0) + 1;
-    const l1s = Object.keys(counts).sort((a, b) => counts[b] - counts[a] || D.l1Label(a).localeCompare(D.l1Label(b)));
+    // Category chips, biggest first. Rebuilt if a fresh copy of the cards arrives.
     let activeCat = "";
     const catsEl = $("cats");
-    catsEl.innerHTML = '<button type="button" class="cat" data-cat="" aria-pressed="true">All <small>' + cards.length + '</small></button>' +
-      l1s.map((k) => '<button type="button" class="cat" data-cat="' + esc(k) + '" aria-pressed="false">' + esc(D.l1Label(k)) + ' <small>' + counts[k] + '</small></button>').join("");
+    function buildCats() {
+      const counts = {};
+      for (const c of cards) for (const l1 of c.l1s) counts[l1] = (counts[l1] || 0) + 1;
+      const l1s = Object.keys(counts).sort((a, b) => counts[b] - counts[a] || D.l1Label(a).localeCompare(D.l1Label(b)));
+      if (activeCat && !counts[activeCat]) activeCat = "";
+      catsEl.innerHTML = '<button type="button" class="cat" data-cat="" aria-pressed="' + (activeCat === "") + '">All <small>' + cards.length + '</small></button>' +
+        l1s.map((k) => '<button type="button" class="cat" data-cat="' + esc(k) + '" aria-pressed="' + (activeCat === k) + '">' + esc(D.l1Label(k)) + ' <small>' + counts[k] + '</small></button>').join("");
+    }
+    buildCats();
     catsEl.addEventListener("click", (ev) => {
       const b = ev.target.closest(".cat"); if (!b) return;
       activeCat = b.dataset.cat;
@@ -319,11 +362,12 @@
     }
 
     function render() {
+      $("grid").removeAttribute("aria-busy");
       const term = q.value.trim().toLowerCase();
       const list = cards.filter((c) => (!activeCat || c.l1s.includes(activeCat)) && matches(c, term));
       $("count").textContent = list.length === cards.length ? cards.length + " cards" : list.length + " of " + cards.length + " cards";
       $("grid").innerHTML = list.length
-        ? list.map((c) => '<button type="button" class="mcard" data-id="' + c.id + '"><h3>' + esc(c.title) + '</h3><div class="sub">' + esc(c.subtitle || "") + "</div>" + metaHtml(c) + "</button>").join("")
+        ? list.map((c) => '<button type="button" class="mcard" data-id="' + c.id + '"><div class="pending" aria-hidden="true"></div><div class="mcard-body"><h3>' + esc(c.title) + '</h3><div class="sub">' + esc(c.subtitle || "") + "</div>" + metaHtml(c) + "</div></button>").join("")
         : '<p class="empty">Nothing matches that. Try a shorter word, or clear the category.</p>';
     }
 
@@ -375,12 +419,21 @@
     const m = location.hash.match(/^#card=([0-9a-f-]{36})$/i);
     if (m) open(m[1]);
 
+    // Loading tiles: the shape of the page while the real ones arrive.
+    function renderSkeleton() {
+      $("count").textContent = "";
+      $("grid").setAttribute("aria-busy", "true");
+      $("grid").innerHTML = Array.from({ length: 9 }, () =>
+        '<div class="mcard is-skel" aria-hidden="true"><div class="pending"></div><div class="mcard-body"><div class="skel-line w60"></div><div class="skel-line w85"></div><div class="skel-line w40"></div></div></div>').join("");
+    }
+
     // Grey placeholder tiles behind the gate, so the page shows its shape.
     function renderPlaceholder() {
       $("count").textContent = "";
+      $("grid").removeAttribute("aria-busy");
       $("grid").innerHTML = Array.from({ length: 9 }, (_, i) =>
-        '<div class="mcard" aria-hidden="true"><h3>' + ["Tomato ketchup", "Wholemeal loaf", "Sea salt crisps", "Fruit yoghurt", "Fajita seasoning", "Oat flapjack", "Hummus", "Pesto", "Granola"][i] +
-        '</h3><div class="sub">A few ingredients and a few steps.</div><div class="meta"><span>20 min</span><span class="muted">Easy</span></div></div>').join("");
+        '<div class="mcard" aria-hidden="true"><div class="pending" aria-hidden="true"></div><div class="mcard-body"><h3>' + ["Tomato ketchup", "Wholemeal loaf", "Sea salt crisps", "Fruit yoghurt", "Fajita seasoning", "Oat flapjack", "Hummus", "Pesto", "Granola"][i] +
+        '</h3><div class="sub">A few ingredients and a few steps.</div><div class="meta"><span>20 min</span><span class="muted">Easy</span></div></div></div>').join("");
       $("q").disabled = true;
     }
   })();
