@@ -43,6 +43,8 @@
       border: 1px solid var(--border); color: var(--text-muted); box-shadow: var(--shadow-sm);
     }
 
+    .edu-banner { aspect-ratio: 2 / 1; border: 1px solid var(--border); margin: 0 0 24px; }
+
     /* Account gate */
     .gate {
       display: flex; gap: 18px; align-items: center; justify-content: space-between; flex-wrap: wrap;
@@ -175,6 +177,11 @@
           <span>Every fact sourced</span>
         </div>
       </section>
+
+      <!-- A spread built from the real pack pages (rendered from the PDFs). A graphic, not a photo. -->
+      <div class="photo edu-banner">
+        <img src="/assets/media/education-packs.jpg" alt="Pages from the lesson packs laid out together: the Read the Label and Behind the Label title slides, a Kitchen or Factory sorting sheet, a Job Match worksheet, an ingredient word search and the Food Detectives leader pack" width="1600" height="900">
+      </div>
 
       <!-- Account gate: text and buttons are filled in by the script below -->
       <div class="gate" id="gate">

@@ -507,6 +507,16 @@
       .app-hero .cta-row { padding: 0; }
       .app-hero-media { max-width: 280px; }
     }
+    /* Inside the app: five screenshots, a row on desktop, a swipe strip on phones */
+    .screens { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+    .screen { margin: 0; }
+    .screen img { width: 100%; height: auto; -webkit-mask-image: linear-gradient(#000 80%, transparent); mask-image: linear-gradient(#000 80%, transparent); }
+    .screen figcaption { font-size: 13px; color: var(--text-muted); line-height: 1.5; text-align: center; margin-top: 2px; }
+    .screen-fx { display: block; font-family: var(--font-effect); font-size: 24px; line-height: 1.1; color: var(--accent-fx); margin-bottom: 4px; }
+    @media (max-width: 760px) {
+      .screens { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 14px; margin: 0 calc(-1 * var(--gutter)); padding: 0 var(--gutter) 10px; }
+      .screen { flex: 0 0 58%; scroll-snap-align: center; }
+    }
   </style>
 </head>
 
@@ -597,6 +607,34 @@
               <path class="ha-underline" d="M68 369Q135 357 204 366"/>
             </g>
           </svg>
+        </div>
+      </section>
+
+      <!-- Inside the app: the five App Store screens (1.2.4), captions cropped off and set as text -->
+      <section class="section">
+        <div class="section-label">Inside the app</div>
+        <h2 class="section-title">What you see when you scan.</h2>
+        <div class="screens" role="group" aria-label="Screenshots from the app" tabindex="0">
+          <figure class="screen">
+            <img src="/assets/media/app-screen-see.jpg" alt="A scan result in the app: a white loaf scoring 6.3, with its photo and flagged ingredients listed underneath" loading="lazy" width="520" height="854">
+            <figcaption><span class="screen-fx">See it</span>A score from 1.0 to 10.0, worked out from what is printed on the label.</figcaption>
+          </figure>
+          <figure class="screen">
+            <img src="/assets/media/app-screen-know.jpg" alt="An ingredient sheet in the app explaining E472e, an emulsifier used in bread" loading="lazy" width="520" height="854">
+            <figcaption><span class="screen-fx">Know it</span>Tap a flagged ingredient to see what it is and why it counts.</figcaption>
+          </figure>
+          <figure class="screen">
+            <img src="/assets/media/app-screen-swap.jpg" alt="The swaps screen in the app, showing a lower-scoring loaf, an alternative and a Make Your Own card" loading="lazy" width="520" height="854">
+            <figcaption><span class="screen-fx">Swap it</span>Like-for-like swaps, plus alternatives when a straight swap does not exist.</figcaption>
+          </figure>
+          <figure class="screen">
+            <img src="/assets/media/app-screen-make.jpg" alt="A Make Your Own card in the app for a simple white loaf, with ingredients and method" loading="lazy" width="520" height="854">
+            <figcaption><span class="screen-fx">Make it</span>Simple ways to make everyday things like bread, sauces and crisps.</figcaption>
+          </figure>
+          <figure class="screen">
+            <img src="/assets/media/app-screen-avoid.jpg" alt="A scan result in the app showing an allergen alert for gluten" loading="lazy" width="520" height="854">
+            <figcaption><span class="screen-fx">Avoid it</span>Allergens and ingredients you choose, with a strict mode for "may contain".</figcaption>
+          </figure>
         </div>
       </section>
 
