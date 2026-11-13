@@ -717,7 +717,6 @@ img { display: block; max-width: 100%; }
   width: var(--hdr);
   margin-left: calc((100% - var(--hdr)) / 2);
 }
-}
 
 /* ══════════════════════════════════════════════
    Photos + "Picture pending" placeholder (V1.1.0)
