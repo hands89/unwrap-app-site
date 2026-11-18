@@ -13,10 +13,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Figtree:ital,wght@0,300..900;1,300..900&family=Atkinson+Hyperlegible+Next:ital,wght@0,200..800;1,200..800&family=Caveat+Brush&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="/css/theme.css?v=7" />
+  <link rel="stylesheet" href="/css/theme.css?v=8" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/store.js"></script>
-  <script src="/js/auth.js?v=4"></script>
+  <script src="/js/auth.js?v=5"></script>
   <script src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_GB/appleid.auth.js"></script>
 </head>
 
@@ -201,7 +201,13 @@
       return m;
     };
 
-    const done = () => location.replace(A.nextPath("/account.html"));
+    // Brand-new Google and Apple accounts get tagged as made on the website
+    // first (js/auth.js). Run outside the auth event so it can't stall it.
+    let leaving = false;
+    const done = () => {
+      if (leaving) return; leaving = true;
+      setTimeout(async () => { await A.tagWebSignup(); location.replace(A.nextPath("/account.html")); }, 0);
+    };
 
     $("form-signin").addEventListener("submit", async (ev) => {
       ev.preventDefault(); msg("msg-signin", "");
@@ -217,7 +223,7 @@
       const pw = $("su-password").value;
       if (pw.length < 8) return msg("msg-signup", "Please use at least 8 characters.");
       const btn = $("btn-signup"); busy(btn, true, "Create account");
-      const { data, error } = await sb.auth.signUp({ email: $("su-email").value.trim(), password: pw, options: { emailRedirectTo: HERE } });
+      const { data, error } = await sb.auth.signUp({ email: $("su-email").value.trim(), password: pw, options: { emailRedirectTo: HERE, data: { signup_source: "web" } } });
       busy(btn, false, "Create account");
       if (error) return msg("msg-signup", friendly(error));
       if (data.session) return done();

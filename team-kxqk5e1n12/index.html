@@ -1863,7 +1863,7 @@ async function renderNumbers(force = false) {
 
   // Headline figures
   const tiles = [
-    ["Accounts", nfmt(u.accounts), `+${nfmt(u.new_accounts_30d)} in 30 days`],
+    ["Accounts", nfmt(u.accounts), `+${nfmt(u.new_accounts_30d)} in 30 days` + (u.web_accounts != null ? ` · ${nfmt(u.new_web_accounts_30d)} on the website` : "")],
     ["Signed in · 7 days", nfmt(u.active_7d), `${nfmt(u.active_30d)} in 30 days`],
     ["Logged scans · 7 days", nfmt(u.scans_7d), `${nfmt(u.scans_30d)} in 30 days`],
     ["Products live", nfmt(c.products_live), `+${nfmt(c.products_added_30d)} in 30 days`],
@@ -1878,10 +1878,11 @@ async function renderNumbers(force = false) {
   const series = numbersSeries === "weekly" ? d.weekly : d.monthly;
   const labels = numbersSeries === "weekly" ? series.weeks.map(weekLabel) : series.months.map(monthLabel);
   const trend = card(`<div class="row-head"><h3>Activity</h3><span class="grow"></span></div>
-    <p class="hint">${numbersSeries === "weekly" ? "Last 12 weeks, Monday to Sunday. The last bar is this week so far." : "Each month since January. The last bar is this month so far."}${series.new_users ? " <strong>New app users</strong> is every install that opened the app for the first time (from RevenueCat, guests included); <strong>new accounts</strong> is how many of those went on to sign up." : " Connect RevenueCat to see new app users (installs) beside new accounts."}</p>
+    <p class="hint">${numbersSeries === "weekly" ? "Last 12 weeks, Monday to Sunday. The last bar is this week so far." : "Each month since January. The last bar is this month so far."}${series.new_users ? " <strong>New app users</strong> is every install that opened the app for the first time (from RevenueCat, guests included); <strong>new accounts</strong> is how many of those went on to sign up." : " Connect RevenueCat to see new app users (installs) beside new accounts."}${series.signups_web ? " <strong>Made on the website</strong> counts accounts created on the website (teachers downloading lesson packs, mostly). Tagged from 18 Nov 2026; earlier website accounts count as app accounts." : ""}</p>
     <div class="chart-grid">
       ${series.new_users ? `<div><div class="section-title">New app users</div>${barChart(series.new_users, labels)}</div>` : ""}
       <div><div class="section-title">New accounts</div>${barChart(series.signups, labels)}</div>
+      ${series.signups_web ? `<div><div class="section-title">…of which made on the website</div>${barChart(series.signups_web, labels)}</div>` : ""}
       <div><div class="section-title">Logged scans</div>${barChart(series.scans, labels)}</div>
       <div><div class="section-title">Accounts scanning</div>${barChart(series.active, labels)}</div>
       ${numbersSeries === "monthly" && series.revenue_gross ? `<div><div class="section-title">Revenue (£, gross)</div>${barChart(series.revenue_gross, labels, true)}</div>` : ""}
@@ -1994,7 +1995,7 @@ async function downloadNumbers(btn) {
     add("Summary", [
       ["Unwrap numbers", new Date(d.generated_at)],
       [],
-      ["Accounts", u.accounts], ["New accounts 7d", u.new_accounts_7d], ["New accounts 30d", u.new_accounts_30d],
+      ["Accounts", u.accounts], ["New accounts 7d", u.new_accounts_7d], ["New accounts 30d", u.new_accounts_30d], ["Website accounts", u.web_accounts ?? ""], ["New website accounts 30d", u.new_web_accounts_30d ?? ""],
       ["Signed in 7d", u.active_7d], ["Signed in 30d", u.active_30d],
       ["Logged scans 7d", u.scans_7d], ["Logged scans 30d", u.scans_30d], ["Logged scans all time", u.scans_all_time],
       ["Accounts scanning 30d", u.accounts_scanning_30d], ["Receipts 30d", u.receipts_30d], ["Receipts all time", u.receipts_all_time],
@@ -2005,10 +2006,10 @@ async function downloadNumbers(btn) {
       ["Active trials", rc.connected ? rc.trials : ""], ["App users 28d", rc.connected ? rc.active_users_28d : ""],
       ["New app users 28d", rc.connected ? rc.new_customers_28d : ""], ["Revenue all time gross (£)", rc.connected ? rc.revenue_all_time : ""],
     ], [28, 22]);
-    add("Weekly", [["Week starting", "New app users", "New accounts", "Logged scans", "Accounts scanning"],
-      ...d.weekly.weeks.map((w, i) => [new Date(w + "T12:00:00Z"), d.weekly.new_users ? d.weekly.new_users[i] : "", d.weekly.signups[i], d.weekly.scans[i], d.weekly.active[i]])], [14, 14, 13, 13, 17]);
-    add("Monthly", [["Month", "New app users", "New accounts", "Logged scans", "Accounts scanning", "Revenue gross (£)"],
-      ...d.monthly.months.map((m, i) => [m, d.monthly.new_users ? d.monthly.new_users[i] : "", d.monthly.signups[i], d.monthly.scans[i], d.monthly.active[i], d.monthly.revenue_gross ? d.monthly.revenue_gross[i] : ""])], [10, 14, 13, 13, 17, 17]);
+    add("Weekly", [["Week starting", "New app users", "New accounts", "Made on website", "Logged scans", "Accounts scanning"],
+      ...d.weekly.weeks.map((w, i) => [new Date(w + "T12:00:00Z"), d.weekly.new_users ? d.weekly.new_users[i] : "", d.weekly.signups[i], d.weekly.signups_web ? d.weekly.signups_web[i] : "", d.weekly.scans[i], d.weekly.active[i]])], [14, 14, 13, 15, 13, 17]);
+    add("Monthly", [["Month", "New app users", "New accounts", "Made on website", "Logged scans", "Accounts scanning", "Revenue gross (£)"],
+      ...d.monthly.months.map((m, i) => [m, d.monthly.new_users ? d.monthly.new_users[i] : "", d.monthly.signups[i], d.monthly.signups_web ? d.monthly.signups_web[i] : "", d.monthly.scans[i], d.monthly.active[i], d.monthly.revenue_gross ? d.monthly.revenue_gross[i] : ""])], [10, 14, 13, 15, 13, 17, 17]);
     const top = [["Period", "Product", "Brand", "Score", "Accounts", "Scans"]];
     for (const [k, l] of [["week", "Last 7 days"], ["month", "Last 30 days"], ["year", "Last 12 months"]]) for (const r of d.scanned[k].top) top.push([l, r[0], r[1], r[2] ?? "", r[3], r[4]]);
     add("Most scanned", top, [15, 42, 22, 7, 9, 7]);
